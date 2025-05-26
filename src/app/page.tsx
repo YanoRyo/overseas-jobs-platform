@@ -1,9 +1,6 @@
 "use client";
-import Image from "next/image";
 import { useState } from "react";
-import Flag from "react-world-flags";
 import { Mentor } from "../types/mentor";
-import { countryCodeMap } from "../data/mentors";
 import { mentors } from "../data/mentors";
 import SearchFilters from "../components/SearchFilters";
 import MentorCard from "../components/MentorCard";

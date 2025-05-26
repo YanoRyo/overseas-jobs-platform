@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Flag from "react-world-flags";
+import Image from "next/image";
 import Link from "next/link";
 
 const countryCodeMap: Record<string, string> = {
@@ -11,7 +12,7 @@ const countryCodeMap: Record<string, string> = {
 };
 
 type Mentor = {
-  id: string;
+  id: number;
   name: string;
   avatarUrl: string;
   location: string;
@@ -32,14 +33,17 @@ export default function MentorCard({ mentor, onBook }: MentorCardProps) {
   return (
     <div className="flex flex-col md:flex-row border rounded-xl shadow p-8 gap-8 items-stretch min-h-[220px]">
       {/* ① アバター */}
-      <img
-        src={mentor.avatarUrl}
-        alt={mentor.name}
-        className="w-32 h-32 rounded-lg object-cover mx-auto md:mx-0"
-      />
+      <div className="relative w-32 h-32 flex-shrink-0">
+        <Image
+          src={mentor.avatarUrl}
+          alt={mentor.name}
+          fill
+          className="object-cover rounded-lg"
+        />
+      </div>
 
       {/* ② テキスト情報 */}
-      <div className="flex flex-col justify-between flex-1">
+      <div className="flex flex-col justify-between flex-1 min-w-0">
         <div>
           <h2 className="text-2xl font-semibold flex items-center gap-2">
             {/* <Link href={`/detail`}  */}

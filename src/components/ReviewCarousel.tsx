@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import Image from "next/image";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 // ダミーデータ
@@ -60,10 +61,12 @@ export default function ReviewCarousel() {
       {/* 下部：レビュー表示カード */}
       <div className="bg-white border rounded-lg p-4 shadow-sm">
         <div className="flex items-center gap-3 mb-2">
-          <img
+          <Image
             src={review.avatarUrl}
             alt={review.name}
-            className="w-8 h-8 rounded-md object-cover"
+            width={32}
+            height={32}
+            className="rounded-md object-cover"
           />
           <span className="font-medium text-gray-800">{review.name}</span>
         </div>
