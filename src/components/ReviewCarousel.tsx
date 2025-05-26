@@ -1,0 +1,74 @@
+"use client";
+import React, { useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+
+// ダミーデータ
+const reviews = [
+  {
+    name: "田中 花子",
+    avatarUrl: "https://i.pravatar.cc/100?img=1",
+    content: "とても丁寧で、初めてでも話しやすかったです。",
+  },
+  {
+    name: "山本 太郎",
+    avatarUrl: "https://i.pravatar.cc/100?img=2",
+    content: "面接練習が本当に役立ちました。またお願いしたいです！",
+  },
+  {
+    name: "佐藤 美咲",
+    avatarUrl: "https://i.pravatar.cc/100?img=3",
+    content: "海外就職のアドバイスが的確でした。",
+  },
+];
+
+export default function ReviewCarousel() {
+  const [current, setCurrent] = useState(0);
+
+  const prevReview = () => {
+    setCurrent((prev) => (prev === 0 ? reviews.length - 1 : prev - 1));
+  };
+
+  const nextReview = () => {
+    setCurrent((prev) => (prev === reviews.length - 1 ? 0 : prev + 1));
+  };
+
+  const review = reviews[current];
+
+  return (
+    <div className="space-y-3">
+      {/* 上部：レビュー件数と切り替えボタン */}
+      <div className="flex items-center justify-between">
+        <span className="text-base font-semibold text-gray-800">
+          {reviews.length}件のレビュー
+        </span>
+        <div className="flex gap-2">
+          <button
+            onClick={prevReview}
+            className="w-8 h-8 rounded-full border flex items-center justify-center hover:bg-gray-100"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+          <button
+            onClick={nextReview}
+            className="w-8 h-8 rounded-full border flex items-center justify-center hover:bg-gray-100"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* 下部：レビュー表示カード */}
+      <div className="bg-white border rounded-lg p-4 shadow-sm">
+        <div className="flex items-center gap-3 mb-2">
+          <img
+            src={review.avatarUrl}
+            alt={review.name}
+            className="w-8 h-8 rounded-md object-cover"
+          />
+          <span className="font-medium text-gray-800">{review.name}</span>
+        </div>
+        <p className="text-sm text-gray-700">{review.content}</p>
+      </div>
+    </div>
+  );
+}
