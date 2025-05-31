@@ -1,7 +1,5 @@
-// src/types/mentor.ts
-
 export type Mentor = {
-  id: number;
+  id: string;
   name: string;
   country: string;
   location: string;
@@ -12,4 +10,5 @@ export type Mentor = {
   price: string;
   reviews: number;
   rating: number;
+  createdAt: string;
 };

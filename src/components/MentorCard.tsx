@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Mentor } from "../types/mentor";
 import Flag from "react-world-flags";
 import Image from "next/image";
 import Link from "next/link";
@@ -11,19 +12,6 @@ const countryCodeMap: Record<string, string> = {
   Mexico: "mx",
 };
 
-type Mentor = {
-  id: number;
-  name: string;
-  avatarUrl: string;
-  location: string;
-  languages: string;
-  job: string;
-  bio: string;
-  rating: number;
-  reviews: number;
-  price: string;
-  country: string;
-};
 type MentorCardProps = {
   mentor: Mentor;
   onBook: () => void;
