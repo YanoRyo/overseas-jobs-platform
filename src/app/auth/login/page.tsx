@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { supabase } from "../../../lib/supabase";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -8,43 +9,66 @@ export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleSocialLogin = (provider: string) => {
     alert(`Social login with ${provider} clicked`);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
 
     if (!email) {
-      alert("Emailを入力してください");
+      setError("Emailを入力してください");
       return;
     }
     if (!password) {
-      alert("Passwordを入力してください");
+      setError("Passwordを入力してください");
       return;
     }
 
-    // 仮ログイン処理
-    localStorage.setItem("user", email);
+    setLoading(true);
 
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    setLoading(false);
+
+    if (error) {
+      setError(error.message);
+      return;
+    }
+
+    // ログイン成功時
+
+    // 例えばrememberMeでセッションの永続化を制御したい場合、supabase側で設定可能（ただし基本はSupabaseが自動管理）
+
+    // redirect先取得
     const searchParams = new URLSearchParams(window.location.search);
-    const redirectTo = searchParams.get("redirect") || "/";
+    let redirectTo = searchParams.get("redirect") || "/";
 
-    // ✅ pendingReservation がある場合は checkout に優先リダイレクト
+    // 相対パス対策: redirect=checkout → /checkout に補正
+    if (redirectTo && !redirectTo.startsWith("/")) {
+      redirectTo = "/" + redirectTo;
+    }
+
+    // pendingReservation があれば優先してリダイレクト
     const pendingReservation = localStorage.getItem("pendingReservation");
     if (pendingReservation && redirectTo === "/checkout") {
       router.push("/checkout");
       return;
     }
 
-    // 通常リダイレクト
     router.push(redirectTo);
   };
 
   return (
     <div className="max-w-md mx-auto p-6 mt-16 border rounded-md shadow-md">
-      {/* 矢印アイコン（タイトル上の左端） */}
+      {/* 戻るボタン */}
       <div className="mb-4">
         <button
           onClick={() => router.push("/")}
@@ -56,7 +80,6 @@ export default function LoginPage() {
         </button>
       </div>
 
-      {/* タイトル中央 */}
       <h1 className="text-4xl font-bold mb-8 text-center">Login</h1>
 
       {/* Socialログイン */}
@@ -84,6 +107,8 @@ export default function LoginPage() {
 
       {/* フォーム */}
       <form onSubmit={handleSubmit} className="space-y-6">
+        {error && <p className="text-red-500">{error}</p>}
+
         {/* Email */}
         <div>
           <label htmlFor="email" className="block mb-1 font-semibold">
@@ -141,9 +166,12 @@ export default function LoginPage() {
         {/* Loginボタン */}
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-3 rounded-md font-semibold hover:bg-blue-700"
+          disabled={loading}
+          className={`w-full py-3 rounded-md font-semibold text-white ${
+            loading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
+          }`}
         >
-          Login
+          {loading ? "Logging in..." : "Login"}
         </button>
       </form>
 

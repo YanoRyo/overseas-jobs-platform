@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import { supabase } from "../../../lib/supabase";
 
 export default function SignupPage() {
   const router = useRouter();
@@ -11,10 +12,8 @@ export default function SignupPage() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
-  const handleSocialLogin = (provider: string) => {
-    alert(`Social login with ${provider} clicked`);
-  };
-  const handleSubmit = (e: React.FormEvent) => {
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!email || !password || !confirmPassword) {
@@ -27,10 +26,18 @@ export default function SignupPage() {
       return;
     }
 
-    // 仮登録処理
-    localStorage.setItem("user", email);
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+    });
 
-    // pendingReservation があるかチェック
+    if (error) {
+      alert("登録に失敗しました: " + error.message);
+      return;
+    }
+
+    alert("確認メールを送信しました。メールをご確認ください。");
+
     const pendingReservation = localStorage.getItem("pendingReservation");
     if (pendingReservation) {
       router.push("/checkout");
