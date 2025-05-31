@@ -2,8 +2,10 @@
 import { useState } from "react";
 import { Dialog } from "@headlessui/react";
 import { X } from "lucide-react";
-import { Mentor } from "@/types";
+import { Mentor } from "../types/mentor";
 import { useRouter } from "next/navigation";
+// import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
+import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
 
 type Props = {
   mentor: Mentor;
@@ -12,19 +14,50 @@ type Props = {
 };
 
 export default function BookingModal({ isOpen, onClose, mentor }: Props) {
+  const supabase = useSupabaseClient(); // ← ここでSupabaseクライアントを取得
+  const user = useUser(); // ← 現在のログインユーザーを取得
   const [duration, setDuration] = useState(25);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const router = useRouter();
 
   // 続けるボタン押下時の処理
-  const handleContinue = () => {
+  const handleContinue = async () => {
     if (!selectedTime) {
       alert("時間を選択してください");
       return;
     }
 
-    // 予約情報を構造化して保存
+    // if (!user) {
+    //   router.push("/auth/login?redirect=/checkout");
+    //   return;
+    // }
+    if (!user || !user.id) {
+      alert("ログイン情報を取得できませんでした。再ログインしてください。");
+      router.push("/auth/login?redirect=/checkout");
+      return;
+    }
+
+    // ISO形式の time_slot を生成
+    const [hours, minutes] = selectedTime.split(":");
+    const reservationDate = new Date(selectedDate);
+    reservationDate.setHours(Number(hours));
+    reservationDate.setMinutes(Number(minutes));
+    reservationDate.setSeconds(0);
+    reservationDate.setMilliseconds(0);
+
+    const { error } = await supabase.from("bookings").insert({
+      user_id: user.id,
+      mentor_id: mentor.id,
+      time_slot: reservationDate.toISOString(),
+    });
+
+    if (error) {
+      console.error("予約保存エラー:", error);
+      alert("予約に失敗しました。もう一度お試しください。");
+      return;
+    }
+
     const reservation = {
       mentorId: mentor.id,
       mentorName: mentor.name,
@@ -34,18 +67,8 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
       date: selectedDate.toISOString(),
       time: selectedTime,
     };
-
     localStorage.setItem("pendingReservation", JSON.stringify(reservation));
 
-    const isLoggedIn = Boolean(localStorage.getItem("user")); // 仮の認証判定
-
-    if (!isLoggedIn) {
-      // 未ログイン → ログイン画面へ
-      router.push("/auth/login?redirect=/checkout");
-      return;
-    }
-
-    // ログイン済み → checkoutページへ
     router.push("/checkout");
   };
 
