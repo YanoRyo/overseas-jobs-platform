@@ -13,43 +13,78 @@ export default function SignupPage() {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // =========================
+  // Email/Password サインアップ
+  // =========================
+  const handleEmailSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (!email || !password || !confirmPassword) {
       alert("すべての項目を入力してください");
       return;
     }
-
     if (password !== confirmPassword) {
       alert("パスワードが一致しません");
       return;
     }
 
-    const { error } = await supabase.auth.signUp({
-      email,
-      password,
-    });
-
+    const { data, error } = await supabase.auth.signUp({ email, password });
     if (error) {
       alert("登録に失敗しました: " + error.message);
       return;
     }
 
-    alert("確認メールを送信しました。メールをご確認ください。");
-
-    const pendingReservation = localStorage.getItem("pendingReservation");
-    if (pendingReservation) {
-      router.push("/checkout");
-      return;
+    const user = data.user;
+    if (user) {
+      // public.users に追加
+      const { error: insertError } = await supabase.from("users").upsert([
+        {
+          id: user.id,
+          username: user.email?.split("@")[0] ?? "no-name",
+          role: "student",
+        },
+      ]);
+      if (insertError)
+        console.error("public.users へのINSERT失敗:", insertError);
     }
 
-    router.push(redirect);
+    alert("確認メールを送信しました。メールをご確認ください。");
+    const pendingReservation = localStorage.getItem("pendingReservation");
+    router.push(pendingReservation ? "/checkout" : redirect);
+  };
+
+  // =========================
+  // Google OAuth
+  // =========================
+  const handleGoogleSignIn = async () => {
+    console.log("🌐 Google SignIn 開始");
+    console.log("window.location.origin:", window.location.origin);
+    console.log("redirect param:", redirect);
+
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?redirect=${redirect}`,
+      },
+    });
+    if (error) console.error("Google OAuth エラー:", error);
+  };
+
+  // =========================
+  // Facebook OAuth
+  // =========================
+  const handleFacebookSignIn = async () => {
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: "facebook",
+      options: {
+        redirectTo: `${window.location.origin}/auth/callback?redirect=${redirect}`,
+      },
+    });
+    if (error) console.error("Facebook OAuth エラー:", error);
   };
 
   return (
     <div className="max-w-md mx-auto p-6 mt-16 border rounded-md shadow-md">
-      {/* トップページに戻る矢印 */}
       <div className="mb-4">
         <button
           onClick={() => router.push("/")}
@@ -66,13 +101,13 @@ export default function SignupPage() {
       {/* Socialログイン */}
       <div className="flex flex-col gap-4 mb-6">
         <button
-          onClick={() => alert("Social login with Google clicked")}
+          onClick={handleGoogleSignIn}
           className="bg-red-500 text-white py-2 rounded-md hover:bg-red-600"
         >
           Continue with Google
         </button>
         <button
-          onClick={() => alert("Social login with Facebook clicked")}
+          onClick={handleFacebookSignIn}
           className="bg-blue-700 text-white py-2 rounded-md hover:bg-blue-800"
         >
           Continue with Facebook
@@ -86,8 +121,8 @@ export default function SignupPage() {
         <div className="flex-grow border-t border-gray-300"></div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Email */}
+      {/* Email/Password 登録フォーム */}
+      <form onSubmit={handleEmailSignUp} className="space-y-6">
         <div>
           <label htmlFor="email" className="block mb-1 font-semibold">
             Email
@@ -102,7 +137,6 @@ export default function SignupPage() {
           />
         </div>
 
-        {/* Password */}
         <div>
           <label htmlFor="password" className="block mb-1 font-semibold">
             Password
@@ -117,7 +151,6 @@ export default function SignupPage() {
           />
         </div>
 
-        {/* Confirm Password */}
         <div>
           <label htmlFor="confirmPassword" className="block mb-1 font-semibold">
             Confirm Password
@@ -132,7 +165,6 @@ export default function SignupPage() {
           />
         </div>
 
-        {/* Remember Me */}
         <div className="flex items-center gap-2">
           <input
             id="rememberMe"
