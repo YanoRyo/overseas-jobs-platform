@@ -1,5 +1,5 @@
 export type Mentor = {
-  id: string;
+  id: number;
   name: string;
   country: string;
   location: string;

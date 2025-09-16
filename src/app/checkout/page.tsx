@@ -1,8 +1,8 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import { Globe, Star, ChevronLeft } from "lucide-react";
-import { countryCodeMap } from "../../data/mentors";
-import ReviewCarousel from "../../components/ReviewCarousel";
+import { countryCodeMap } from "@/lib/countryCodeMap";
+import ReviewCarousel from "@/components/ReviewCarousel";
 import Flag from "react-world-flags";
 import { useRouter } from "next/navigation";
 
