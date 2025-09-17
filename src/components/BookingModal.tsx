@@ -4,7 +4,6 @@ import { Dialog } from "@headlessui/react";
 import { X } from "lucide-react";
 import { Mentor } from "../types/mentor";
 import { useRouter } from "next/navigation";
-// import { createClientComponentClient } from "@supabase/auth-helpers-nextjs";
 import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
 
 type Props = {
@@ -28,10 +27,6 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
       return;
     }
 
-    // if (!user) {
-    //   router.push("/auth/login?redirect=/checkout");
-    //   return;
-    // }
     if (!user || !user.id) {
       alert("ログイン情報を取得できませんでした。再ログインしてください。");
       router.push("/auth/login?redirect=/checkout");
