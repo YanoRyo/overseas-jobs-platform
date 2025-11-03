@@ -107,23 +107,54 @@ export default function MentorDetailPage({
     return <div className="p-6">メンターが見つかりませんでした。</div>;
 
   // 表示用データ（仮データ込み）
-  const displayMentor = {
+  // const displayMentor = {
+  //   id: mentor.id,
+  //   name: mentor.name,
+  //   country: mentor.country,
+  //   location: mentor.location,
+  //   languages: mentor.languages,
+  //   job: mentor.job,
+  //   reviews: mentor.reviews,
+  //   createdAt: mentor.created_at,
+  //   bio: mentor.bio,
+  //   avatarUrl: mentor.avatar_url,
+  //   price:
+  //     typeof mentor.price === "string"
+  //       ? Number(mentor.price.replace(/[^0-9]/g, "")) || 2000
+  //       : mentor.price,
+  //   rating: mentor.rating,
+  //   lessons: mentor.reviews,
+  //   intro: "様々な科目に経験を持つ講師、4年の経験があります。",
+  //   subjects: ["英語レッスン"],
+  //   spokenLanguages: [
+  //     { name: "タミル語", level: "ネイティブ" },
+  //     { name: "英語", level: "ネイティブ" },
+  //     { name: "オランダ語", level: "上級 C2" },
+  //     { name: "フランス語", level: "中級 A2" },
+  //   ],
+  //   ratingsDetail: {
+  //     accuracy: 4.3,
+  //     clarity: 4.5,
+  //     progress: 4.7,
+  //     preparedness: 4.5,
+  //   },
+  //   introVideoUrl: "https://placehold.co/400x250?text=Intro+Video",
+  //   recentBookingInfo: "過去48時間で3人が予約しました",
+  //   replyTime: "通常3時間以内に返信があります",
+  // };
+  const displayMentor = mentor && {
     id: mentor.id,
     name: mentor.name,
-    country: mentor.country,
+    country: mentor.country_code, // DBカラム名に合わせる
     location: mentor.location,
-    languages: mentor.languages,
-    job: mentor.job,
-    reviews: mentor.reviews,
+    languages: mentor.languages || "英語, 日本語", // mentor_languagesテーブルから取得可能
+    job: mentor.job_title, // DBのjob_titleを使う
+    reviews: mentor.review_count,
     createdAt: mentor.created_at,
     bio: mentor.bio,
     avatarUrl: mentor.avatar_url,
-    price:
-      typeof mentor.price === "string"
-        ? Number(mentor.price.replace(/[^0-9]/g, "")) || 2000
-        : mentor.price,
-    rating: mentor.rating,
-    lessons: mentor.reviews,
+    price: Number(mentor.hourly_rate), // hourly_rateをpriceに変換
+    rating: Number(mentor.rating_avg),
     intro: "様々な科目に経験を持つ講師、4年の経験があります。",
     subjects: ["英語レッスン"],
     spokenLanguages: [

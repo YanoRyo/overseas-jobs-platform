@@ -1,6 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { Mentor } from "../types/mentor";
+import { MentorLanguage } from "../types/mentorLanguage";
 import { supabase } from "../lib/supabase";
 import SearchFilters from "../components/SearchFilters";
 import MentorCard from "../components/MentorCard";
@@ -16,28 +17,44 @@ export default function Home() {
     const fetchMentors = async () => {
       const { data, error } = await supabase
         .from("mentors")
-        .select("*")
+        .select(
+          `
+          *,
+          mentor_languages:fk_mentor_languages_mentor_id(*)
+        `
+        )
         .order("created_at", { ascending: false });
+
+      console.log("fetch result:", JSON.stringify(data, null, 2));
 
       if (error) {
         console.error("Error fetching mentors:", error.message);
         setError("メンターの取得に失敗しました。");
       } else {
         // snake_case → camelCase 変換
-        const formatted: Mentor[] = (data || []).map((mentor) => ({
-          id: mentor.id,
-          name: mentor.name,
-          country: mentor.country,
-          location: mentor.location,
-          languages: mentor.languages,
-          job: mentor.job,
-          bio: mentor.bio,
-          avatarUrl: mentor.avatar_url,
-          price: mentor.price,
-          reviews: mentor.reviews,
-          rating: mentor.rating,
-          createdAt: mentor.created_at,
-        }));
+        const formatted: Mentor[] = (data || []).map((mentor: any) => {
+          // 言語リストを文字列に整形
+          const languageList =
+            (mentor.mentor_languages as MentorLanguage[])
+              ?.map((l) => `${l.language_code} (${l.proficiency})`)
+              .join(", ") || "";
+
+          return {
+            id: mentor.id,
+            name: mentor.name,
+            country: mentor.country,
+            location: mentor.location,
+            languages: languageList, // ← 整形済みの文字列を代入
+            jobTitle: mentor.job_title,
+            bio: mentor.bio,
+            avatarUrl: mentor.avatar_url,
+            price: mentor.price,
+            reviews: mentor.reviews,
+            rating: mentor.rating,
+            createdAt: mentor.created_at,
+          };
+        });
+
         setMentors(formatted);
       }
       setLoading(false);
@@ -45,6 +62,7 @@ export default function Home() {
 
     fetchMentors();
   }, []);
+
   return (
     <div className="flex flex-col gap-6 p-6 max-w-screen-md mx-auto w-full">
       {/* 検索フィルター */}

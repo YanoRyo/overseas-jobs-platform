@@ -4,7 +4,7 @@ export type Mentor = {
   country: string;
   location: string;
   languages: string;
-  job: string;
+  jobTitle: string;
   bio: string;
   avatarUrl: string;
   price: string;

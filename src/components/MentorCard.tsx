@@ -49,7 +49,7 @@ export default function MentorCard({ mentor, onBook }: MentorCardProps) {
             </h2>
             <p className="text-base text-gray-600">📍 {mentor.location}</p>
             <p className="text-base text-gray-600">🗣️ {mentor.languages}</p>
-            <p className="text-base text-gray-600">💼 {mentor.job}</p>
+            <p className="text-base text-gray-600">💼 {mentor.jobTitle}</p>
           </div>
 
           {/* bio */}
@@ -60,7 +60,7 @@ export default function MentorCard({ mentor, onBook }: MentorCardProps) {
             >
               {mentor.bio}
             </p>
-            {mentor.bio.split("\n").join(" ").length > 100 && (
+            {mentor.bio?.split("\n").join(" ").length > 100 && (
               <button
                 onClick={(e) => {
                   e.preventDefault(); // Link クリックを止める
