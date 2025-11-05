@@ -67,13 +67,13 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="max-w-md mx-auto p-6 mt-16 border rounded-md shadow-md">
+    <div className="max-w-md mx-auto p-6 mt-16 border border-border rounded-md shadow bg-surface">
       {/* 戻るボタン */}
       <div className="mb-4">
         <button
           onClick={() => router.push("/")}
           aria-label="Go back to home"
-          className="text-2xl hover:text-gray-600"
+          className="text-2xl hover:text-secondary transition-colors"
           style={{ lineHeight: 1 }}
         >
           ←
@@ -86,13 +86,13 @@ export default function LoginPage() {
       <div className="flex flex-col gap-4 mb-6">
         <button
           onClick={() => handleSocialLogin("Google")}
-          className="bg-red-500 text-white py-2 rounded-md hover:bg-red-600"
+          className="bg-red-500 text-white py-2 rounded-md hover:bg-red-600 transition-colors"
         >
           Continue with Google
         </button>
         <button
           onClick={() => handleSocialLogin("Facebook")}
-          className="bg-blue-700 text-white py-2 rounded-md hover:bg-blue-800"
+          className="bg-blue-700 text-white py-2 rounded-md hover:bg-blue-800 transition-colors"
         >
           Continue with Facebook
         </button>
@@ -100,14 +100,14 @@ export default function LoginPage() {
 
       {/* or Divider */}
       <div className="flex items-center mb-6">
-        <div className="flex-grow border-t border-gray-300"></div>
-        <span className="mx-4 text-gray-500 font-semibold">or</span>
-        <div className="flex-grow border-t border-gray-300"></div>
+        <div className="flex-grow border-t border-border"></div>
+        <span className="mx-4 text-muted font-semibold">or</span>
+        <div className="flex-grow border-t border-border"></div>
       </div>
 
       {/* フォーム */}
       <form onSubmit={handleSubmit} className="space-y-6">
-        {error && <p className="text-red-500">{error}</p>}
+        {error && <p className="text-error">{error}</p>}
 
         {/* Email */}
         <div>
@@ -117,7 +117,7 @@ export default function LoginPage() {
           <input
             id="email"
             type="email"
-            className="w-full border border-gray-300 rounded-md p-2"
+            className="w-full border border-border hover:border-border-hover rounded-md p-2 bg-surface text-primary transition-colors"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -132,7 +132,7 @@ export default function LoginPage() {
           <input
             id="password"
             type="password"
-            className="w-full border border-gray-300 rounded-md p-2"
+            className="w-full border border-border hover:border-border-hover rounded-md p-2 bg-surface text-primary transition-colors"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -143,7 +143,7 @@ export default function LoginPage() {
         <div className="text-right">
           <a
             href="/auth/forgot-password"
-            className="text-sm text-blue-600 hover:underline"
+            className="text-sm text-accent hover:underline"
           >
             Forget your password?
           </a>
@@ -168,7 +168,7 @@ export default function LoginPage() {
           type="submit"
           disabled={loading}
           className={`w-full py-3 rounded-md font-semibold text-white ${
-            loading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
+            loading ? "bg-muted" : "bg-accent hover:bg-accent-hover transition-colors"
           }`}
         >
           {loading ? "Logging in..." : "Login"}
@@ -176,9 +176,9 @@ export default function LoginPage() {
       </form>
 
       {/* ポリシーリンク・テキスト */}
-      <p className="mt-6 text-center text-sm text-gray-600">
+      <p className="mt-6 text-center text-sm text-secondary">
         By logging in, you agree to our{" "}
-        <a href="/policy" className="text-blue-600 hover:underline">
+        <a href="/policy" className="text-accent hover:underline">
           Terms & Policy
         </a>
         .

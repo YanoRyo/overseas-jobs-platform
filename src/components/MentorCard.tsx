@@ -24,7 +24,7 @@ export default function MentorCard({ mentor, onBook }: MentorCardProps) {
       href={`/mentors/${mentor.id}`} // ← 詳細ページの動線
       className="block"
     >
-      <div className="flex flex-col md:flex-row border rounded-xl shadow p-8 gap-8 items-stretch min-h-[220px] hover:bg-gray-50 cursor-pointer">
+      <div className="flex flex-col md:flex-row border-border rounded-xl shadow p-8 gap-8 items-stretch min-h-[220px] hover:bg-surface-hover cursor-pointer bg-surface transition-colors">
         {/* ① アバター */}
         <div className="relative w-32 h-32 flex-shrink-0">
           <Image
@@ -39,21 +39,21 @@ export default function MentorCard({ mentor, onBook }: MentorCardProps) {
         <div className="flex flex-col justify-between flex-1 min-w-0">
           <div>
             <h2 className="text-2xl font-semibold flex items-center gap-2">
-              <div className="hover:underline text-blue-600">{mentor.name}</div>
-              <div className="border border-gray-300 rounded px-0.5 py-0.5 inline-flex items-center">
+              <div className="hover:underline text-accent">{mentor.name}</div>
+              <div className="border border-border rounded px-0.5 py-0.5 inline-flex items-center">
                 <Flag
                   code={countryCodeMap[mentor.country]}
                   style={{ width: 28, height: 18 }}
                 />
               </div>
             </h2>
-            <p className="text-base text-gray-600">📍 {mentor.location}</p>
-            <p className="text-base text-gray-600">🗣️ {mentor.languages}</p>
-            <p className="text-base text-gray-600">💼 {mentor.jobTitle}</p>
+            <p className="text-base text-secondary">📍 {mentor.location}</p>
+            <p className="text-base text-secondary">🗣️ {mentor.languages}</p>
+            <p className="text-base text-secondary">💼 {mentor.jobTitle}</p>
           </div>
 
           {/* bio */}
-          <div className="mt-3 text-gray-700 text-base">
+          <div className="mt-3 text-primary text-base">
             <p
               className={`${!expanded ? "line-clamp-4" : ""}`}
               style={{ whiteSpace: "pre-wrap" }}
@@ -67,7 +67,7 @@ export default function MentorCard({ mentor, onBook }: MentorCardProps) {
                   e.stopPropagation();
                   setExpanded(!expanded);
                 }}
-                className="text-blue-600 hover:underline mt-1 text-base font-medium"
+                className="text-accent hover:underline mt-1 text-base font-medium"
               >
                 {expanded ? "閉じる" : "続きを読む"}
               </button>
@@ -89,11 +89,11 @@ export default function MentorCard({ mentor, onBook }: MentorCardProps) {
                 </svg>
                 {mentor.rating}
               </div>
-              <p className="text-sm text-gray-500">{mentor.reviews}件の実績</p>
+              <p className="text-sm text-muted">{mentor.reviews}件の実績</p>
             </div>
             <div className="text-right">
-              <p className="text-lg font-bold">{mentor.price}</p>
-              <p className="text-sm text-gray-500">25分の料金</p>
+              <p className="text-lg font-bold text-primary">{mentor.price}</p>
+              <p className="text-sm text-muted">25分の料金</p>
             </div>
           </div>
 
@@ -104,7 +104,7 @@ export default function MentorCard({ mentor, onBook }: MentorCardProps) {
               e.stopPropagation();
               onBook();
             }}
-            className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-base mt-auto"
+            className="bg-accent hover:bg-accent-hover text-white px-4 py-2 rounded-lg text-base mt-auto transition-colors"
           >
             予約する
           </button>
@@ -117,7 +117,7 @@ export default function MentorCard({ mentor, onBook }: MentorCardProps) {
             e.stopPropagation();
             onBook();
           }}
-          className="md:hidden bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded-lg text-base mt-4 w-full"
+          className="md:hidden bg-accent hover:bg-accent-hover text-white px-4 py-2 rounded-lg text-base mt-4 w-full transition-colors"
         >
           予約する
         </button>

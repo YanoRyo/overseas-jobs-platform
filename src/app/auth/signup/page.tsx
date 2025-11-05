@@ -84,12 +84,12 @@ export default function SignupPage() {
   };
 
   return (
-    <div className="max-w-md mx-auto p-6 mt-16 border rounded-md shadow-md">
+    <div className="max-w-md mx-auto p-6 mt-16 border border-border rounded-md shadow bg-surface">
       <div className="mb-4">
         <button
           onClick={() => router.push("/")}
           aria-label="Go back to home"
-          className="text-2xl hover:text-gray-600"
+          className="text-2xl hover:text-secondary transition-colors"
           style={{ lineHeight: 1 }}
         >
           ←
@@ -102,13 +102,13 @@ export default function SignupPage() {
       <div className="flex flex-col gap-4 mb-6">
         <button
           onClick={handleGoogleSignIn}
-          className="bg-red-500 text-white py-2 rounded-md hover:bg-red-600"
+          className="bg-red-500 text-white py-2 rounded-md hover:bg-red-600 transition-colors"
         >
           Continue with Google
         </button>
         <button
           onClick={handleFacebookSignIn}
-          className="bg-blue-700 text-white py-2 rounded-md hover:bg-blue-800"
+          className="bg-blue-700 text-white py-2 rounded-md hover:bg-blue-800 transition-colors"
         >
           Continue with Facebook
         </button>
@@ -116,9 +116,9 @@ export default function SignupPage() {
 
       {/* or Divider */}
       <div className="flex items-center mb-6">
-        <div className="flex-grow border-t border-gray-300"></div>
-        <span className="mx-4 text-gray-500 font-semibold">or</span>
-        <div className="flex-grow border-t border-gray-300"></div>
+        <div className="flex-grow border-t border-border"></div>
+        <span className="mx-4 text-muted font-semibold">or</span>
+        <div className="flex-grow border-t border-border"></div>
       </div>
 
       {/* Email/Password 登録フォーム */}
@@ -130,7 +130,7 @@ export default function SignupPage() {
           <input
             id="email"
             type="email"
-            className="w-full border border-gray-300 rounded-md p-2"
+            className="w-full border border-border hover:border-border-hover rounded-md p-2 bg-surface text-primary transition-colors"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
@@ -144,7 +144,7 @@ export default function SignupPage() {
           <input
             id="password"
             type="password"
-            className="w-full border border-gray-300 rounded-md p-2"
+            className="w-full border border-border hover:border-border-hover rounded-md p-2 bg-surface text-primary transition-colors"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
@@ -158,7 +158,7 @@ export default function SignupPage() {
           <input
             id="confirmPassword"
             type="password"
-            className="w-full border border-gray-300 rounded-md p-2"
+            className="w-full border border-border hover:border-border-hover rounded-md p-2 bg-surface text-primary transition-colors"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             required
@@ -180,7 +180,7 @@ export default function SignupPage() {
 
         <button
           type="submit"
-          className="w-full bg-blue-600 text-white py-3 rounded-md font-semibold hover:bg-blue-700"
+          className="w-full bg-accent text-white py-3 rounded-md font-semibold hover:bg-accent-hover transition-colors"
         >
           Sign Up
         </button>

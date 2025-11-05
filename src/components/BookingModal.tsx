@@ -80,7 +80,7 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
       onClose={onClose}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
     >
-      <Dialog.Panel className="bg-white rounded-2xl p-6 w-full max-w-xl space-y-6">
+      <Dialog.Panel className="bg-surface rounded-2xl p-6 w-full max-w-xl space-y-6">
         {/* ① ヘッダー */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -94,7 +94,7 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
             </h2>
           </div>
           <button onClick={onClose}>
-            <X className="w-6 h-6 text-gray-500 hover:text-gray-700" />
+            <X className="w-6 h-6 text-muted hover:text-primary transition-colors" />
           </button>
         </div>
 
@@ -106,8 +106,8 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
               onClick={() => setDuration(min)}
               className={`flex-1 px-4 py-2 rounded-lg border text-center font-medium ${
                 duration === min
-                  ? "bg-blue-500 text-white"
-                  : "border-gray-300 text-gray-700"
+                  ? "bg-accent text-white"
+                  : "border-border text-primary"
               }`}
             >
               {min}分
@@ -137,7 +137,7 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
 
                 return selectedWeekStart <= thisWeekStart ? true : false;
               })()}
-              className="text-blue-500 font-medium p-2 rounded-full hover:bg-gray-200 disabled:text-gray-400 disabled:cursor-not-allowed"
+              className="text-accent font-medium p-2 rounded-full hover:bg-surface-hover disabled:text-muted disabled:cursor-not-allowed transition-colors"
               aria-label="先週へ"
             >
               <svg
@@ -186,7 +186,7 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
                   new Date(selectedDate.setDate(selectedDate.getDate() + 7))
                 )
               }
-              className="text-blue-500 font-medium p-2 rounded-full hover:bg-gray-200"
+              className="text-accent font-medium p-2 rounded-full hover:bg-surface-hover transition-colors"
               aria-label="来週へ"
             >
               <svg
@@ -231,8 +231,8 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
                   className={`flex flex-col items-center p-2 w-10 h-14 rounded-lg cursor-pointer
             ${
               isSelected
-                ? "bg-blue-500 text-white font-semibold"
-                : "bg-transparent text-gray-700 hover:bg-gray-200"
+                ? "bg-accent text-white font-semibold"
+                : "bg-transparent text-primary hover:bg-surface-hover"
             }
           `}
                 >
@@ -256,8 +256,8 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
                     onClick={() => setSelectedTime(time)}
                     className={`px-3 py-2 rounded-lg border text-sm ${
                       selectedTime === time
-                        ? "bg-blue-500 text-white"
-                        : "border-gray-300 text-gray-700"
+                        ? "bg-accent text-white"
+                        : "border-border text-primary"
                     }`}
                   >
                     {time}
@@ -272,7 +272,7 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
         <div className="space-y-2">
           <button
             onClick={handleContinue}
-            className="relative w-full bg-blue-500 text-white py-4 rounded-lg font-semibold hover:bg-blue-600"
+            className="relative w-full bg-accent text-white py-4 rounded-lg font-semibold hover:bg-accent-hover transition-colors"
           >
             続ける
             <span className="absolute left-1/2 bottom-0 translate-x-[-50%] text-xs text-white opacity-70">
@@ -280,19 +280,19 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
             </span>
           </button>
 
-          <p className="text-sm text-center text-gray-800">
+          <p className="text-sm text-center text-primary">
             まだアカウントがありませんか？{" "}
             <span className="inline-flex gap-1">
               <button
                 onClick={() => router.push("/auth/login?redirect=checkout")}
-                className="text-blue-600 underline hover:text-blue-800 font-semibold"
+                className="text-accent underline hover:text-accent-hover font-semibold transition-colors"
               >
                 ログイン
               </button>
               または
               <button
                 onClick={() => router.push("/auth/signup?redirect=checkout")}
-                className="text-blue-600 underline hover:text-blue-800 font-semibold"
+                className="text-accent underline hover:text-accent-hover font-semibold transition-colors"
               >
                 新規登録
               </button>
