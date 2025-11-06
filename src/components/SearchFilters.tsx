@@ -5,7 +5,7 @@ export default function SearchFilters() {
     <div className="flex flex-col gap-4 w-full max-w-screen-md mx-auto px-4 sm:px-6">
       {/* 上段（PC） */}
       <div className="hidden md:grid grid-cols-1 md:grid-cols-3 gap-4">
-        <select className="border border-gray-300 rounded-lg px-3 py-2 text-base w-full">
+        <select className="border border-border hover:border-border-hover rounded-lg px-3 py-2 text-base w-full bg-surface text-primary transition-colors">
           <option value="">国で絞り込む</option>
           <option value="Japan">日本</option>
           <option value="South Korea">韓国</option>
@@ -14,7 +14,7 @@ export default function SearchFilters() {
           <option value="Mexico">メキシコ</option>
         </select>
 
-        <select className="border border-gray-300 rounded-lg px-3 py-2 text-base w-full">
+        <select className="border border-border hover:border-border-hover rounded-lg px-3 py-2 text-base w-full bg-surface text-primary transition-colors">
           <option value="">話せる言語で絞り込む</option>
           <option value="Japanese">日本語</option>
           <option value="English">英語</option>
@@ -24,7 +24,7 @@ export default function SearchFilters() {
           <option value="German">ドイツ語</option>
         </select>
 
-        <select className="border border-gray-300 rounded-lg px-3 py-2 text-base w-full">
+        <select className="border border-border hover:border-border-hover rounded-lg px-3 py-2 text-base w-full bg-surface text-primary transition-colors">
           <option value="">職種で絞り込む</option>
           <option value="Engineer">エンジニア</option>
           <option value="UX Designer">UXデザイナー</option>
@@ -37,7 +37,7 @@ export default function SearchFilters() {
       {/* 上段（モバイル） */}
       <div className="md:hidden flex items-start gap-2">
         {/* 国セレクト：90% */}
-        <select className="border border-gray-300 rounded-lg px-3 py-2 text-base w-full">
+        <select className="border border-border hover:border-border-hover rounded-lg px-3 py-2 text-base w-full bg-surface text-primary transition-colors">
           <option value="">国で絞り込む</option>
           <option value="Japan">日本</option>
           <option value="South Korea">韓国</option>
@@ -48,11 +48,11 @@ export default function SearchFilters() {
 
         {/* ハンバーガーメニュー：10% */}
         <details className="relative w-10 shrink-0">
-          <summary className="w-10 h-10 bg-gray-200 rounded-lg flex items-center justify-center cursor-pointer select-none">
+          <summary className="w-10 h-10 bg-surface-hover rounded-lg flex items-center justify-center cursor-pointer select-none text-primary">
             ☰
           </summary>
-          <div className="absolute z-10 right-0 mt-2 w-64 bg-white border border-gray-200 rounded-lg shadow-lg p-4 flex flex-col gap-3">
-            <select className="border border-gray-300 rounded px-2 py-1 text-sm">
+          <div className="absolute z-10 right-0 mt-2 w-64 bg-surface border border-border rounded-lg shadow-lg p-4 flex flex-col gap-3">
+            <select className="border border-border hover:border-border-hover rounded px-2 py-1 text-sm bg-surface text-primary transition-colors">
               <option value="">言語で絞り込む</option>
               <option value="Japanese">日本語</option>
               <option value="English">英語</option>
@@ -62,7 +62,7 @@ export default function SearchFilters() {
               <option value="German">ドイツ語</option>
             </select>
 
-            <select className="border border-gray-300 rounded px-2 py-1 text-sm">
+            <select className="border border-border hover:border-border-hover rounded px-2 py-1 text-sm bg-surface text-primary transition-colors">
               <option value="">職種で絞り込む</option>
               <option value="Engineer">エンジニア</option>
               <option value="UX Designer">UXデザイナー</option>
@@ -71,7 +71,7 @@ export default function SearchFilters() {
               <option value="English Teacher">英語教師</option>
             </select>
 
-            <select className="border border-gray-300 rounded px-2 py-1 text-sm">
+            <select className="border border-border hover:border-border-hover rounded px-2 py-1 text-sm bg-surface text-primary transition-colors">
               <option value="">評価順</option>
               <option value="high">★ 高い順</option>
               <option value="low">★ 低い順</option>
@@ -80,7 +80,7 @@ export default function SearchFilters() {
             <input
               type="text"
               placeholder="キーワード検索"
-              className="border border-gray-300 rounded px-2 py-1 text-sm"
+              className="border border-border hover:border-border-hover rounded px-2 py-1 text-sm bg-surface text-primary transition-colors"
             />
           </div>
         </details>
@@ -88,13 +88,13 @@ export default function SearchFilters() {
 
       {/* 下段（件数 + PCのみの評価順・キーワード検索） */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
-        <div className="text-lg sm:text-xl font-bold text-gray-800 whitespace-nowrap">
+        <div className="text-lg sm:text-xl font-bold text-primary whitespace-nowrap">
           {hitCount}件ヒット
         </div>
 
         {/* 評価順 + キーワード検索（PC表示） */}
         <div className="hidden md:flex gap-3">
-          <select className="border border-gray-300 rounded-lg px-3 py-2 text-base w-40">
+          <select className="border border-border hover:border-border-hover rounded-lg px-3 py-2 text-base w-40 bg-surface text-primary transition-colors">
             <option value="">評価順</option>
             <option value="high">★ 高い順</option>
             <option value="low">★ 低い順</option>
@@ -103,7 +103,7 @@ export default function SearchFilters() {
           <input
             type="text"
             placeholder="キーワードで検索（例：ビザ、IT、英語）"
-            className="border border-gray-300 rounded-lg px-3 py-2 text-base w-60"
+            className="border border-border hover:border-border-hover rounded-lg px-3 py-2 text-base w-60 bg-surface text-primary transition-colors"
           />
         </div>
       </div>

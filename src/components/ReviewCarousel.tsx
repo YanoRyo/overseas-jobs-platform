@@ -39,19 +39,19 @@ export default function ReviewCarousel() {
     <div className="space-y-3">
       {/* 上部：レビュー件数と切り替えボタン */}
       <div className="flex items-center justify-between">
-        <span className="text-base font-semibold text-gray-800">
+        <span className="text-base font-semibold text-primary">
           {reviews.length}件のレビュー
         </span>
         <div className="flex gap-2">
           <button
             onClick={prevReview}
-            className="w-8 h-8 rounded-full border flex items-center justify-center hover:bg-gray-100"
+            className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-surface-hover transition-colors"
           >
             <ChevronLeft className="w-4 h-4" />
           </button>
           <button
             onClick={nextReview}
-            className="w-8 h-8 rounded-full border flex items-center justify-center hover:bg-gray-100"
+            className="w-8 h-8 rounded-full border border-border flex items-center justify-center hover:bg-surface-hover transition-colors"
           >
             <ChevronRight className="w-4 h-4" />
           </button>
@@ -59,7 +59,7 @@ export default function ReviewCarousel() {
       </div>
 
       {/* 下部：レビュー表示カード */}
-      <div className="bg-white border rounded-lg p-4 shadow-sm">
+      <div className="bg-surface border border-border rounded-lg p-4 shadow-sm">
         <div className="flex items-center gap-3 mb-2">
           <Image
             src={review.avatarUrl}
@@ -68,9 +68,9 @@ export default function ReviewCarousel() {
             height={32}
             className="rounded-md object-cover"
           />
-          <span className="font-medium text-gray-800">{review.name}</span>
+          <span className="font-medium text-primary">{review.name}</span>
         </div>
-        <p className="text-sm text-gray-700">{review.content}</p>
+        <p className="text-sm text-secondary">{review.content}</p>
       </div>
     </div>
   );

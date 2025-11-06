@@ -38,17 +38,17 @@ export default function CheckoutPage() {
     reservation;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 px-4 py-10 relative">
+    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-10 relative">
       <div className="w-full max-w-5xl relative">
         <button
           onClick={() => router.push("/")}
-          className="absolute top-0 -left-12 p-2 text-gray-400 hover:text-gray-600"
+          className="absolute top-0 -left-12 p-2 text-muted hover:text-secondary transition-colors"
           aria-label="トップページへ戻る"
         >
           <ChevronLeft size={32} />
         </button>
 
-        <div className="bg-white rounded-xl shadow-lg p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div className="bg-surface rounded-xl shadow-lg p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
           {/* 決済情報カラム */}
           <div>
             <div className="space-y-6">
@@ -62,21 +62,21 @@ export default function CheckoutPage() {
                   <div className="flex items-center gap-2">
                     <h2 className="text-lg font-semibold">{mentorName} さん</h2>
                     {mentorCountry && countryCodeMap[mentorCountry] ? (
-                      <div className="border border-gray-300 rounded px-0.5 py-0.5 inline-flex items-center">
+                      <div className="border border-border rounded px-0.5 py-0.5 inline-flex items-center">
                         <Flag
                           code={countryCodeMap[mentorCountry]}
                           style={{ width: 28, height: 18 }}
                         />
                       </div>
                     ) : (
-                      <Globe className="w-5 h-5 text-gray-400" />
+                      <Globe className="w-5 h-5 text-muted" />
                     )}
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <div className="flex items-center gap-2 text-sm text-secondary">
                     <Star className="w-4 h-4 text-yellow-500" />
                     4.8（32件）
                   </div>
-                  <p className="text-sm text-gray-700 mt-1">
+                  <p className="text-sm text-secondary mt-1">
                     元GoogleのUXデザイナー。海外就職・英語学習のアドバイスが得意です。
                   </p>
                 </div>
@@ -85,31 +85,31 @@ export default function CheckoutPage() {
               <div className="border-t pt-4 space-y-4">
                 <div className="flex items-center gap-6">
                   <div className="flex items-center gap-4">
-                    <button className="px-3 py-2 rounded-lg border border-gray-300 font-medium">
+                    <button className="px-3 py-2 rounded-lg border border-border font-medium">
                       25分
                     </button>
-                    <span className="text-gray-600">¥1,925</span>
+                    <span className="text-secondary">¥1,925</span>
                   </div>
                   <div className="flex items-center gap-4">
-                    <button className="px-3 py-2 rounded-lg border border-gray-300 font-medium">
+                    <button className="px-3 py-2 rounded-lg border border-border font-medium">
                       50分
                     </button>
-                    <span className="text-gray-600">¥3,850</span>
+                    <span className="text-secondary">¥3,850</span>
                   </div>
                 </div>
 
                 <div className="flex items-start gap-6">
                   <div className="flex flex-col gap-1">
-                    <span className="text-sm text-gray-500">日付</span>
+                    <span className="text-sm text-muted">日付</span>
                     <span className="text-base font-medium">
                       {new Date(date).toLocaleDateString("ja-JP")}
                     </span>
                   </div>
-                  <div className="border-l h-12 border-gray-300"></div>
+                  <div className="border-l h-12 border-border"></div>
                   <div className="flex flex-col gap-1">
-                    <span className="text-sm text-gray-500">時間</span>
+                    <span className="text-sm text-muted">時間</span>
                     <span className="text-base font-medium">{time}〜</span>
-                    <span className="text-xs text-gray-400">JST（GMT+9）</span>
+                    <span className="text-xs text-muted">JST（GMT+9）</span>
                   </div>
                 </div>
               </div>
@@ -139,18 +139,18 @@ export default function CheckoutPage() {
             <select
               value={selectedMethod}
               onChange={(e) => setSelectedMethod(e.target.value)}
-              className="w-full border border-gray-300 rounded-lg px-3 py-2 text-base"
+              className="w-full border border-border rounded-lg px-3 py-2 text-base"
             >
               <option value="">選択してください</option>
               <option value="card">クレジットカード</option>
               <option value="paypal">PayPal</option>
             </select>
 
-            <button className="w-full bg-blue-600 text-white px-4 py-3 rounded-lg font-medium">
+            <button className="w-full bg-accent hover:bg-accent-hover text-white px-4 py-3 rounded-lg font-medium">
               決済に進む：¥{duration === 50 ? "3950" : "2025"}
             </button>
 
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-muted">
               「決済に進む」ボタンをクリックすることで、Preplyの返金ポリシーに同意したことになります。
             </p>
 

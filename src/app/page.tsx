@@ -68,8 +68,8 @@ export default function Home() {
       {/* 検索フィルター */}
       <SearchFilters />
 
-      {loading && <p>読み込み中...</p>}
-      {error && <p className="text-red-500">{error}</p>}
+      {loading && <p className="text-primary">読み込み中...</p>}
+      {error && <p className="text-error">{error}</p>}
       {/* メンタリスト */}
       {!loading &&
         mentors.map((mentor) => (

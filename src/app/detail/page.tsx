@@ -47,7 +47,7 @@ export default function MentorDetail({ mentor, onBook }: MentorDetailProps) {
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
 
   return (
-    <div className="max-w-4xl mx-auto p-6 bg-white rounded-xl shadow-md">
+    <div className="max-w-4xl mx-auto p-6 bg-surface rounded-xl shadow-md">
       {/* ヘッダー部分 */}
       <div className="flex flex-col md:flex-row gap-6">
         <img
@@ -58,18 +58,18 @@ export default function MentorDetail({ mentor, onBook }: MentorDetailProps) {
 
         <div className="flex flex-col flex-1 justify-between">
           <div>
-            <h1 className="text-3xl font-bold flex items-center gap-3">
+            <h1 className="text-3xl font-bold text-primary flex items-center gap-3">
               {mentor.name}
-              <div className="border border-gray-300 rounded px-1 py-0.5 inline-flex items-center">
+              <div className="border border-border rounded px-1 py-0.5 inline-flex items-center">
                 <Flag
                   code={countryCodeMap[mentor.country]}
                   style={{ width: 32, height: 20 }}
                 />
               </div>
             </h1>
-            <p className="text-gray-600 mt-1">📍 {mentor.location}</p>
-            <p className="text-gray-600 mt-1">🗣️ {mentor.languages}</p>
-            <p className="text-gray-600 mt-1">💼 {mentor.job}</p>
+            <p className="text-secondary mt-1">📍 {mentor.location}</p>
+            <p className="text-secondary mt-1">🗣️ {mentor.languages}</p>
+            <p className="text-secondary mt-1">💼 {mentor.job}</p>
           </div>
 
           {/* スキルタグ */}
@@ -77,7 +77,7 @@ export default function MentorDetail({ mentor, onBook }: MentorDetailProps) {
             {mentor.skills.map((skill) => (
               <span
                 key={skill}
-                className="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full"
+                className="bg-accent/20 text-accent text-sm px-3 py-1 rounded-full"
               >
                 {skill}
               </span>
@@ -88,8 +88,8 @@ export default function MentorDetail({ mentor, onBook }: MentorDetailProps) {
         {/* 価格・評価 */}
         <div className="text-right min-w-[160px] flex flex-col justify-between">
           <div>
-            <div className="text-xl font-bold">{mentor.price}</div>
-            <div className="text-xs text-gray-500 mt-1">25分の料金</div>
+            <div className="text-xl font-bold text-primary">{mentor.price}</div>
+            <div className="text-xs text-muted mt-1">25分の料金</div>
           </div>
 
           <div className="mt-6">
