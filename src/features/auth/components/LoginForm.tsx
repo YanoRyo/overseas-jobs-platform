@@ -1,0 +1,103 @@
+"use client";
+import { useRouter } from "next/navigation";
+import { useLogin } from "../hooks/useLogin";
+
+export const LoginForm = () => {
+  const router = useRouter();
+  const {
+    email,
+    password,
+    loading,
+    error,
+    setEmail,
+    setPassword,
+    handleSubmit,
+  } = useLogin();
+
+  return (
+    <div className="max-w-md mx-auto p-6 mt-16 border rounded-md shadow-md">
+      {/* 戻るボタン */}
+      <div className="mb-4">
+        <button
+          onClick={() => router.push("/")}
+          aria-label="Go back to home"
+          className="text-2xl hover:text-gray-600"
+          style={{ lineHeight: 1 }}
+        >
+          ←
+        </button>
+      </div>
+
+      <h1 className="text-4xl font-bold mb-8 text-center">Login</h1>
+
+      {/* Socialログイン（今はダミーでもOK） */}
+      <div className="flex flex-col gap-4 mb-6">
+        <button className="bg-red-500 text-white py-2 rounded-md hover:bg-red-600">
+          Continue with Google
+        </button>
+        <button className="bg-blue-700 text-white py-2 rounded-md hover:bg-blue-800">
+          Continue with Facebook
+        </button>
+      </div>
+
+      {/* or */}
+      <div className="flex items-center mb-6">
+        <div className="flex-grow border-t border-gray-300" />
+        <span className="mx-4 text-gray-500 font-semibold">or</span>
+        <div className="flex-grow border-t border-gray-300" />
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {error && <p className="text-red-500">{error}</p>}
+
+        <div>
+          <label className="block mb-1 font-semibold">Email</label>
+          <input
+            className="w-full border border-gray-300 rounded-md p-2"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+        </div>
+
+        <div>
+          <label className="block mb-1 font-semibold">Password</label>
+          <input
+            type="password"
+            className="w-full border border-gray-300 rounded-md p-2"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
+
+        <div className="text-right">
+          <a
+            href="/auth/forgot-password"
+            className="text-sm text-blue-600 hover:underline"
+          >
+            Forget your password?
+          </a>
+        </div>
+
+        <button
+          type="submit"
+          disabled={loading}
+          className={`w-full py-3 rounded-md font-semibold text-white ${
+            loading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
+          }`}
+        >
+          {loading ? "Logging in..." : "Login"}
+        </button>
+      </form>
+
+      <p className="mt-6 text-center text-sm text-gray-600">
+        By logging in, you agree to our{" "}
+        <a href="/policy" className="text-blue-600 hover:underline">
+          Terms & Policy
+        </a>
+        .
+      </p>
+    </div>
+  );
+};

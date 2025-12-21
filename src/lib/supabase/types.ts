@@ -1,14 +1,14 @@
-export type Mentor = {
+export type MentorRow = {
   id: number;
   name: string;
   country: string;
   location: string;
   languages: string;
-  jobTitle: string;
+  job_title: string;
   bio: string;
-  avatarUrl: string;
+  avatar_url: string;
   price: string;
   reviews: number;
   rating: number;
-  createdAt: string;
+  created_at: string;
 };
