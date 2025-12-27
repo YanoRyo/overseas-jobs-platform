@@ -14,11 +14,13 @@ export const ReservationSummary = ({
   return (
     <div className="space-y-6">
       <div className="flex items-start gap-4">
-        <img
-          src={mentorAvatarUrl}
-          alt={mentorName}
-          className="w-20 h-20 rounded-xl object-cover"
-        />
+        {mentorAvatarUrl && (
+          <img
+            src={mentorAvatarUrl}
+            alt={mentorName}
+            className="w-20 h-20 rounded-xl object-cover"
+          />
+        )}
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
             <h2 className="text-lg font-semibold">{mentorName} さん</h2>

@@ -27,12 +27,14 @@ export default function MentorCard({ mentor, onBook }: MentorCardProps) {
       <div className="flex flex-col md:flex-row border-border rounded-xl shadow p-8 gap-8 items-stretch min-h-[220px] hover:bg-surface-hover cursor-pointer bg-surface transition-colors">
         {/* ① アバター */}
         <div className="relative w-32 h-32 flex-shrink-0">
-          <Image
-            src={mentor.avatarUrl}
-            alt={mentor.name}
-            fill
-            className="object-cover rounded-lg"
-          />
+          {mentor.avatarUrl && (
+            <Image
+              src={mentor.avatarUrl}
+              alt={mentor.name}
+              fill
+              className="object-cover rounded-lg"
+            />
+          )}
         </div>
 
         {/* ② テキスト情報 */}

@@ -31,11 +31,13 @@ export const MentorDetail = ({
       <div className="md:col-span-2 space-y-6">
         {/* プロフィールヘッダー */}
         <div className="flex items-start gap-6">
-          <img
-            src={mentor.avatarUrl}
-            alt={mentor.name}
-            className="w-32 h-32 object-cover rounded-lg shadow-md"
-          />
+          {mentor.avatarUrl && (
+            <img
+              src={mentor.avatarUrl}
+              alt={mentor.name}
+              className="w-32 h-32 object-cover rounded-lg shadow-md"
+            />
+          )}
           <div className="flex-1">
             <h1 className="text-3xl font-bold flex items-center gap-2">
               {mentor.name} <span className="text-sm">{mentor.country}</span>
@@ -167,11 +169,13 @@ export const MentorDetail = ({
       {/* 右カラム */}
       <div className="sticky top-6 h-fit border rounded-lg shadow p-4">
         <div className="relative">
-          <img
-            src={mentor.introVideoUrl}
-            alt="Intro Video"
-            className="rounded-lg w-full object-cover"
-          />
+          {mentor.avatarUrl && (
+            <img
+              src={mentor.introVideoUrl}
+              alt="Intro Video"
+              className="rounded-lg w-full object-cover"
+            />
+          )}
           <button className="absolute inset-0 flex items-center justify-center text-white text-3xl">
             ▶
           </button>

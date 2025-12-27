@@ -61,13 +61,15 @@ export default function ReviewCarousel() {
       {/* 下部：レビュー表示カード */}
       <div className="bg-surface border border-border rounded-lg p-4 shadow-sm">
         <div className="flex items-center gap-3 mb-2">
-          <Image
-            src={review.avatarUrl}
-            alt={review.name}
-            width={32}
-            height={32}
-            className="rounded-md object-cover"
-          />
+          {review.avatarUrl && (
+            <Image
+              src={review.avatarUrl}
+              alt={review.name}
+              width={32}
+              height={32}
+              className="rounded-md object-cover"
+            />
+          )}
           <span className="font-medium text-primary">{review.name}</span>
         </div>
         <p className="text-sm text-secondary">{review.content}</p>

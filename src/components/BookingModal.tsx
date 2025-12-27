@@ -84,11 +84,13 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
         {/* ① ヘッダー */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <img
-              src={mentor.avatarUrl}
-              alt={mentor.name}
-              className="w-12 h-12 rounded-lg object-cover"
-            />
+            {mentor.avatarUrl && (
+              <img
+                src={mentor.avatarUrl}
+                alt={mentor.name}
+                className="w-12 h-12 rounded-lg object-cover"
+              />
+            )}
             <h2 className="text-xl font-semibold">
               {mentor.name}さんを予約する
             </h2>
