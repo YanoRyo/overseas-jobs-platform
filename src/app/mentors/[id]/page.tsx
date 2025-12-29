@@ -17,6 +17,7 @@ export default function MentorDetailPage({
   if (loading) return <div className="p-6">読み込み中...</div>;
   if (error || !mentor)
     return <div className="p-6">メンターが見つかりませんでした。</div>;
+
   return (
     <MentorDetail
       mentor={mentor}
