@@ -1,9 +1,10 @@
 "use client";
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { supabase } from "@/lib/supabase/client";
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
 
 export const useSignup = () => {
+  const supabase = useSupabaseClient();
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") || "/";
@@ -45,7 +46,12 @@ export const useSignup = () => {
     }
 
     alert("確認メールを送信しました");
-    router.push(redirect);
+    const pendingReservation = localStorage.getItem("pendingReservation");
+    if (pendingReservation) {
+      router.push("/checkout");
+    } else {
+      router.push(redirect);
+    }
   };
 
   const handleGoogleSignup = async () => {

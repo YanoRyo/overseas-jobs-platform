@@ -37,18 +37,26 @@ export const SignupForm = () => {
       <div className="flex flex-col gap-4 mb-6">
         <button
           onClick={handleGoogleSignup}
-          className="bg-red-500 text-white py-2 rounded-md"
+          className="bg-red-500 text-white py-2 rounded-md hover:bg-red-600 transition-colors"
         >
           Continue with Google
         </button>
         <button
           onClick={handleFacebookSignup}
-          className="bg-blue-700 text-white py-2 rounded-md"
+          className="bg-blue-700 text-white py-2 rounded-md hover:bg-blue-800 transition-colors"
         >
           Continue with Facebook
         </button>
       </div>
 
+      {/* or */}
+      <div className="flex items-center mb-6">
+        <div className="flex-grow border-t border-gray-300" />
+        <span className="mx-4 text-gray-500 font-semibold">or</span>
+        <div className="flex-grow border-t border-gray-300" />
+      </div>
+
+      {/* Email/Passwordログインフォーム */}
       <form onSubmit={handleEmailSignup} className="space-y-6">
         <input
           type="email"

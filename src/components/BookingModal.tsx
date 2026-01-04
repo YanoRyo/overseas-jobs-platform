@@ -2,12 +2,12 @@
 import { useState } from "react";
 import { Dialog } from "@headlessui/react";
 import { X } from "lucide-react";
-import { Mentor } from "../types/mentor";
+import type { MentorListItem } from "@/features/mentors/types";
 import { useRouter } from "next/navigation";
 import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
 
 type Props = {
-  mentor: Mentor;
+  mentor: MentorListItem;
   onClose: () => void;
   isOpen: boolean;
 };
@@ -40,15 +40,18 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
     reservationDate.setMinutes(Number(minutes));
     reservationDate.setSeconds(0);
     reservationDate.setMilliseconds(0);
-
+    const startTime = reservationDate;
+    const endTime = new Date(startTime);
+    endTime.setMinutes(endTime.getMinutes() + duration);
     const { error } = await supabase.from("bookings").insert({
       user_id: user.id,
       mentor_id: mentor.id,
-      time_slot: reservationDate.toISOString(),
+      start_time: startTime.toISOString(),
+      end_time: endTime.toISOString(),
+      status: "pending",
     });
 
     if (error) {
-      console.error("予約保存エラー:", error);
       alert("予約に失敗しました。もう一度お試しください。");
       return;
     }

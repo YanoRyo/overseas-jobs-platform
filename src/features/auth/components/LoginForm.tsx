@@ -29,13 +29,12 @@ export const LoginForm = () => {
       </div>
 
       <h1 className="text-4xl font-bold mb-8 text-center">Login</h1>
-
-      {/* Socialログイン（今はダミーでもOK） */}
+      {/* Socialログイン */}
       <div className="flex flex-col gap-4 mb-6">
-        <button className="bg-red-500 text-white py-2 rounded-md hover:bg-red-600">
+        <button className="bg-red-500 text-white py-2 rounded-md hover:bg-red-600 transition-colors">
           Continue with Google
         </button>
-        <button className="bg-blue-700 text-white py-2 rounded-md hover:bg-blue-800">
+        <button className="bg-blue-700 text-white py-2 rounded-md hover:bg-blue-800 transition-colors">
           Continue with Facebook
         </button>
       </div>
@@ -47,9 +46,9 @@ export const LoginForm = () => {
         <div className="flex-grow border-t border-gray-300" />
       </div>
 
+      {/* Email/Passwordログインフォーム */}
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && <p className="text-red-500">{error}</p>}
-
         <div>
           <label className="block mb-1 font-semibold">Email</label>
           <input

@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
-import { supabase } from "@/lib/supabase/client";
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { mapMentorDetail } from "../mapper/mapMentorDetail";
 import { MentorDetailModel } from "../types";
 
 export const useMentorDetail = (id: string) => {
+  const supabase = useSupabaseClient();
   const [mentor, setMentor] = useState<MentorDetailModel | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);

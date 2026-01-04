@@ -1,28 +1,30 @@
 "use client";
 import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { supabase } from "@/lib/supabase/client";
+import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
 
 export const useAuthCallback = () => {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const supabase = useSupabaseClient();
+  const user = useUser();
 
   useEffect(() => {
     const run = async () => {
       const redirect = searchParams.get("redirect") || "/";
-      const { data } = await supabase.auth.getUser();
 
-      if (data.user) {
-        await supabase.from("users").upsert({
-          id: data.user.id,
-          username: data.user.email?.split("@")[0],
-          role: "student",
-        });
-      }
+      if (!user) return;
+      await supabase.from("users").upsert({
+        id: user.id,
+        username: user.email?.split("@")[0] ?? "no-name",
+        role: "student",
+      });
 
-      router.push(redirect);
+      const pendingReservation = localStorage.getItem("pendingReservation");
+
+      router.push(pendingReservation ? "/checkout" : redirect);
     };
 
     run();
-  }, [router, searchParams]);
+  }, [user, supabase, router, searchParams]);
 };

@@ -1,10 +1,11 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase/client";
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
 
 export const useLogin = () => {
   const router = useRouter();
+  const supabase = useSupabaseClient();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);

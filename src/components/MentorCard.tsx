@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Mentor } from "../types/mentor";
 import Flag from "react-world-flags";
 import Image from "next/image";
 import Link from "next/link";
+import type { MentorListItem } from "@/features/mentors/types";
 
 const countryCodeMap: Record<string, string> = {
   Japan: "jp",
@@ -13,7 +13,7 @@ const countryCodeMap: Record<string, string> = {
 };
 
 type MentorCardProps = {
-  mentor: Mentor;
+  mentor: MentorListItem;
   onBook: () => void;
 };
 export default function MentorCard({ mentor, onBook }: MentorCardProps) {
