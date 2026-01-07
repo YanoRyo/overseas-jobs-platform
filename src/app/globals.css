@@ -97,6 +97,11 @@
   }
 }
 
+html {
+  /* スクロールバーの出現/消失によるレイアウトシフトを防止 */
+  overflow-y: scroll;
+}
+
 body {
   color: var(--foreground);
   background: var(--background);
@@ -164,7 +169,3 @@ option {
   color: var(--text-primary);
 }
 
-/* アニメーショントランジション */
-* {
-  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
-}
