@@ -221,80 +221,43 @@ export const useTutorRegistration = (): UseTutorRegistrationReturn => {
   const isLastStep = currentStepIndex === REGISTRATION_STEPS.length - 1;
   const canGoPrev = !isFirstStep;
 
-  // 現在のステップのバリデーション
-  const validateCurrentStep = useCallback((): boolean => {
-    let stepErrors: Record<string, string> = {};
-
+  // 現在のステップのバリデーション結果を取得
+  const currentStepErrors = useMemo((): Record<string, string> => {
     switch (currentStep) {
       case 'about':
-        stepErrors = validateAboutStep(formData.about);
-        break;
+        return validateAboutStep(formData.about);
       case 'photo':
-        stepErrors = validatePhotoStep(formData.photo);
-        break;
+        return validatePhotoStep(formData.photo);
       case 'education':
-        stepErrors = validateEducationStep(formData.education);
-        break;
+        return validateEducationStep(formData.education);
       case 'description':
-        stepErrors = validateDescriptionStep(formData.description);
-        break;
+        return validateDescriptionStep(formData.description);
       case 'video':
-        stepErrors = validateVideoStep(formData.video);
-        break;
+        return validateVideoStep(formData.video);
       case 'availability':
-        stepErrors = validateAvailabilityStep(formData.availability);
-        break;
+        return validateAvailabilityStep(formData.availability);
       case 'pricing':
-        stepErrors = validatePricingStep(formData.pricing);
-        break;
+        return validatePricingStep(formData.pricing);
+      default:
+        return {};
     }
-
-    setErrors(stepErrors);
-    return Object.keys(stepErrors).length === 0;
   }, [currentStep, formData]);
 
-  // 次へ進めるかどうか
+  // 現在のステップのバリデーション（エラーをstateにセットして結果を返す）
+  const validateCurrentStep = useCallback((): boolean => {
+    setErrors(currentStepErrors);
+    return Object.keys(currentStepErrors).length === 0;
+  }, [currentStepErrors]);
+
+  // 次へ進めるかどうか（バリデーション結果に基づく）
   const canGoNext = useMemo(() => {
     // 任意ステップは常に次へ進める
     const currentConfig = REGISTRATION_STEPS[currentStepIndex];
     if (currentConfig.isOptional) return true;
 
-    // 必須ステップは基本的なチェック
-    switch (currentStep) {
-      case 'about':
-        return (
-          formData.about.firstName.trim() !== '' &&
-          formData.about.lastName.trim() !== '' &&
-          formData.about.email.trim() !== '' &&
-          formData.about.countryCode !== '' &&
-          formData.about.phoneNumber.trim() !== '' &&
-          formData.about.expertise.length > 0 &&
-          formData.about.languages.length > 0 &&
-          formData.about.languages.some((lang) => lang.languageCode !== '')
-        );
-      case 'photo':
-        return formData.photo.avatarUrl !== null || formData.photo.avatarFile !== null;
-      case 'description':
-        return (
-          formData.description.introduction.length >= VALIDATION_CONFIG.introduction.minLength &&
-          formData.description.workExperience.length >= VALIDATION_CONFIG.workExperience.minLength &&
-          formData.description.motivation.length >= VALIDATION_CONFIG.motivation.minLength &&
-          formData.description.headline.trim() !== ''
-        );
-      case 'availability':
-        return (
-          formData.availability.timezone !== '' &&
-          formData.availability.slots.filter((s) => s.isEnabled).length > 0
-        );
-      case 'pricing':
-        return (
-          formData.pricing.hourlyRate >= PRICING_CONFIG.minRate &&
-          formData.pricing.hourlyRate <= PRICING_CONFIG.maxRate
-        );
-      default:
-        return true;
-    }
-  }, [currentStep, currentStepIndex, formData]);
+    // バリデーションエラーがなければ次へ進める
+    return Object.keys(currentStepErrors).length === 0;
+  }, [currentStepIndex, currentStepErrors]);
 
   // ステップ遷移
   const goToStep = useCallback((step: RegistrationStep) => {

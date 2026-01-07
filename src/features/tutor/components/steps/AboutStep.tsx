@@ -158,6 +158,7 @@ export const AboutStep = ({ data, errors, onUpdate, onNext, canGoNext }: AboutSt
               id="firstName"
               value={data.firstName}
               onChange={(e) => onUpdate({ firstName: e.target.value })}
+              placeholder="E.g. John"
               className={`
                 w-full border rounded-lg px-3 py-2 bg-surface text-primary
                 placeholder:text-muted
@@ -179,6 +180,7 @@ export const AboutStep = ({ data, errors, onUpdate, onNext, canGoNext }: AboutSt
               id="lastName"
               value={data.lastName}
               onChange={(e) => onUpdate({ lastName: e.target.value })}
+              placeholder="E.g. Doe"
               className={`
                 w-full border rounded-lg px-3 py-2 bg-surface text-primary
                 placeholder:text-muted
@@ -202,6 +204,7 @@ export const AboutStep = ({ data, errors, onUpdate, onNext, canGoNext }: AboutSt
             id="email"
             value={data.email}
             onChange={(e) => onUpdate({ email: e.target.value })}
+            placeholder="E.g. john.doe@example.com"
             className={`
               w-full border rounded-lg px-3 py-2 bg-surface text-primary
               placeholder:text-muted
