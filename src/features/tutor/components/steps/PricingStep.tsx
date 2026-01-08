@@ -27,11 +27,15 @@ export const PricingStep = ({
   const { minRate, maxRate, sessionDuration } = PRICING_CONFIG;
 
   const handleRateChange = (value: string) => {
+    if (value === '') {
+      // 入力クリア時は最小値にリセット（バリデーションエラーを防止）
+      onUpdate({ hourlyRate: minRate });
+      return;
+    }
+
     const numValue = parseInt(value, 10);
     if (!isNaN(numValue)) {
       onUpdate({ hourlyRate: numValue });
-    } else if (value === '') {
-      onUpdate({ hourlyRate: 0 });
     }
   };
 
