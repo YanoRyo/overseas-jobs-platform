@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Plus, Trash2, X } from 'lucide-react';
 import type { AboutFormData, TutorLanguage, LanguageProficiency } from '../../types/registration';
 import {
@@ -29,6 +29,11 @@ export const AboutStep = ({ data, errors, onUpdate, onNext, canGoNext }: AboutSt
   const [selectedExpertise, setSelectedExpertise] = useState<string[]>(data.expertise);
   const [showOtherInput, setShowOtherInput] = useState(false);
   const [otherInputValue, setOtherInputValue] = useState('');
+
+  // data.expertiseが外部から変更された場合にローカルstateを同期
+  useEffect(() => {
+    setSelectedExpertise(data.expertise);
+  }, [data.expertise]);
 
   // 言語追加
   const addLanguage = useCallback(() => {
