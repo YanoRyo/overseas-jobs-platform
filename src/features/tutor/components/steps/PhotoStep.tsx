@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef, useEffect } from 'react';
+import { useCallback, useRef, useEffect, useState } from 'react';
 import { Upload, Check, User } from 'lucide-react';
 import type { PhotoFormData } from '../../types/registration';
 import { PHOTO_REQUIREMENTS } from '../../constants/options';
@@ -24,21 +24,25 @@ export const PhotoStep = ({
   canGoNext,
 }: PhotoStepProps) => {
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [fileError, setFileError] = useState<string | null>(null);
 
   const handleFileSelect = useCallback(
     (event: React.ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
       if (!file) return;
 
+      // エラーをクリア
+      setFileError(null);
+
       // ファイル形式チェック
       if (!file.type.startsWith('image/')) {
-        alert('Please select an image file');
+        setFileError('Please select an image file');
         return;
       }
 
       // ファイルサイズチェック (5MB)
       if (file.size > 5 * 1024 * 1024) {
-        alert('File size must be less than 5MB');
+        setFileError('File size must be less than 5MB');
         return;
       }
 
@@ -123,7 +127,9 @@ export const PhotoStep = ({
             aria-label="Upload profile photo"
           />
 
-          {errors.avatar && <p className="text-error text-sm">{errors.avatar}</p>}
+          {(errors.avatar || fileError) && (
+            <p className="text-error text-sm">{fileError || errors.avatar}</p>
+          )}
         </div>
 
         {/* Requirements checklist */}
