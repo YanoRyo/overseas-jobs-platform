@@ -76,10 +76,7 @@ export const validatePhotoStep = (data: PhotoFormData): Record<string, string> =
   return errors;
 };
 
-export const validateEducationStep = (
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _data: EducationFormData
-): Record<string, string> => {
+export const validateEducationStep = (): Record<string, string> => {
   // 任意ステップなのでバリデーションなし
   return {};
 };
@@ -237,7 +234,7 @@ export const useTutorRegistration = (): UseTutorRegistrationReturn => {
       case 'photo':
         return validatePhotoStep(formData.photo);
       case 'education':
-        return validateEducationStep(formData.education);
+        return validateEducationStep();
       case 'description':
         return validateDescriptionStep(formData.description);
       case 'video':
