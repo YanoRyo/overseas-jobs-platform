@@ -123,6 +123,7 @@ export const VideoStep = ({
                 title="Video preview"
                 className="w-full h-full"
                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                sandbox="allow-scripts allow-same-origin"
                 allowFullScreen
               />
             </div>
