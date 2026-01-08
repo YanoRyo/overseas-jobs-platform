@@ -38,12 +38,31 @@ const validatePhoneNumber = (phone: string): string | null => {
 
 const validateVideoUrl = (url: string): string | null => {
   if (!url) return null; // 任意項目
-  const youtubeRegex = /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/;
-  const vimeoRegex = /^(https?:\/\/)?(www\.)?vimeo\.com\/.+$/;
-  if (!youtubeRegex.test(url) && !vimeoRegex.test(url)) {
+
+  try {
+    const urlObj = new URL(url);
+    const hostname = urlObj.hostname.replace('www.', '');
+
+    // YouTube: youtube.com または youtu.be
+    if (hostname === 'youtube.com') {
+      // /watch?v=VIDEO_ID
+      if (urlObj.searchParams.has('v')) return null;
+      // /embed/VIDEO_ID, /shorts/VIDEO_ID, /live/VIDEO_ID
+      if (/^\/(embed|shorts|live)\/[a-zA-Z0-9_-]+/.test(urlObj.pathname)) return null;
+    }
+    if (hostname === 'youtu.be' && urlObj.pathname.length > 1) {
+      return null;
+    }
+
+    // Vimeo: vimeo.com
+    if (hostname === 'vimeo.com' && /^\/\d+/.test(urlObj.pathname)) {
+      return null;
+    }
+
+    return 'Please enter a valid YouTube or Vimeo URL';
+  } catch {
     return 'Please enter a valid YouTube or Vimeo URL';
   }
-  return null;
 };
 
 export const validateAboutStep = (data: AboutFormData): Record<string, string> => {
