@@ -306,11 +306,18 @@ export const useTutorRegistration = (): UseTutorRegistrationReturn => {
       const prevIndex = currentStepIndex - 1;
       const prevStep = REGISTRATION_STEPS[prevIndex].id;
       setCurrentStepIndex(prevIndex);
-      setStepStatuses((prev) => ({
-        ...prev,
-        [currentStep]: 'pending',
-        [prevStep]: 'current',
-      }));
+      setStepStatuses((prev) => {
+        const currentStatus = prev[currentStep];
+        return {
+          ...prev,
+          // completed/skipped状態を保持、それ以外はpendingに
+          [currentStep]:
+            currentStatus === 'completed' || currentStatus === 'skipped'
+              ? currentStatus
+              : 'pending',
+          [prevStep]: 'current',
+        };
+      });
       setErrors({});
     }
   }, [currentStep, currentStepIndex, isFirstStep]);
