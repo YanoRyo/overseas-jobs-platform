@@ -411,9 +411,10 @@ export const useTutorRegistration = (): UseTutorRegistrationReturn => {
     setIsSubmitting(true);
     try {
       // TODO: 登録完了後のリダイレクト先を実装
-      // 現在はコンソールにデータを出力するのみ
-      console.log('Registration data:', formData);
-      alert('Registration completed! (This is a mock submission)');
+      // 開発環境のみコンソールにデータを出力
+      if (process.env.NODE_ENV === 'development') {
+        console.log('Registration data:', formData);
+      }
     } catch (error) {
       console.error('Registration failed:', error);
       setErrors({ submit: 'Registration failed. Please try again.' });
