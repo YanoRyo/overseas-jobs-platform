@@ -65,9 +65,9 @@ export const DescriptionStep = ({
               {errors.introduction ? (
                 <p className="text-error text-sm">{errors.introduction}</p>
               ) : (
-                <div className="flex items-start gap-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
-                  <Info className="w-4 h-4 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-                  <p className="text-sm text-blue-800 dark:text-blue-200">
+                <div className="flex items-start gap-2 p-2 bg-blue-50 rounded-lg">
+                  <Info className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
+                  <p className="text-sm text-blue-800">
                     Don&apos;t include your last name or present your information in a CV format
                   </p>
                 </div>

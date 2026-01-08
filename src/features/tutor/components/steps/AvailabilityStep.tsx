@@ -130,9 +130,9 @@ export const AvailabilityStep = ({
         </p>
 
         {/* Info box */}
-        <div className="flex items-start gap-3 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg mb-6">
-          <Info className="w-5 h-5 text-blue-600 dark:text-blue-400 flex-shrink-0 mt-0.5" />
-          <div className="text-sm text-blue-800 dark:text-blue-200">
+        <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg mb-6">
+          <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
+          <div className="text-sm text-blue-800">
             <p className="font-medium">Add popular hours to get more students</p>
             <p className="mt-1">
               Most students book lessons between 6:00 and 9:00 (popular hours). Add time slots
