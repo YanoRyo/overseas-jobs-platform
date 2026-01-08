@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useRef } from 'react';
+import { useCallback, useRef, useEffect } from 'react';
 import { Upload, Check, User } from 'lucide-react';
 import type { PhotoFormData } from '../../types/registration';
 import { PHOTO_REQUIREMENTS } from '../../constants/options';
@@ -57,6 +57,15 @@ export const PhotoStep = ({
   }, []);
 
   const previewUrl = data.avatarUrl;
+
+  // メモリリーク防止: URL.createObjectURLで作成したURLを解放
+  useEffect(() => {
+    return () => {
+      if (previewUrl && data.avatarFile) {
+        URL.revokeObjectURL(previewUrl);
+      }
+    };
+  }, [previewUrl, data.avatarFile]);
 
   return (
     <div className="space-y-8">
