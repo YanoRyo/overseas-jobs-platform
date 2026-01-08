@@ -134,12 +134,20 @@ export const validateAvailabilityStep = (data: AvailabilityFormData): Record<str
     errors.slots = 'Please set at least one available time slot';
   }
 
-  // 各スロットの時間チェック
-  enabledSlots.forEach((slot) => {
+  // 各スロットの時間チェック（複数エラーを収集）
+  const invalidSlotIndices: number[] = [];
+  enabledSlots.forEach((slot, index) => {
     if (slot.startTime >= slot.endTime) {
-      errors.slots = 'End time must be after start time';
+      invalidSlotIndices.push(index + 1);
     }
   });
+
+  if (invalidSlotIndices.length > 0) {
+    errors.slots =
+      invalidSlotIndices.length === 1
+        ? `End time must be after start time for slot ${invalidSlotIndices[0]}`
+        : `End time must be after start time for slots ${invalidSlotIndices.join(', ')}`;
+  }
 
   return errors;
 };
