@@ -16,16 +16,42 @@ type VideoStepProps = {
   canGoNext: boolean;
 };
 
+// YouTubeのビデオIDを抽出（URL objectを使用した堅牢なパーシング）
+const extractYouTubeVideoId = (url: string): string | null => {
+  try {
+    const urlObj = new URL(url);
+    const hostname = urlObj.hostname.replace('www.', '');
+
+    if (hostname === 'youtube.com') {
+      // /watch?v=VIDEO_ID
+      const vParam = urlObj.searchParams.get('v');
+      if (vParam) return vParam;
+
+      // /embed/VIDEO_ID, /shorts/VIDEO_ID, /live/VIDEO_ID
+      const pathMatch = urlObj.pathname.match(/^\/(embed|shorts|live)\/([a-zA-Z0-9_-]+)/);
+      if (pathMatch) return pathMatch[2];
+    }
+
+    if (hostname === 'youtu.be') {
+      // youtu.be/VIDEO_ID
+      const pathMatch = urlObj.pathname.match(/^\/([a-zA-Z0-9_-]+)/);
+      if (pathMatch) return pathMatch[1];
+    }
+
+    return null;
+  } catch {
+    return null;
+  }
+};
+
 // YouTube/Vimeo URLからembed URLを生成
 const getEmbedUrl = (url: string): string | null => {
   if (!url) return null;
 
   // YouTube
-  const youtubeMatch = url.match(
-    /(?:youtube\.com\/(?:watch\?v=|embed\/)|youtu\.be\/)([a-zA-Z0-9_-]+)/
-  );
-  if (youtubeMatch) {
-    return `https://www.youtube.com/embed/${youtubeMatch[1]}`;
+  const youtubeVideoId = extractYouTubeVideoId(url);
+  if (youtubeVideoId) {
+    return `https://www.youtube.com/embed/${youtubeVideoId}`;
   }
 
   // Vimeo
