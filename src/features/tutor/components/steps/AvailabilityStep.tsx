@@ -52,11 +52,17 @@ export const AvailabilityStep = ({
     [data.slots, onUpdate]
   );
 
-  // スロット更新
-  const updateSlot = useCallback(
-    (id: string, field: keyof AvailabilitySlot, value: string | boolean) => {
+  // スロット更新（共通ハンドラ - data属性から情報を取得）
+  const handleSlotTimeChange = useCallback(
+    (e: React.ChangeEvent<HTMLSelectElement>) => {
+      const slotId = e.currentTarget.dataset.slotId;
+      const field = e.currentTarget.dataset.field as 'startTime' | 'endTime';
+      if (!slotId || !field) return;
+
       onUpdate({
-        slots: data.slots.map((slot) => (slot.id === id ? { ...slot, [field]: value } : slot)),
+        slots: data.slots.map((slot) =>
+          slot.id === slotId ? { ...slot, [field]: e.target.value } : slot
+        ),
       });
     },
     [data.slots, onUpdate]
@@ -170,7 +176,9 @@ export const AvailabilityStep = ({
                           <label className="text-sm text-muted">From</label>
                           <select
                             value={slot.startTime}
-                            onChange={(e) => updateSlot(slot.id, 'startTime', e.target.value)}
+                            data-slot-id={slot.id}
+                            data-field="startTime"
+                            onChange={handleSlotTimeChange}
                             disabled={!slot.isEnabled}
                             className="border border-border rounded-lg px-2 py-1.5 bg-surface text-primary text-sm focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50"
                           >
@@ -186,7 +194,9 @@ export const AvailabilityStep = ({
                           <label className="text-sm text-muted">To</label>
                           <select
                             value={slot.endTime}
-                            onChange={(e) => updateSlot(slot.id, 'endTime', e.target.value)}
+                            data-slot-id={slot.id}
+                            data-field="endTime"
+                            onChange={handleSlotTimeChange}
                             disabled={!slot.isEnabled}
                             className="border border-border rounded-lg px-2 py-1.5 bg-surface text-primary text-sm focus:outline-none focus:ring-2 focus:ring-accent disabled:opacity-50"
                           >
