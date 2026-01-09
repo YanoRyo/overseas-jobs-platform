@@ -1,14 +1,9 @@
 'use client';
 
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback } from 'react';
 import { Plus, Trash2, X } from 'lucide-react';
 import type { AboutFormData, TutorLanguage, LanguageProficiency } from '../../types/registration';
-import {
-  COUNTRIES,
-  LANGUAGES,
-  LANGUAGE_PROFICIENCY_OPTIONS,
-  EXPERTISE_OPTIONS,
-} from '../../constants/options';
+import { COUNTRIES, LANGUAGES, LANGUAGE_PROFICIENCY_OPTIONS } from '../../constants/options';
 import { StepNavigation } from '../shared/StepNavigation';
 
 type AboutStepProps = {
@@ -19,21 +14,8 @@ type AboutStepProps = {
   canGoNext: boolean;
 };
 
-// 定義済みオプションに含まれないカスタム値を取得
-const getCustomExpertise = (expertise: string[]): string[] => {
-  const predefinedValues = EXPERTISE_OPTIONS.map((opt) => opt.value);
-  return expertise.filter((e) => !predefinedValues.includes(e));
-};
-
 export const AboutStep = ({ data, errors, onUpdate, onNext, canGoNext }: AboutStepProps) => {
-  const [selectedExpertise, setSelectedExpertise] = useState<string[]>(data.expertise);
-  const [showOtherInput, setShowOtherInput] = useState(false);
-  const [otherInputValue, setOtherInputValue] = useState('');
-
-  // data.expertiseが外部から変更された場合にローカルstateを同期
-  useEffect(() => {
-    setSelectedExpertise(data.expertise);
-  }, [data.expertise]);
+  const [expertiseInput, setExpertiseInput] = useState('');
 
   // 言語追加
   const addLanguage = useCallback(() => {
@@ -76,56 +58,33 @@ export const AboutStep = ({ data, errors, onUpdate, onNext, canGoNext }: AboutSt
     [data.languages, onUpdate]
   );
 
-  // 専門分野の切り替え
-  const toggleExpertise = useCallback(
-    (value: string) => {
-      const newExpertise = selectedExpertise.includes(value)
-        ? selectedExpertise.filter((e) => e !== value)
-        : [...selectedExpertise, value];
-      setSelectedExpertise(newExpertise);
-      onUpdate({ expertise: newExpertise });
-    },
-    [selectedExpertise, onUpdate]
-  );
-
-  // カスタムExpertiseを追加
-  const addCustomExpertise = useCallback(() => {
-    const trimmedValue = otherInputValue.trim();
-    if (trimmedValue && !selectedExpertise.includes(trimmedValue)) {
-      const newExpertise = [...selectedExpertise, trimmedValue];
-      setSelectedExpertise(newExpertise);
-      onUpdate({ expertise: newExpertise });
-      setOtherInputValue('');
-      setShowOtherInput(false);
+  // Expertiseを追加
+  const addExpertise = useCallback(() => {
+    const trimmedValue = expertiseInput.trim();
+    if (trimmedValue && !data.expertise.includes(trimmedValue)) {
+      onUpdate({ expertise: [...data.expertise, trimmedValue] });
+      setExpertiseInput('');
     }
-  }, [otherInputValue, selectedExpertise, onUpdate]);
+  }, [expertiseInput, data.expertise, onUpdate]);
 
-  // カスタムExpertiseを削除
-  const removeCustomExpertise = useCallback(
+  // Expertiseを削除
+  const removeExpertise = useCallback(
     (value: string) => {
-      const newExpertise = selectedExpertise.filter((e) => e !== value);
-      setSelectedExpertise(newExpertise);
-      onUpdate({ expertise: newExpertise });
+      onUpdate({ expertise: data.expertise.filter((e) => e !== value) });
     },
-    [selectedExpertise, onUpdate]
+    [data.expertise, onUpdate]
   );
 
-  // Enterキーでカスタム追加
-  const handleOtherInputKeyDown = useCallback(
+  // Enterキーで追加
+  const handleExpertiseKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
       if (e.key === 'Enter') {
         e.preventDefault();
-        addCustomExpertise();
-      } else if (e.key === 'Escape') {
-        setShowOtherInput(false);
-        setOtherInputValue('');
+        addExpertise();
       }
     },
-    [addCustomExpertise]
+    [addExpertise]
   );
-
-  // カスタムExpertiseの一覧を取得
-  const customExpertise = getCustomExpertise(selectedExpertise);
 
   // 国の変更時に電話コードも更新
   const handleCountryChange = useCallback(
@@ -287,75 +246,42 @@ export const AboutStep = ({ data, errors, onUpdate, onNext, canGoNext }: AboutSt
 
         {/* Expertise */}
         <div>
-          <label className="block text-sm font-medium text-primary mb-2">
+          <label htmlFor="expertise" className="block text-sm font-medium text-primary mb-2">
             Expertise / Topics you can help with <span className="text-error">*</span>
           </label>
-          <div className="flex flex-wrap gap-2">
-            {EXPERTISE_OPTIONS.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => toggleExpertise(option.value)}
-                className={`
-                  px-3 py-1.5 rounded-full text-sm transition-colors
-                  ${
-                    selectedExpertise.includes(option.value)
-                      ? 'bg-accent text-white'
-                      : 'bg-surface border border-border text-primary hover:bg-surface-hover'
-                  }
-                `}
-              >
-                {option.label}
-              </button>
-            ))}
-            {/* Other button */}
+
+          {/* Expertise input */}
+          <div className="flex items-center gap-2">
+            <input
+              type="text"
+              id="expertise"
+              value={expertiseInput}
+              onChange={(e) => setExpertiseInput(e.target.value)}
+              onKeyDown={handleExpertiseKeyDown}
+              placeholder="E.g. Interview preparation, Resume writing..."
+              className={`
+                flex-1 border rounded-lg px-3 py-2 bg-surface text-primary
+                placeholder:text-muted
+                ${errors.expertise ? 'border-error' : 'border-border'}
+                focus:outline-none focus:ring-2 focus:ring-accent
+              `}
+              aria-required="true"
+              aria-invalid={!!errors.expertise}
+            />
             <button
               type="button"
-              onClick={() => setShowOtherInput(true)}
-              className="px-3 py-1.5 rounded-full text-sm transition-colors bg-surface border border-dashed border-border text-muted hover:bg-surface-hover hover:text-primary"
+              onClick={addExpertise}
+              disabled={!expertiseInput.trim()}
+              className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              + Other
+              Add
             </button>
           </div>
 
-          {/* Other input field */}
-          {showOtherInput && (
-            <div className="flex items-center gap-2 mt-3">
-              <input
-                type="text"
-                value={otherInputValue}
-                onChange={(e) => setOtherInputValue(e.target.value)}
-                onKeyDown={handleOtherInputKeyDown}
-                placeholder="Enter custom expertise"
-                className="flex-1 border border-border rounded-lg px-3 py-2 bg-surface text-primary placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-accent"
-                autoFocus
-              />
-              <button
-                type="button"
-                onClick={addCustomExpertise}
-                disabled={!otherInputValue.trim()}
-                className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                Add
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowOtherInput(false);
-                  setOtherInputValue('');
-                }}
-                className="p-2 text-muted hover:text-primary transition-colors"
-                aria-label="Cancel"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-          )}
-
-          {/* Custom expertise chips */}
-          {customExpertise.length > 0 && (
+          {/* Expertise chips */}
+          {data.expertise.length > 0 && (
             <div className="flex flex-wrap gap-2 mt-3">
-              {customExpertise.map((value) => (
+              {data.expertise.map((value) => (
                 <span
                   key={value}
                   className="inline-flex items-center gap-1 px-3 py-1.5 rounded-full text-sm bg-accent text-white"
@@ -363,7 +289,7 @@ export const AboutStep = ({ data, errors, onUpdate, onNext, canGoNext }: AboutSt
                   {value}
                   <button
                     type="button"
-                    onClick={() => removeCustomExpertise(value)}
+                    onClick={() => removeExpertise(value)}
                     className="p-0.5 hover:bg-white/20 rounded-full transition-colors"
                     aria-label={`Remove ${value}`}
                   >

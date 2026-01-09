@@ -106,37 +106,6 @@ export const LANGUAGE_PROFICIENCY_OPTIONS: LanguageProficiencyOption[] = [
 ];
 
 // ========================================
-// 専門分野
-// ========================================
-export type ExpertiseOption = {
-  value: string;
-  label: string;
-};
-
-export const EXPERTISE_OPTIONS: ExpertiseOption[] = [
-  { value: 'software_engineering', label: 'Software Engineering' },
-  { value: 'web_development', label: 'Web Development' },
-  { value: 'mobile_development', label: 'Mobile Development' },
-  { value: 'data_science', label: 'Data Science' },
-  { value: 'machine_learning', label: 'Machine Learning / AI' },
-  { value: 'cloud_computing', label: 'Cloud Computing' },
-  { value: 'devops', label: 'DevOps' },
-  { value: 'cybersecurity', label: 'Cybersecurity' },
-  { value: 'product_management', label: 'Product Management' },
-  { value: 'ui_ux_design', label: 'UI/UX Design' },
-  { value: 'business_strategy', label: 'Business Strategy' },
-  { value: 'marketing', label: 'Marketing' },
-  { value: 'finance', label: 'Finance' },
-  { value: 'career_coaching', label: 'Career Coaching' },
-  { value: 'interview_prep', label: 'Interview Preparation' },
-  { value: 'language_learning', label: 'Language Learning' },
-  { value: 'startup', label: 'Startup / Entrepreneurship' },
-  { value: 'project_management', label: 'Project Management' },
-  { value: 'leadership', label: 'Leadership' },
-  { value: 'communication', label: 'Communication Skills' },
-];
-
-// ========================================
 // 学位タイプ
 // ========================================
 export type DegreeTypeOption = {
