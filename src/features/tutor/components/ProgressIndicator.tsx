@@ -31,13 +31,13 @@ export const ProgressIndicator = ({
             status === 'completed' || status === 'skipped' || index <= maxReachedStepIndex;
 
           return (
-            <li key={step.id} className="flex items-center w-12 lg:w-40">
+            <li key={step.id} className="flex items-center">
               <button
                 type="button"
                 onClick={() => isClickable && !isCurrent && onStepClick?.(step.id)}
                 disabled={!isClickable || isCurrent}
                 className={`
-                  flex items-center justify-center gap-2 py-2 rounded-lg font-medium flex-1
+                  flex items-center gap-2 py-2 px-1 rounded-lg font-medium
                   ${isClickable && !isCurrent ? 'cursor-pointer hover:bg-surface-hover' : 'cursor-default'}
                   ${isCurrent ? 'text-accent' : ''}
                   ${!isCurrent && status === 'pending' ? 'text-muted' : ''}
@@ -65,12 +65,12 @@ export const ProgressIndicator = ({
                 </span>
 
                 {/* Step label */}
-                <span className="hidden lg:inline text-sm truncate">{step.label}</span>
+                <span className="hidden lg:inline text-sm whitespace-nowrap">{step.label}</span>
               </button>
 
               {/* Separator */}
               {index < REGISTRATION_STEPS.length - 1 && (
-                <ChevronRight className="w-4 h-4 text-muted flex-shrink-0" aria-hidden="true" />
+                <ChevronRight className="w-4 h-4 text-muted flex-shrink-0 mx-2" aria-hidden="true" />
               )}
             </li>
           );
