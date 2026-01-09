@@ -101,6 +101,24 @@ export const VideoStep = ({
             teach a different language, include a short sample.
           </p>
 
+          {/* Video preview */}
+          <div className="aspect-video rounded-lg overflow-hidden bg-gray-100 border border-border">
+            {embedUrl ? (
+              <iframe
+                src={embedUrl}
+                title="Video preview"
+                className="w-full h-full"
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                sandbox="allow-scripts allow-same-origin"
+                allowFullScreen
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center text-muted">
+                <p className="text-sm">Video preview will appear here</p>
+              </div>
+            )}
+          </div>
+
           {/* URL input */}
           <div>
             <label htmlFor="videoUrl" className="block text-sm font-medium text-primary mb-2">
@@ -140,20 +158,6 @@ export const VideoStep = ({
             />
             {errors.videoUrl && <p className="text-error text-sm mt-1">{errors.videoUrl}</p>}
           </div>
-
-          {/* Video preview */}
-          {embedUrl && (
-            <div className="aspect-video rounded-lg overflow-hidden bg-black">
-              <iframe
-                src={embedUrl}
-                title="Video preview"
-                className="w-full h-full"
-                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                sandbox="allow-scripts allow-same-origin"
-                allowFullScreen
-              />
-            </div>
-          )}
         </div>
 
         {/* Right column - Requirements */}
