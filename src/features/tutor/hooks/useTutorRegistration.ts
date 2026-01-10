@@ -80,7 +80,12 @@ export const validateAboutStep = (data: AboutFormData): Record<string, string> =
   if (phoneError) errors.phoneNumber = phoneError;
 
   if (data.expertise.length === 0) errors.expertise = 'Please select at least one expertise';
-  if (data.languages.length === 0) errors.languages = 'Please add at least one language';
+
+  // 言語が追加されていない、または全ての言語でlanguageCodeが未選択の場合はエラー
+  const validLanguages = data.languages.filter((lang) => lang.languageCode);
+  if (validLanguages.length === 0) {
+    errors.languages = 'Please add at least one language';
+  }
 
   return errors;
 };
