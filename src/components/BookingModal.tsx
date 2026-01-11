@@ -2,12 +2,12 @@
 import { useState } from "react";
 import { Dialog } from "@headlessui/react";
 import { X } from "lucide-react";
-import type { MentorListItem } from "@/features/mentors/types";
+import type { MentorDetailModel } from "@/features/mentors/types";
 import { useRouter } from "next/navigation";
 import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
 
 type Props = {
-  mentor: MentorListItem;
+  mentor: MentorDetailModel;
   onClose: () => void;
   isOpen: boolean;
 };
