@@ -128,7 +128,7 @@ export const registerMentor = async ({
   // 1. 画像アップロード（ある場合）
   let avatarUrl = mentor.avatar_url;
   if (avatarFile) {
-    const fileExt = avatarFile.name.split('.').pop();
+    const fileExt = avatarFile.name.split('.').pop() || 'png';
     const filePath = `${mentor.user_id}/avatar.${fileExt}`;
 
     const { error: uploadError } = await supabaseClient.storage
