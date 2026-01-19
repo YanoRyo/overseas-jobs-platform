@@ -26,6 +26,7 @@ export const TutorRegistration = () => {
     stepStatuses,
     errors,
     isSubmitting,
+    isCheckingRegistration,
     goToStep,
     goToNextStep,
     goToPrevStep,
@@ -56,6 +57,15 @@ export const TutorRegistration = () => {
     handleEmailSignup,
     handleGoogleSignup,
   } = useSignup();
+
+  // 登録済みチェック中はローディング表示
+  if (isCheckingRegistration) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+      </div>
+    );
+  }
 
   const handleNext = () => {
     if (isLastStep) {

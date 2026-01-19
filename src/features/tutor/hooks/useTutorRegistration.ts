@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useSupabaseClient } from '@supabase/auth-helpers-react';
 import {
@@ -18,7 +18,7 @@ import {
   initialTutorRegistrationFormData,
 } from '../types/registration';
 import { VALIDATION_CONFIG, PRICING_CONFIG } from '../constants/options';
-import { registerMentor } from '@/lib/supabase/mentors';
+import { registerMentor, checkMentorExistsByUserId } from '@/lib/supabase/mentors';
 import type { MentorInsert } from '@/lib/supabase/types';
 
 // ========================================
@@ -203,6 +203,7 @@ export type UseTutorRegistrationReturn = {
   stepStatuses: Record<RegistrationStep, StepStatus>;
   errors: Record<string, string>;
   isSubmitting: boolean;
+  isCheckingRegistration: boolean;
 
   // ナビゲーション
   goToStep: (step: RegistrationStep) => void;
@@ -250,6 +251,31 @@ export const useTutorRegistration = (): UseTutorRegistrationReturn => {
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isCheckingRegistration, setIsCheckingRegistration] = useState(true);
+
+  // 登録済みかどうかをチェック
+  useEffect(() => {
+    const checkRegistration = async () => {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        setIsCheckingRegistration(false);
+        return;
+      }
+
+      const exists = await checkMentorExistsByUserId(supabase, user.id);
+      if (exists) {
+        // TODO: 将来的にはプロフィール編集ページ(/tutor/profile/edit)にリダイレクトする
+        router.push('/');
+        return;
+      }
+
+      setIsCheckingRegistration(false);
+    };
+
+    checkRegistration();
+  }, [supabase, router]);
 
   const currentStep = REGISTRATION_STEPS[currentStepIndex].id;
   const isFirstStep = currentStepIndex === 0;
@@ -529,6 +555,7 @@ export const useTutorRegistration = (): UseTutorRegistrationReturn => {
     stepStatuses,
     errors,
     isSubmitting,
+    isCheckingRegistration,
 
     // ナビゲーション
     goToStep,

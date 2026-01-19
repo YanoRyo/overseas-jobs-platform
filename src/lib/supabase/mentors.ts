@@ -19,6 +19,21 @@ export const fetchMentors = async () => {
     .order('created_at', { ascending: false });
 };
 
+/**
+ * 指定したユーザーがメンター登録済みかチェック
+ */
+export const checkMentorExistsByUserId = async (
+  supabaseClient: SupabaseClient,
+  userId: string
+): Promise<boolean> => {
+  const { data } = await supabaseClient
+    .from('mentors')
+    .select('id')
+    .eq('user_id', userId)
+    .single();
+  return !!data;
+};
+
 export const fetchMentorById = async (id: string) => {
   const [mentorRes, languagesRes, expertiseRes, reviewsRes] = await Promise.all([
     supabase.from('mentors').select('*').eq('id', id).single(),
