@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
+import { useSupabaseClient } from '@supabase/auth-helpers-react';
 import {
   type RegistrationStep,
   type StepStatus,
@@ -16,6 +18,8 @@ import {
   initialTutorRegistrationFormData,
 } from '../types/registration';
 import { VALIDATION_CONFIG, PRICING_CONFIG } from '../constants/options';
+import { registerMentor } from '@/lib/supabase/mentors';
+import type { MentorInsert } from '@/lib/supabase/types';
 
 // ========================================
 // バリデーション関数
@@ -228,6 +232,8 @@ export type UseTutorRegistrationReturn = {
 };
 
 export const useTutorRegistration = (): UseTutorRegistrationReturn => {
+  const router = useRouter();
+  const supabase = useSupabaseClient();
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [maxReachedStepIndex, setMaxReachedStepIndex] = useState(0);
   const [formData, setFormData] = useState<TutorRegistrationFormData>(
@@ -430,22 +436,89 @@ export const useTutorRegistration = (): UseTutorRegistrationReturn => {
 
   // 登録送信
   const submitRegistration = useCallback(async () => {
-    if (!validateCurrentStep()) return;
+    if (!validateCurrentStep()) {
+      return;
+    }
 
     setIsSubmitting(true);
     try {
-      // TODO: 登録完了後のリダイレクト先を実装
-      // 開発環境のみコンソールにデータを出力
-      if (process.env.NODE_ENV === 'development') {
-        console.log('Registration data:', formData);
+      // 1. ログインユーザー取得
+      const {
+        data: { user },
+        error: authError,
+      } = await supabase.auth.getUser();
+
+      if (authError || !user) {
+        setErrors({ submit: 'Please login to continue.' });
+        return;
       }
-    } catch (error) {
-      console.error('Registration failed:', error);
+
+      // 2. formDataをDB保存用の形式に変換
+      const mentorData: MentorInsert = {
+        user_id: user.id,
+        first_name: formData.about.firstName,
+        last_name: formData.about.lastName,
+        email: formData.about.email,
+        country_code: formData.about.countryCode,
+        phone_country_code: formData.about.phoneCountryCode,
+        phone_number: formData.about.phoneNumber,
+        avatar_url: null, // registerMentor内でアップロード後に設定
+        introduction: formData.description.introduction,
+        work_experience: formData.description.workExperience,
+        motivation: formData.description.motivation,
+        headline: formData.description.headline,
+        video_url: formData.video.videoUrl || null,
+        timezone: formData.availability.timezone,
+        hourly_rate: formData.pricing.hourlyRate,
+        has_no_degree: formData.education.hasNoDegree,
+        university: formData.education.university || null,
+        degree: formData.education.degree || null,
+        degree_type: formData.education.degreeType,
+        specialization: formData.education.specialization || null,
+      };
+
+      // 3. 言語データ
+      const languages = formData.about.languages
+        .filter((lang) => lang.languageCode)
+        .map((lang) => ({
+          language_code: lang.languageCode,
+          language_name: lang.languageName,
+          proficiency_level: lang.proficiencyLevel,
+        }));
+
+      // 4. 稼働時間データ
+      const availability = formData.availability.slots
+        .filter((slot) => slot.isEnabled)
+        .map((slot) => ({
+          day_of_week: slot.dayOfWeek,
+          start_time: slot.startTime,
+          end_time: slot.endTime,
+          is_enabled: slot.isEnabled,
+        }));
+
+      // 5. DB保存
+      const { error: registerError } = await registerMentor({
+        supabaseClient: supabase,
+        mentor: mentorData,
+        languages,
+        expertise: formData.about.expertise,
+        availability,
+        avatarFile: formData.photo.avatarFile,
+      });
+
+      if (registerError) {
+        setErrors({ submit: 'Registration failed. Please try again.' });
+        return;
+      }
+
+      // 6. 登録完了後のリダイレクト（トップページへ）
+      router.push('/');
+    } catch {
       setErrors({ submit: 'Registration failed. Please try again.' });
     } finally {
       setIsSubmitting(false);
     }
-  }, [formData, validateCurrentStep]);
+  }, [formData, validateCurrentStep, currentStepErrors, router, supabase]);
 
   return {
     // 状態
