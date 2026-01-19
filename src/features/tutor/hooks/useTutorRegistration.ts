@@ -539,12 +539,13 @@ export const useTutorRegistration = (): UseTutorRegistrationReturn => {
 
       // 6. 登録完了後のリダイレクト（トップページへ）
       router.push('/');
-    } catch {
+    } catch (error) {
+      console.error('submitRegistration failed', error);
       setErrors({ submit: 'Registration failed. Please try again.' });
     } finally {
       setIsSubmitting(false);
     }
-  }, [formData, validateCurrentStep, currentStepErrors, router, supabase]);
+  }, [formData, validateCurrentStep, router, supabase]);
 
   return {
     // 状態
