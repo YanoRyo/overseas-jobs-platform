@@ -185,8 +185,9 @@ export const registerMentor = async ({
     languagesRes.error || expertiseRes.error || availabilityRes.error;
 
   if (relatedError) {
-    // 関連テーブルの保存に失敗した場合、メンターは作成済みだがエラーを返す
-    return { mentor: mentorData, error: relatedError };
+    // 関連テーブルの保存に失敗した場合、mentorレコードを削除してロールバック
+    await supabaseClient.from('mentors').delete().eq('id', mentorId);
+    return { mentor: null, error: relatedError };
   }
 
   return { mentor: mentorData, error: null };
