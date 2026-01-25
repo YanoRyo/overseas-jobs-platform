@@ -2,6 +2,7 @@
 import { useState } from "react";
 import BookingModal from "@/components/BookingModal";
 import { MentorDetailModel } from "../types";
+import { SendMessageModal } from "@/features/messages/components/SendMessageModal";
 
 type Props = {
   mentor: MentorDetailModel;
@@ -21,6 +22,7 @@ export const MentorDetail = ({
     setVisibleCount(mentor.reviews.length);
   };
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [isMessageOpen, setIsMessageOpen] = useState(false);
 
   const toggleAccordion = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
@@ -159,12 +161,27 @@ export const MentorDetail = ({
               体験レッスンを予約
             </button>
 
+            <button
+              className="w-full border py-2 rounded-lg hover:bg-gray-50 transition"
+              onClick={() => setIsMessageOpen(true)}
+            >
+              メッセージを送る
+            </button>
+
             <button className="w-full border py-2 rounded-lg hover:bg-gray-50 transition">
               マイリストに保存
             </button>
           </div>
         </div>
       </div>
+      {isMessageOpen && (
+        <SendMessageModal
+          mentorId={mentor.id}
+          mentorName={mentor.name}
+          isOpen={isMessageOpen}
+          onClose={() => setIsMessageOpen(false)}
+        />
+      )}
 
       {isBookingOpen && (
         <BookingModal mentor={mentor} isOpen onClose={onCloseBooking} />
