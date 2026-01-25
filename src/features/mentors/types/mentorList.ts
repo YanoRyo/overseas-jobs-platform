@@ -1,14 +1,12 @@
 export type MentorListItem = {
-  id: number;
+  id: string;
   name: string;
-  country: string;
-  location: string;
-  languages: string;
-  jobTitle: string;
-  bio: string;
-  avatarUrl: string;
-  price: string;
-  reviews: number;
+  countryCode: string;
+  headline: string;
+  introduction: string;
+  avatarUrl: string | null;
+  hourlyRate: number;
+  reviewCount: number;
   rating: number;
   createdAt: string;
 };

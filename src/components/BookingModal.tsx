@@ -2,12 +2,20 @@
 import { useState } from "react";
 import { Dialog } from "@headlessui/react";
 import { X } from "lucide-react";
-import type { MentorListItem } from "@/features/mentors/types";
 import { useRouter } from "next/navigation";
 import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
 
+// BookingModalで必要なプロパティのみを定義
+type BookingMentor = {
+  id: string;
+  name: string;
+  avatarUrl: string | null;
+  countryCode?: string;
+  country?: string;
+};
+
 type Props = {
-  mentor: MentorListItem;
+  mentor: BookingMentor;
   onClose: () => void;
   isOpen: boolean;
 };
@@ -60,7 +68,7 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
       mentorId: mentor.id,
       mentorName: mentor.name,
       mentorAvatarUrl: mentor.avatarUrl,
-      mentorCountry: mentor.country,
+      mentorCountry: mentor.countryCode ?? mentor.country ?? '',
       duration,
       date: selectedDate.toISOString(),
       time: selectedTime,

@@ -113,6 +113,13 @@ export const PricingStep = ({
         </div>
       )}
 
+      {/* Submit error */}
+      {errors.submit && (
+        <div className="max-w-md p-4 bg-error/10 border border-error/20 rounded-lg">
+          <p className="text-error font-medium">{errors.submit}</p>
+        </div>
+      )}
+
       {/* Navigation */}
       <StepNavigation
         onBack={onBack}
