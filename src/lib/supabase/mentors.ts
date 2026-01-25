@@ -19,6 +19,78 @@ export const fetchMentors = async () => {
     .order('created_at', { ascending: false });
 };
 
+// ========================================
+// 検索系
+// ========================================
+
+export type MentorSearchParams = {
+  country?: string;
+  language?: string;
+  sortByRating?: 'high' | 'low' | '';
+  keyword?: string;
+};
+
+type MentorWithRelations = MentorRow & {
+  mentor_languages?: { language_name: string }[];
+  mentor_expertise?: { expertise: string }[];
+};
+
+export const searchMentors = async (params: MentorSearchParams) => {
+  // ベースクエリ: expertise を含めて取得（キーワード検索用）
+  let selectQuery = '*, mentor_expertise(expertise)';
+
+  // 言語フィルタがある場合は INNER JOIN
+  if (params.language) {
+    selectQuery = '*, mentor_languages!inner(language_name), mentor_expertise(expertise)';
+  }
+
+  let query = supabase.from('mentors').select(selectQuery);
+
+  // 国フィルタ
+  if (params.country) {
+    query = query.eq('country_code', params.country);
+  }
+
+  // 言語フィルタ（INNER JOIN で DB 側フィルタリング）
+  if (params.language) {
+    query = query.eq('mentor_languages.language_name', params.language);
+  }
+
+  // 評価順ソート
+  if (params.sortByRating === 'high') {
+    query = query.order('rating_avg', { ascending: false });
+  } else if (params.sortByRating === 'low') {
+    query = query.order('rating_avg', { ascending: true });
+  } else {
+    query = query.order('created_at', { ascending: false });
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    return { data: null, error };
+  }
+
+  let filteredData = (data as unknown as MentorWithRelations[]) || [];
+
+  // キーワード検索: headline, introduction, expertise を OR 検索
+  // expertise を含むため、クライアント側でフィルタリング
+  if (params.keyword) {
+    const keywordLower = params.keyword.toLowerCase();
+
+    filteredData = filteredData.filter((mentor) => {
+      const headlineMatch = mentor.headline?.toLowerCase().includes(keywordLower);
+      const introMatch = mentor.introduction?.toLowerCase().includes(keywordLower);
+      const expertiseMatch = mentor.mentor_expertise?.some(
+        (exp) => exp.expertise.toLowerCase().includes(keywordLower)
+      );
+      return headlineMatch || introMatch || expertiseMatch;
+    });
+  }
+
+  return { data: filteredData, error: null };
+};
+
 /**
  * 指定したユーザーがメンター登録済みかチェック
  */
