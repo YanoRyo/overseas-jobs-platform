@@ -2,11 +2,8 @@ import ReviewCarousel from "@/components/ReviewCarousel";
 import { ReservationData } from "../types/reservation";
 import { useCheckout } from "../hooks/useCheckout";
 
-export const PaymentSection = ({
-  reservation,
-}: {
-  reservation: ReservationData;
-}) => {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export const PaymentSection = ({ reservation }: { reservation: ReservationData }) => {
   const { selectedMethod, setSelectedMethod } = useCheckout();
 
   return (

@@ -33,68 +33,9 @@
   --shadow-color: rgba(0, 0, 0, 0.1);
 }
 
-[data-theme="dark"] {
-  /* Base colors */
-  --background: #0f0f11;
-  --foreground: #f8f8f8;
-  
-  /* Surface colors */
-  --surface: #1c1c20;
-  --surface-hover: #28282d;
-  
-  /* Text colors */
-  --text-primary: #ffffff;
-  --text-secondary: #c9c9d1;
-  --text-muted: #9a9aa8;
-  
-  /* Border colors */
-  --border-default: #333339;
-  --border-hover: #44444b;
-  
-  /* Accent colors */
-  --accent: #5c9cff;
-  --accent-hover: #4d8fff;
-  
-  /* Status colors */
-  --success: #34d399;
-  --error: #f87171;
-  --warning: #fbbf24;
-  
-  /* Shadow */
-  --shadow-color: rgba(0, 0, 0, 0.6);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    /* Base colors */
-    --background: #0f0f11;
-    --foreground: #f8f8f8;
-    
-    /* Surface colors */
-    --surface: #1c1c20;
-    --surface-hover: #28282d;
-    
-    /* Text colors */
-    --text-primary: #ffffff;
-    --text-secondary: #c9c9d1;
-    --text-muted: #9a9aa8;
-    
-    /* Border colors */
-    --border-default: #333339;
-    --border-hover: #44444b;
-    
-    /* Accent colors */
-    --accent: #5c9cff;
-    --accent-hover: #4d8fff;
-    
-    /* Status colors */
-    --success: #34d399;
-    --error: #f87171;
-    --warning: #fbbf24;
-    
-    /* Shadow */
-    --shadow-color: rgba(0, 0, 0, 0.6);
-  }
+html {
+  /* スクロールバーの出現/消失によるレイアウトシフトを防止 */
+  overflow-y: scroll;
 }
 
 body {
@@ -128,34 +69,10 @@ body {
   outline-offset: 2px;
 }
 
-/* ダークモードでの画像の明度調整 */
-[data-theme="dark"] img {
-  opacity: 0.95;
-  filter: brightness(0.9);
-}
-
-/* ダークモードでのカードシャドウ */
-[data-theme="dark"] .shadow {
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.7), 0 1px 2px 0 rgba(0, 0, 0, 0.5);
-}
-
-[data-theme="dark"] .shadow-md {
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.7), 0 2px 4px -1px rgba(0, 0, 0, 0.5);
-}
-
-[data-theme="dark"] .shadow-lg {
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.7), 0 4px 6px -2px rgba(0, 0, 0, 0.5);
-}
-
 /* プレースホルダーテキストの視認性改善 */
 ::placeholder {
   color: var(--text-muted);
   opacity: 1;
-}
-
-[data-theme="dark"] ::placeholder {
-  color: var(--text-muted);
-  opacity: 0.8;
 }
 
 /* selectのオプション要素のスタイリング */
@@ -164,7 +81,3 @@ option {
   color: var(--text-primary);
 }
 
-/* アニメーショントランジション */
-* {
-  transition: background-color 0.2s, border-color 0.2s, color 0.2s;
-}

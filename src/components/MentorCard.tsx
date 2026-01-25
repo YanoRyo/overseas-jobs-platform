@@ -1,31 +1,21 @@
-import { useState } from "react";
-import Flag from "react-world-flags";
-import Image from "next/image";
-import Link from "next/link";
-import type { MentorListItem } from "@/features/mentors/types";
-
-const countryCodeMap: Record<string, string> = {
-  Japan: "jp",
-  "South Korea": "kr",
-  USA: "us",
-  Taiwan: "tw",
-  Mexico: "mx",
-};
+import { useState } from 'react';
+import Flag from 'react-world-flags';
+import Image from 'next/image';
+import Link from 'next/link';
+import type { MentorListItem } from '@/features/mentors/types';
 
 type MentorCardProps = {
   mentor: MentorListItem;
   onBook: () => void;
 };
+
 export default function MentorCard({ mentor, onBook }: MentorCardProps) {
   const [expanded, setExpanded] = useState(false);
 
   return (
-    <Link
-      href={`/mentors/${mentor.id}`} // ← 詳細ページの動線
-      className="block"
-    >
+    <Link href={`/mentors/${mentor.id}`} className="block">
       <div className="flex flex-col md:flex-row border-border rounded-xl shadow p-8 gap-8 items-stretch min-h-[220px] hover:bg-surface-hover cursor-pointer bg-surface transition-colors">
-        {/* ① アバター */}
+        {/* アバター */}
         <div className="relative w-32 h-32 flex-shrink-0">
           {mentor.avatarUrl && (
             <Image
@@ -37,47 +27,45 @@ export default function MentorCard({ mentor, onBook }: MentorCardProps) {
           )}
         </div>
 
-        {/* ② テキスト情報 */}
+        {/* テキスト情報 */}
         <div className="flex flex-col justify-between flex-1 min-w-0">
           <div>
             <h2 className="text-2xl font-semibold flex items-center gap-2">
               <div className="hover:underline text-accent">{mentor.name}</div>
               <div className="border border-border rounded px-0.5 py-0.5 inline-flex items-center">
                 <Flag
-                  code={countryCodeMap[mentor.country]}
+                  code={mentor.countryCode}
                   style={{ width: 28, height: 18 }}
                 />
               </div>
             </h2>
-            <p className="text-base text-secondary">📍 {mentor.location}</p>
-            <p className="text-base text-secondary">🗣️ {mentor.languages}</p>
-            <p className="text-base text-secondary">💼 {mentor.jobTitle}</p>
+            <p className="text-base text-secondary">💼 {mentor.headline}</p>
           </div>
 
-          {/* bio */}
+          {/* introduction */}
           <div className="mt-3 text-primary text-base">
             <p
-              className={`${!expanded ? "line-clamp-4" : ""}`}
-              style={{ whiteSpace: "pre-wrap" }}
+              className={`${!expanded ? 'line-clamp-4' : ''}`}
+              style={{ whiteSpace: 'pre-wrap' }}
             >
-              {mentor.bio}
+              {mentor.introduction}
             </p>
-            {mentor.bio?.split("\n").join(" ").length > 100 && (
+            {mentor.introduction?.split('\n').join(' ').length > 100 && (
               <button
                 onClick={(e) => {
-                  e.preventDefault(); // Link クリックを止める
+                  e.preventDefault();
                   e.stopPropagation();
                   setExpanded(!expanded);
                 }}
                 className="text-accent hover:underline mt-1 text-base font-medium"
               >
-                {expanded ? "閉じる" : "続きを読む"}
+                {expanded ? '閉じる' : '続きを読む'}
               </button>
             )}
           </div>
         </div>
 
-        {/* ③ PC時のみ詳細エリア */}
+        {/* PC時のみ詳細エリア */}
         <div className="hidden md:flex flex-col justify-between text-right min-w-[160px]">
           <div className="flex justify-between items-start gap-2">
             <div className="flex flex-col items-start">
@@ -91,15 +79,15 @@ export default function MentorCard({ mentor, onBook }: MentorCardProps) {
                 </svg>
                 {mentor.rating}
               </div>
-              <p className="text-sm text-muted">{mentor.reviews}件の実績</p>
+              <p className="text-sm text-muted">{mentor.reviewCount}件の実績</p>
             </div>
             <div className="text-right">
-              <p className="text-lg font-bold text-primary">{mentor.price}</p>
-              <p className="text-sm text-muted">25分の料金</p>
+              <p className="text-lg font-bold text-primary">${mentor.hourlyRate}</p>
+              <p className="text-sm text-muted">50分の料金</p>
             </div>
           </div>
 
-          {/* 予約ボタン（stopPropagation を追加） */}
+          {/* 予約ボタン */}
           <button
             onClick={(e) => {
               e.preventDefault();
