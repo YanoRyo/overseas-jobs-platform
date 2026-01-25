@@ -1,18 +1,17 @@
-import { MentorRow } from "@/lib/supabase/types";
-import { MentorListItem } from "../types";
+import { MentorRow } from '@/lib/supabase/types';
+import { MentorListItem } from '../types';
+
 export const mapMentorList = (row: MentorRow): MentorListItem => {
   return {
     id: row.id,
-    name: row.name,
-    country: row.country,
-    location: row.location,
-    languages: row.languages,
-    jobTitle: row.job_title,
-    bio: row.bio,
+    name: `${row.first_name} ${row.last_name}`,
+    countryCode: row.country_code,
+    headline: row.headline,
+    introduction: row.introduction,
     avatarUrl: row.avatar_url,
-    price: row.price,
-    reviews: row.reviews,
-    rating: row.rating,
+    hourlyRate: row.hourly_rate,
+    reviewCount: row.review_count,
+    rating: Number(row.rating_avg),
     createdAt: row.created_at,
   };
 };

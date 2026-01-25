@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(gh api:*)",
+      "Bash(git push:*)",
+      "Bash(npx playwright:*)"
+    ],
+    "deny": [],
+    "ask": []
+  },
+  "plansDirectory": "./plans"
+}

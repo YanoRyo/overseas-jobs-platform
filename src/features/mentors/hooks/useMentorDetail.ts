@@ -1,10 +1,9 @@
-import { useEffect, useState } from "react";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
-import { mapMentorDetail } from "../mapper/mapMentorDetail";
-import { MentorDetailModel } from "../types";
+import { useEffect, useState } from 'react';
+import { fetchMentorById } from '@/lib/supabase/mentors';
+import { mapMentorDetail } from '../mapper/mapMentorDetail';
+import { MentorDetailModel } from '../types';
 
 export const useMentorDetail = (id: string) => {
-  const supabase = useSupabaseClient();
   const [mentor, setMentor] = useState<MentorDetailModel | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
@@ -13,16 +12,18 @@ export const useMentorDetail = (id: string) => {
   useEffect(() => {
     const fetchMentor = async () => {
       setLoading(true);
-      const { data, error } = await supabase
-        .from("mentors")
-        .select("*")
-        .eq("id", id)
-        .single();
+      const {
+        mentor: data,
+        languages,
+        expertise,
+        reviews,
+        error: fetchError,
+      } = await fetchMentorById(id);
 
-      if (error || !data) {
+      if (fetchError || !data) {
         setError(true);
       } else {
-        setMentor(mapMentorDetail(data));
+        setMentor(mapMentorDetail(data, languages, expertise, reviews));
       }
 
       setLoading(false);
