@@ -41,7 +41,7 @@ export type AboutFormData = {
   phoneCountryCode: string; // 国際電話コード (+81 など)
   phoneNumber: string;
   expertise: string[]; // 専門分野（複数選択）
-  languages: TutorLanguage[]; // 話せる言語（複数）
+  languages: MentorRegistrationLanguage[]; // 話せる言語（複数）
 };
 
 // Step 2: Photo
@@ -103,7 +103,7 @@ export type PricingFormData = {
 // ========================================
 // 1対多の関連データ
 // ========================================
-export type TutorLanguage = {
+export type MentorRegistrationLanguage = {
   id: string; // クライアント側の一時ID
   languageCode: string; // ISO 639-1 (ja, en, zh など)
   languageName: string; // 表示用名前
@@ -122,7 +122,7 @@ export type LanguageProficiency =
 // ========================================
 // 全体のフォームデータ（統合型）
 // ========================================
-export type TutorRegistrationFormData = {
+export type MentorRegistrationFormData = {
   about: AboutFormData;
   photo: PhotoFormData;
   education: EducationFormData;
@@ -186,7 +186,7 @@ export const initialPricingFormData: PricingFormData = {
   hourlyRate: 30,
 };
 
-export const initialTutorRegistrationFormData: TutorRegistrationFormData = {
+export const initialMentorRegistrationFormData: MentorRegistrationFormData = {
   about: initialAboutFormData,
   photo: initialPhotoFormData,
   education: initialEducationFormData,
@@ -212,13 +212,13 @@ export type FormValidationResult = {
 // DB保存用モデル（将来の参考）
 // ========================================
 // TODO: DB連携時に以下のような正規化構造を採用
-// - tutors テーブル: 基本情報
-// - tutor_languages テーブル: 言語（1対多）
-// - tutor_expertise テーブル: 専門分野（1対多）
-// - tutor_availability テーブル: 稼働時間（1対多）
-// - tutor_education テーブル: 学歴（1対多、複数学歴対応可）
+// - mentors テーブル: 基本情報
+// - mentor_languages テーブル: 言語（1対多）
+// - mentor_expertise テーブル: 専門分野（1対多）
+// - mentor_availability テーブル: 稼働時間（1対多）
+// - mentor_education テーブル: 学歴（1対多、複数学歴対応可）
 
-export type TutorProfile = {
+export type MentorProfile = {
   id: string; // UUID
   userId: string; // auth.users.id との紐付け
   firstName: string;
@@ -244,7 +244,7 @@ export type TutorProfile = {
     specialization: string | null;
   } | null;
   // 1対多（正規化対象）
-  languages: TutorLanguage[];
+  languages: MentorRegistrationLanguage[];
   expertise: string[];
   availability: AvailabilitySlot[];
   // メタデータ

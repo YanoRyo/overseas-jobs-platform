@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import { Plus, Trash2, X } from 'lucide-react';
-import type { AboutFormData, TutorLanguage, LanguageProficiency } from '../../types/registration';
+import type { AboutFormData, MentorRegistrationLanguage, LanguageProficiency } from '../../types/registration';
 import { COUNTRIES, LANGUAGES, LANGUAGE_PROFICIENCY_OPTIONS } from '../../constants/options';
 import { StepNavigation } from '../shared/StepNavigation';
 
@@ -19,7 +19,7 @@ export const AboutStep = ({ data, errors, onUpdate, onNext, canGoNext }: AboutSt
 
   // 言語追加
   const addLanguage = useCallback(() => {
-    const newLanguage: TutorLanguage = {
+    const newLanguage: MentorRegistrationLanguage = {
       id: crypto.randomUUID(),
       languageCode: '',
       languageName: '',
@@ -38,7 +38,7 @@ export const AboutStep = ({ data, errors, onUpdate, onNext, canGoNext }: AboutSt
 
   // 言語更新
   const updateLanguage = useCallback(
-    (id: string, field: keyof TutorLanguage, value: string) => {
+    (id: string, field: keyof MentorRegistrationLanguage, value: string) => {
       const updatedLanguages = data.languages.map((lang) => {
         if (lang.id !== id) return lang;
 
@@ -104,7 +104,7 @@ export const AboutStep = ({ data, errors, onUpdate, onNext, canGoNext }: AboutSt
       <div>
         <h1 className="text-2xl font-bold text-primary">About</h1>
         <p className="text-secondary mt-2">
-          Start creating your public tutor profile. Your progress will be automatically saved as you
+          Start creating your public mentor profile. Your progress will be automatically saved as you
           complete each section.
         </p>
       </div>

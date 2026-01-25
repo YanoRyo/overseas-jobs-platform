@@ -6,7 +6,7 @@ import { useSupabaseClient } from '@supabase/auth-helpers-react';
 import {
   type RegistrationStep,
   type StepStatus,
-  type TutorRegistrationFormData,
+  type MentorRegistrationFormData,
   type AboutFormData,
   type PhotoFormData,
   type EducationFormData,
@@ -15,7 +15,7 @@ import {
   type AvailabilityFormData,
   type PricingFormData,
   REGISTRATION_STEPS,
-  initialTutorRegistrationFormData,
+  initialMentorRegistrationFormData,
 } from '../types/registration';
 import { VALIDATION_CONFIG, PRICING_CONFIG } from '../constants/options';
 import { registerMentor, checkMentorExistsByUserId } from '@/lib/supabase/mentors';
@@ -194,12 +194,12 @@ export const validatePricingStep = (data: PricingFormData): Record<string, strin
 // メインフック
 // ========================================
 
-export type UseTutorRegistrationReturn = {
+export type UseMentorRegistrationReturn = {
   // 状態
   currentStep: RegistrationStep;
   currentStepIndex: number;
   maxReachedStepIndex: number;
-  formData: TutorRegistrationFormData;
+  formData: MentorRegistrationFormData;
   stepStatuses: Record<RegistrationStep, StepStatus>;
   errors: Record<string, string>;
   isSubmitting: boolean;
@@ -232,13 +232,13 @@ export type UseTutorRegistrationReturn = {
   submitRegistration: () => Promise<void>;
 };
 
-export const useTutorRegistration = (): UseTutorRegistrationReturn => {
+export const useMentorRegistration = (): UseMentorRegistrationReturn => {
   const router = useRouter();
   const supabase = useSupabaseClient();
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [maxReachedStepIndex, setMaxReachedStepIndex] = useState(0);
-  const [formData, setFormData] = useState<TutorRegistrationFormData>(
-    initialTutorRegistrationFormData
+  const [formData, setFormData] = useState<MentorRegistrationFormData>(
+    initialMentorRegistrationFormData
   );
   const [stepStatuses, setStepStatuses] = useState<Record<RegistrationStep, StepStatus>>({
     about: 'current',
@@ -266,7 +266,7 @@ export const useTutorRegistration = (): UseTutorRegistrationReturn => {
 
       const exists = await checkMentorExistsByUserId(supabase, user.id);
       if (exists) {
-        // TODO: 将来的にはプロフィール編集ページ(/tutor/profile/edit)にリダイレクトする
+        // TODO: 将来的にはプロフィール編集ページ(/mentor/profile/edit)にリダイレクトする
         router.push('/');
         return;
       }

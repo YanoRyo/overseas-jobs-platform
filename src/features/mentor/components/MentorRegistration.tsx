@@ -4,7 +4,7 @@ import { useUser } from '@supabase/auth-helpers-react';
 import { useRouter } from 'next/navigation';
 import { Dialog } from '@headlessui/react';
 import { X } from 'lucide-react';
-import { useTutorRegistration } from '../hooks/useTutorRegistration';
+import { useMentorRegistration } from '../hooks/useMentorRegistration';
 import { useSignup } from '@/features/auth/hooks/useSignup';
 import { ProgressIndicator } from './ProgressIndicator';
 import { AboutStep } from './steps/AboutStep';
@@ -15,7 +15,7 @@ import { VideoStep } from './steps/VideoStep';
 import { AvailabilityStep } from './steps/AvailabilityStep';
 import { PricingStep } from './steps/PricingStep';
 
-export const TutorRegistration = () => {
+export const MentorRegistration = () => {
   const user = useUser();
   const router = useRouter();
 
@@ -41,7 +41,7 @@ export const TutorRegistration = () => {
     updateVideoData,
     updateAvailabilityData,
     updatePricingData,
-  } = useTutorRegistration();
+  } = useMentorRegistration();
 
   // 未ログインの場合、サインアップモーダルを表示
   const isLoggedOut = !user;
@@ -200,7 +200,7 @@ export const TutorRegistration = () => {
           </div>
 
           <p className="text-secondary text-sm mb-6">
-            チューター登録にはアカウントが必要です。
+            メンター登録にはアカウントが必要です。
           </p>
 
           {/* Social signup */}
@@ -285,7 +285,7 @@ export const TutorRegistration = () => {
             既にアカウントをお持ちの方は{' '}
             <button
               type="button"
-              onClick={() => router.push('/auth/login?redirect=/tutor/register')}
+              onClick={() => router.push('/auth/login?redirect=/mentor/register')}
               className="text-accent hover:text-accent-hover underline font-medium transition-colors"
             >
               ログイン
