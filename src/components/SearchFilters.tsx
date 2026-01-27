@@ -31,7 +31,7 @@ export default function SearchFilters({
   return (
     <div className="flex flex-col gap-4 w-full max-w-screen-md mx-auto px-4 sm:px-6">
       {/* 上段（PC） */}
-      <div className="hidden md:grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="hidden md:grid grid-cols-1 md:grid-cols-2 gap-4">
         <select
           className={selectBaseClass}
           value={filters.country}
@@ -56,16 +56,6 @@ export default function SearchFilters({
               {lang.name}
             </option>
           ))}
-        </select>
-
-        {/* 職種は UI のみ（今回は機能実装しない） */}
-        <select className={selectBaseClass}>
-          <option value="">職種で絞り込む</option>
-          <option value="Engineer">エンジニア</option>
-          <option value="UX Designer">UXデザイナー</option>
-          <option value="Sales Manager">営業マネージャー</option>
-          <option value="Product Manager">プロダクトマネージャー</option>
-          <option value="English Teacher">英語教師</option>
         </select>
       </div>
 
@@ -102,16 +92,6 @@ export default function SearchFilters({
                   {lang.name}
                 </option>
               ))}
-            </select>
-
-            {/* 職種は UI のみ */}
-            <select className={selectSmallClass}>
-              <option value="">職種で絞り込む</option>
-              <option value="Engineer">エンジニア</option>
-              <option value="UX Designer">UXデザイナー</option>
-              <option value="Sales Manager">営業マネージャー</option>
-              <option value="Product Manager">プロダクトマネージャー</option>
-              <option value="English Teacher">英語教師</option>
             </select>
 
             <select
