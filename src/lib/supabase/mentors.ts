@@ -36,13 +36,9 @@ type MentorWithRelations = MentorRow & {
 };
 
 export const searchMentors = async (params: MentorSearchParams) => {
-  // ベースクエリ: expertise を含めて取得（キーワード検索用）
-  let selectQuery = '*, mentor_expertise(expertise)';
-
-  // 言語フィルタがある場合は INNER JOIN
-  if (params.language) {
-    selectQuery = '*, mentor_languages!inner(language_name), mentor_expertise(expertise)';
-  }
+  const selectQuery = params.language
+    ? '*, mentor_languages!inner(language_name), mentor_expertise(expertise)'
+    : '*, mentor_languages(language_name), mentor_expertise(expertise)';
 
   let query = supabase.from('mentors').select(selectQuery);
 
@@ -62,7 +58,7 @@ export const searchMentors = async (params: MentorSearchParams) => {
   } else if (params.sortByRating === 'low') {
     query = query.order('rating_avg', { ascending: true });
   } else {
-    query = query.order('created_at', { ascending: false });
+    query = query.order('rating_avg', { ascending: false });
   }
 
   const { data, error } = await query;
