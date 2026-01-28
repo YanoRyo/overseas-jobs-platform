@@ -117,6 +117,9 @@ export default function SearchFilters({
               className={selectSmallClass}
               value={filters.keyword}
               onChange={(e) => onFilterChange("keyword", e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") onSearch();
+              }}
             />
 
             <button
@@ -161,6 +164,9 @@ export default function SearchFilters({
             className="border border-border hover:border-border-hover rounded-lg px-3 py-2 text-base w-60 bg-surface text-primary transition-colors"
             value={filters.keyword}
             onChange={(e) => onFilterChange("keyword", e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") onSearch();
+            }}
           />
 
           <button
