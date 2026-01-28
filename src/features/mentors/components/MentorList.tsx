@@ -30,16 +30,27 @@ export function MentorList() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const [bookingError, setBookingError] = useState<string | null>(null);
+
   // 予約ボタンクリック時にメンター詳細を取得
   const handleBook = async (mentor: MentorListItem) => {
     setBookingLoading(true);
-    const { mentor: data, languages, expertise, reviews } = await fetchMentorById(mentor.id);
+    setBookingError(null);
+    try {
+      const { mentor: data, languages, expertise, reviews, error: fetchError } = await fetchMentorById(mentor.id);
 
-    if (data) {
+      if (fetchError || !data) {
+        setBookingError("メンター情報の取得に失敗しました");
+        return;
+      }
+
       const detailModel = mapMentorDetail(data, languages, expertise, reviews);
       setSelectedMentor(detailModel);
+    } catch {
+      setBookingError("メンター情報の取得に失敗しました");
+    } finally {
+      setBookingLoading(false);
     }
-    setBookingLoading(false);
   };
 
   return (
@@ -54,6 +65,13 @@ export function MentorList() {
       />
 
       {error && <p className="text-red-500">{error}</p>}
+      {bookingError && <p className="text-red-500">{bookingError}</p>}
+
+      {loading && mentors.length === 0 && (
+        <div className="flex justify-center py-8">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary/30 border-t-primary" />
+        </div>
+      )}
 
       <div className={loading ? "opacity-50 pointer-events-none" : ""}>
         {mentors.map((mentor) => (
@@ -72,8 +90,16 @@ export function MentorList() {
       )}
 
       {bookingLoading && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-          <p className="text-white">読み込み中...</p>
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+          role="status"
+          aria-live="polite"
+          aria-label="メンター情報を読み込み中"
+        >
+          <div className="flex flex-col items-center gap-4">
+            <div className="h-10 w-10 animate-spin rounded-full border-4 border-white/40 border-t-white" />
+            <p className="text-white">読み込み中...</p>
+          </div>
         </div>
       )}
 
