@@ -37,14 +37,21 @@ export function MentorList() {
     setBookingLoading(true);
     setBookingError(null);
     try {
-      const { mentor: data, languages, expertise, reviews, error: fetchError } = await fetchMentorById(mentor.id);
+      const {
+        mentor: data,
+        languages,
+        expertise,
+        reviews,
+        availability,
+        error: fetchError,
+      } = await fetchMentorById(mentor.id);
 
       if (fetchError || !data) {
         setBookingError("メンター情報の取得に失敗しました");
         return;
       }
 
-      const detailModel = mapMentorDetail(data, languages, expertise, reviews);
+      const detailModel = mapMentorDetail(data, languages, expertise, reviews, availability);
       setSelectedMentor(detailModel);
     } catch {
       setBookingError("メンター情報の取得に失敗しました");

@@ -103,7 +103,8 @@ export const checkMentorExistsByUserId = async (
 };
 
 export const fetchMentorById = async (id: string) => {
-  const [mentorRes, languagesRes, expertiseRes, reviewsRes] = await Promise.all([
+  const [mentorRes, languagesRes, expertiseRes, reviewsRes, availabilityRes] =
+    await Promise.all([
     supabase.from('mentors').select('*').eq('id', id).single(),
     supabase.from('mentor_languages').select('*').eq('mentor_id', id),
     supabase.from('mentor_expertise').select('*').eq('mentor_id', id),
@@ -112,6 +113,11 @@ export const fetchMentorById = async (id: string) => {
       .select('*')
       .eq('mentor_id', id)
       .order('created_at', { ascending: false }),
+    supabase
+      .from('mentor_availability')
+      .select('*')
+      .eq('mentor_id', id)
+      .eq('is_enabled', true),
   ]);
 
   return {
@@ -119,8 +125,13 @@ export const fetchMentorById = async (id: string) => {
     languages: languagesRes.data ?? [],
     expertise: expertiseRes.data ?? [],
     reviews: reviewsRes.data ?? [],
+    availability: availabilityRes.data ?? [],
     error:
-      mentorRes.error || languagesRes.error || expertiseRes.error || reviewsRes.error,
+      mentorRes.error ||
+      languagesRes.error ||
+      expertiseRes.error ||
+      reviewsRes.error ||
+      availabilityRes.error,
   };
 };
 
