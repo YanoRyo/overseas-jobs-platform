@@ -368,10 +368,37 @@ export const MentorDetail = ({
             <section className="pb-8 border-b border-border last:border-b-0 last:pb-0">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
-                  {/* Header: "Student Reviews" + Info icon */}
+                  {/* Header: "Student Reviews" + Info icon with tooltip */}
                   <div className="flex items-center gap-2">
                     <h2 className="text-xl font-semibold text-primary">Student Reviews</h2>
-                    <Info className="w-4 h-4 text-muted" />
+                    <div className="relative group">
+                      <Info className="w-4 h-4 text-muted cursor-help" />
+                      {/* Tooltip with arrow pointing to icon */}
+                      <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block z-10">
+                        <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 w-64">
+                          Only reviews from students who have taken lessons with this tutor are posted. See our{" "}
+                          <a
+                            href="#"
+                            onClick={(e) => e.preventDefault()}
+                            className="text-blue-400 hover:underline"
+                          >
+                            Terms of Service
+                          </a>{" "}
+                          for details.
+                        </div>
+                        {/* Arrow pointing down to icon */}
+                        <div
+                          className="absolute left-1/2 -translate-x-1/2 -bottom-1.5"
+                          style={{
+                            width: 0,
+                            height: 0,
+                            borderLeft: "6px solid transparent",
+                            borderRight: "6px solid transparent",
+                            borderTop: "6px solid rgb(17, 24, 39)",
+                          }}
+                        />
+                      </div>
+                    </div>
                   </div>
                   <p className="text-sm text-muted mt-1">
                     Based on {mentor.reviewCount} student reviews
