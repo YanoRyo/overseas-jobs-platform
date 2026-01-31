@@ -8,8 +8,7 @@
       "Bash(npx playwright:*)",
       "Bash(git mv:*)",
       "Bash(npx tsc:*)",
-      "Bash(tree:*)",
-      "mcp__supabase__execute_sql"
+      "Bash(tree:*)"
     ],
     "deny": [],
     "ask": []
