@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Flag from "react-world-flags";
-import { ChevronLeft, ChevronRight, Info } from "lucide-react";
+import { ChevronLeft, ChevronRight, ChevronDown, Info, Zap } from "lucide-react";
 import BookingModal from "@/components/BookingModal";
 import { MentorDetailModel } from "../types";
 import { SendMessageModal } from "@/features/messages/components/SendMessageModal";
@@ -243,7 +243,7 @@ export const MentorDetail = ({
   const [scheduleOpen, setScheduleOpen] = useState(true);
   const [openSpecialtyIndex, setOpenSpecialtyIndex] = useState<number | null>(null);
   const [isMessageOpen, setIsMessageOpen] = useState(false);
-  const [activeCareerTab, setActiveCareerTab] = useState<"education" | "work">(
+  const [activeCareerTab, setActiveCareerTab] = useState<"education" | "work" | "certificate">(
     "education"
   );
   const [selectedTimezone, setSelectedTimezone] = useState(
@@ -300,40 +300,25 @@ export const MentorDetail = ({
                 </div>
 
                 <div className="flex-1 space-y-3">
-                  <div className="flex flex-wrap items-center gap-3">
-                    <h1 className="text-3xl font-semibold text-primary">{mentor.name}</h1>
-                    <div className="flex items-center gap-2 text-sm text-secondary">
-                      <span className="px-2 py-1 rounded-full border border-border bg-slate-50">
-                        出身国
-                      </span>
-                      <span className="flex items-center gap-2">
-                        <Flag code={mentor.country} className="w-6 h-4 rounded-sm" />
-                        {countryName}
-                      </span>
-                    </div>
-                  </div>
-                  {mentor.intro && (
-                    <div className="rounded-xl bg-slate-50 border border-border px-4 py-3 text-sm text-secondary">
-                      {mentor.intro}
-                    </div>
-                  )}
                   <div>
-                    <p className="text-sm font-semibold text-primary">教える科目</p>
-                    <div className="mt-2 flex flex-wrap gap-2">
-                      {mentor.subjects.length === 0 ? (
-                        <span className="text-sm text-muted">未登録</span>
-                      ) : (
-                        mentor.subjects.map((subject) => (
-                          <span
-                            key={subject}
-                            className="px-3 py-1 rounded-full border border-border bg-white text-sm text-primary"
-                          >
-                            {subject}
-                          </span>
-                        ))
-                      )}
-                    </div>
+                    <h1 className="text-3xl font-semibold text-primary">{mentor.name}</h1>
+                    {/* サブタイトル: 「{国名}出身」 */}
+                    <p className="mt-1 text-secondary flex items-center gap-2">
+                      {countryName}出身
+                      <Flag code={mentor.country} className="w-6 h-4 rounded-sm" />
+                    </p>
                   </div>
+                  {/* 紹介文: ボックス装飾なしのシンプルテキスト */}
+                  {mentor.intro && (
+                    <p className="text-secondary leading-relaxed">{mentor.intro}</p>
+                  )}
+                  {/* 教える科目: インライン形式 */}
+                  <p className="text-sm text-secondary">
+                    <span className="font-semibold text-primary">教える科目：</span>
+                    {mentor.subjects.length === 0
+                      ? "未登録"
+                      : mentor.subjects.join("、")}
+                  </p>
                 </div>
               </div>
             </section>
@@ -354,7 +339,7 @@ export const MentorDetail = ({
                   onClick={() => setBioExpanded((prev) => !prev)}
                   className="mt-3 text-accent hover:underline text-sm font-medium"
                 >
-                  {bioExpanded ? "閉じる" : "もっと見る"}
+                  {bioExpanded ? "非表示" : "もっと見る"}
                 </button>
               )}
             </section>
@@ -362,15 +347,15 @@ export const MentorDetail = ({
             {/* 話せる言語 */}
             <section className="pb-8 border-b border-border last:border-b-0 last:pb-0">
               <h2 className="text-xl font-semibold text-primary">話せる言語</h2>
-              <div className="flex flex-wrap gap-2 mt-4">
+              <div className="flex flex-wrap items-center gap-4 mt-4">
                 {languageList.map((lang, idx) => (
                   <span
                     key={`${lang.name}-${idx}`}
-                    className="inline-flex items-center gap-2 rounded-full border border-border bg-slate-50 px-3 py-1 text-sm text-primary"
+                    className="inline-flex items-center gap-2 text-sm text-primary"
                   >
                     {lang.name}
                     {lang.level && (
-                      <span className="text-accent font-semibold">
+                      <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-sm font-medium">
                         {LANGUAGE_LEVEL_LABELS[lang.level] ?? lang.level.toUpperCase()}
                       </span>
                     )}
@@ -383,15 +368,20 @@ export const MentorDetail = ({
             <section className="pb-8 border-b border-border last:border-b-0 last:pb-0">
               <div className="flex flex-wrap items-center justify-between gap-4">
                 <div>
-                  <h2 className="text-xl font-semibold text-primary">生徒からの評価</h2>
+                  {/* ヘッダー: 「生徒からの評価」+ インフォアイコン */}
+                  <div className="flex items-center gap-2">
+                    <h2 className="text-xl font-semibold text-primary">生徒からの評価</h2>
+                    <Info className="w-4 h-4 text-muted" />
+                  </div>
                   <p className="text-sm text-muted mt-1">
-                    {mentor.reviewCount}件のレビューに基づく
+                    {mentor.reviewCount}件の生徒レビューに基づく
                   </p>
                 </div>
-                <div className="flex items-center gap-2 text-yellow-500">
-                  <span className="text-3xl font-semibold">★</span>
-                  <span className="text-3xl font-semibold text-primary">
-                    {mentor.rating}
+                {/* 評価表示: 大きな数字 + 黄色背景の星バッジ */}
+                <div className="flex items-center gap-2">
+                  <span className="text-4xl font-bold text-primary">{mentor.rating}</span>
+                  <span className="flex items-center justify-center w-10 h-10 rounded-full bg-yellow-100">
+                    <span className="text-yellow-500 text-xl">★</span>
                   </span>
                 </div>
               </div>
@@ -405,13 +395,23 @@ export const MentorDetail = ({
                       key={review.id}
                       className="rounded-xl border border-border bg-white p-4 shadow-sm"
                     >
-                      <div className="flex items-center justify-between">
-                        <p className="font-semibold text-primary">{review.author}</p>
-                        <div className="text-yellow-500 text-sm">
-                          {"★".repeat(Math.round(review.rating))}
+                      {/* レビューカード: アバター + 名前 + 日付 横並び */}
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-sm font-semibold text-slate-600">
+                          {review.author.charAt(0)}
+                        </div>
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <p className="font-semibold text-primary">{review.author}</p>
+                            <span className="text-xs text-muted">2024/01/15</span>
+                          </div>
+                          {/* 星評価を名前の下に移動 */}
+                          <div className="text-yellow-500 text-sm">
+                            {"★".repeat(Math.round(review.rating))}
+                          </div>
                         </div>
                       </div>
-                      <p className="mt-2 text-sm text-secondary leading-relaxed">
+                      <p className="mt-3 text-sm text-secondary leading-relaxed">
                         {review.comment || "レビューが入力されていません。"}
                       </p>
                     </article>
@@ -426,7 +426,7 @@ export const MentorDetail = ({
                     onClick={() => setReviewExpanded((prev) => !prev)}
                     className="px-6 py-2 border border-border rounded-full text-sm text-primary hover:bg-surface-hover transition"
                   >
-                    {reviewExpanded ? "レビューを閉じる" : "全てのレビューを表示"}
+                    {reviewExpanded ? "レビューを閉じる" : `すべての ${mentor.reviewCount} レビュー を表示`}
                   </button>
                 </div>
               )}
@@ -434,20 +434,12 @@ export const MentorDetail = ({
 
             {/* スケジュール */}
             <section className="pb-8 border-b border-border last:border-b-0 last:pb-0">
-              <div className="flex items-center justify-between gap-4">
-                <h2 className="text-xl font-semibold text-primary">スケジュール</h2>
-                <button
-                  type="button"
-                  onClick={() => setScheduleOpen((prev) => !prev)}
-                  className="text-sm text-accent hover:underline"
-                >
-                  {scheduleOpen ? "スケジュールを閉じる" : "全スケジュールを表示する"}
-                </button>
-              </div>
+              <h2 className="text-xl font-semibold text-primary">スケジュール</h2>
 
               {scheduleOpen && (
                 <>
-                  <div className="mt-4 flex items-start gap-3 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+                  {/* 情報ボックス: グレー背景 */}
+                  <div className="mt-4 flex items-start gap-3 rounded-xl bg-gray-100 px-4 py-3 text-sm text-gray-700">
                     <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
                     <p>
                       最初のレッスンの時間を選択してください。時間はあなたの時間帯で表示されています。
@@ -485,10 +477,8 @@ export const MentorDetail = ({
                       </span>
                     </div>
 
+                    {/* タイムゾーン選択: GMT表示付き */}
                     <div className="flex items-center gap-2 text-sm text-secondary">
-                      <label htmlFor="timezone" className="font-medium">
-                        タイムゾーン
-                      </label>
                       <select
                         id="timezone"
                         value={selectedTimezone}
@@ -500,7 +490,7 @@ export const MentorDetail = ({
                       >
                         {TIMEZONE_OPTIONS.map((option) => (
                           <option key={option.value} value={option.value}>
-                            {option.label} ({option.offset})
+                            {option.label} / GMT {option.offset}
                           </option>
                         ))}
                       </select>
@@ -509,8 +499,18 @@ export const MentorDetail = ({
 
                   <div className="mt-6 overflow-x-auto">
                     <div className="min-w-[640px] grid grid-cols-7 gap-4">
-                      {weeklySchedule.days.map((day) => (
+                      {weeklySchedule.days.map((day, index) => (
                         <div key={day.key} className="space-y-3">
+                          {/* カラーバー: ピンク〜グレーのグラデーション */}
+                          <div
+                            className="h-1 rounded-full"
+                            style={{
+                              backgroundColor:
+                                day.times.length > 0
+                                  ? `hsl(${340 - index * 10}, 70%, 65%)`
+                                  : "#e5e7eb",
+                            }}
+                          />
                           <div className="text-center">
                             <p className="text-sm text-muted">{day.weekdayLabel}</p>
                             <p className="text-sm font-semibold text-primary">
@@ -545,24 +545,37 @@ export const MentorDetail = ({
                   )}
                 </>
               )}
+
+              {/* 「全スケジュールを表示する」ボタンを下部中央に配置 */}
+              <div className="mt-6 flex justify-center">
+                <button
+                  type="button"
+                  onClick={() => setScheduleOpen((prev) => !prev)}
+                  className="px-6 py-2 border border-border rounded-full text-sm text-primary hover:bg-surface-hover transition"
+                >
+                  {scheduleOpen ? "スケジュールを閉じる" : "全スケジュールを表示する"}
+                </button>
+              </div>
             </section>
 
             {/* 経歴 */}
             <section className="pb-8 border-b border-border last:border-b-0 last:pb-0">
               <h2 className="text-xl font-semibold text-primary">経歴</h2>
-              <div className="mt-4 flex gap-2 border-b border-border">
+              {/* 3タブ構成: 学歴・職務経歴・証明書 */}
+              <div className="mt-4 flex gap-2">
                 {[
                   { id: "education", label: "学歴" },
                   { id: "work", label: "職務経歴" },
+                  { id: "certificate", label: "証明書" },
                 ].map((tab) => (
                   <button
                     key={tab.id}
                     type="button"
-                    onClick={() => setActiveCareerTab(tab.id as "education" | "work")}
-                    className={`px-4 py-2 text-sm font-semibold border-b-2 transition ${
+                    onClick={() => setActiveCareerTab(tab.id as "education" | "work" | "certificate")}
+                    className={`px-4 py-2 text-sm font-semibold rounded-full transition ${
                       activeCareerTab === tab.id
-                        ? "border-accent text-primary"
-                        : "border-transparent text-muted hover:text-primary"
+                        ? "bg-gray-100 text-primary"
+                        : "text-muted hover:text-primary hover:bg-gray-50"
                     }`}
                   >
                     {tab.label}
@@ -578,32 +591,47 @@ export const MentorDetail = ({
                       <p className="text-sm text-muted">学歴情報は登録されていません。</p>
                     </div>
                   ) : (
-                    <div className="space-y-2">
-                      <p className="text-base font-semibold text-primary">
-                        {mentor.university || "大学名未登録"}
-                      </p>
-                      <p className="text-sm text-secondary">
-                        {mentor.degree || "学位未登録"}
-                        {mentor.degreeType && (
-                          <span className="ml-2 text-muted">
-                            ({DEGREE_TYPE_LABELS[mentor.degreeType] ?? mentor.degreeType})
-                          </span>
-                        )}
-                      </p>
-                      {mentor.specialization && (
-                        <p className="text-sm text-secondary">
-                          専攻:{" "}
-                          <span className="text-primary">{mentor.specialization}</span>
+                    <div className="flex gap-6">
+                      {/* 年数表示: 左側 */}
+                      <div className="text-sm text-muted whitespace-nowrap">
+                        2011 — 2015
+                      </div>
+                      {/* 大学名・学位: 右側 */}
+                      <div className="space-y-1">
+                        <p className="text-base font-semibold text-primary">
+                          {mentor.university || "大学名未登録"}
                         </p>
-                      )}
+                        <p className="text-sm text-secondary">
+                          {mentor.degree || "学位未登録"}
+                          {mentor.degreeType && (
+                            <span className="ml-2 text-muted">
+                              ({DEGREE_TYPE_LABELS[mentor.degreeType] ?? mentor.degreeType})
+                            </span>
+                          )}
+                        </p>
+                        {mentor.specialization && (
+                          <p className="text-sm text-secondary">
+                            専攻:{" "}
+                            <span className="text-primary">{mentor.specialization}</span>
+                          </p>
+                        )}
+                        {/* 「✓ 卒業証書を確認済み」（緑色テキスト） */}
+                        <p className="text-sm text-green-600 flex items-center gap-1">
+                          <span>✓</span> 卒業証書を確認済み
+                        </p>
+                      </div>
                     </div>
                   )
-                ) : mentor.workExperience ? (
-                  <div className="whitespace-pre-wrap text-sm text-secondary">
-                    {mentor.workExperience}
-                  </div>
+                ) : activeCareerTab === "work" ? (
+                  mentor.workExperience ? (
+                    <div className="whitespace-pre-wrap text-sm text-secondary">
+                      {mentor.workExperience}
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted">職務経歴はまだ登録されていません。</p>
+                  )
                 ) : (
-                  <p className="text-sm text-muted">職務経歴はまだ登録されていません。</p>
+                  <p className="text-sm text-muted">証明書はまだ登録されていません。</p>
                 )}
               </div>
             </section>
@@ -619,15 +647,18 @@ export const MentorDetail = ({
                     <div key={item} className="py-3">
                       <button
                         type="button"
-                        className="flex w-full items-center justify-between text-left text-sm font-semibold text-primary"
+                        className="flex w-full items-center justify-between text-left font-semibold text-primary"
                         onClick={() =>
                           setOpenSpecialtyIndex((prev) => (prev === index ? null : index))
                         }
                       >
                         {item}
-                        <span className="text-muted">
-                          {openSpecialtyIndex === index ? "−" : "+"}
-                        </span>
+                        {/* シェブロンアイコン: 展開時は180度回転 */}
+                        <ChevronDown
+                          className={`w-5 h-5 text-muted transition-transform duration-200 ${
+                            openSpecialtyIndex === index ? "rotate-180" : ""
+                          }`}
+                        />
                       </button>
                       {openSpecialtyIndex === index && (
                         <p className="mt-2 text-sm text-secondary">
@@ -644,31 +675,30 @@ export const MentorDetail = ({
           {/* ================= 右カラム（カード） ================= */}
           <aside className="sticky top-6 h-fit">
             <div className="rounded-2xl border border-border bg-white shadow-md p-6 space-y-5">
-              <div className="grid grid-cols-2 gap-4 text-center">
-                <div>
-                  <p className="text-lg font-semibold text-primary">
-                    {mentor.reviewCount}
-                  </p>
-                  <p className="text-xs text-muted">レビュー数</p>
+              {/* 3列横並び: 評価・レッスン数・料金 */}
+              <div className="flex items-baseline justify-between gap-2">
+                <div className="text-center">
+                  <div className="flex items-center gap-1">
+                    <span className="text-2xl font-bold text-primary">★{mentor.rating}</span>
+                  </div>
+                  <p className="text-xs text-muted">{mentor.reviewCount}件のレビュー</p>
                 </div>
-                <div>
-                  <p className="text-lg font-semibold text-primary">{mentor.lessons}</p>
-                  <p className="text-xs text-muted">レッスン回数</p>
+                <div className="text-center">
+                  <span className="text-2xl font-bold text-primary">{mentor.lessons}</span>
+                  <p className="text-xs text-muted">レッスン</p>
+                </div>
+                <div className="text-center">
+                  <span className="text-2xl font-bold text-primary">¥{(mentor.price * 150).toLocaleString()}</span>
+                  <p className="text-xs text-muted">50分のレッスン</p>
                 </div>
               </div>
 
-              <div className="rounded-xl border border-border bg-slate-50 px-4 py-3">
-                <p className="text-sm text-muted">レッスン料金</p>
-                <p className="text-2xl font-semibold text-primary">
-                  ${mentor.price.toLocaleString()}
-                  <span className="text-sm font-normal text-muted"> / 25分</span>
-                </p>
-              </div>
-
+              {/* ボタン3つ縦並び */}
               <button
-                className="w-full bg-accent hover:bg-accent-hover focus:bg-accent-hover focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-background text-white py-2.5 rounded-lg font-semibold transition-all duration-200"
+                className="w-full bg-pink-500 hover:bg-pink-600 focus:bg-pink-600 focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 focus:ring-offset-background text-white py-3 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center gap-2"
                 onClick={onOpenBooking}
               >
+                <Zap className="w-5 h-5" />
                 体験レッスンを予約
               </button>
 
