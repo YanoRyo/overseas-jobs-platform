@@ -561,15 +561,11 @@ export const MentorDetail = ({
                     <div className="min-w-[640px] grid grid-cols-7 gap-4">
                       {weeklySchedule.days.map((day, index) => (
                         <div key={day.key} className="space-y-3">
-                          {/* Color bar: Pink to gray gradient */}
+                          {/* Color bar: Blue to gray */}
                           <div
-                            className="h-1 rounded-full"
-                            style={{
-                              backgroundColor:
-                                day.times.length > 0
-                                  ? `hsl(${340 - index * 10}, 70%, 65%)`
-                                  : "#e5e7eb",
-                            }}
+                            className={`h-1 rounded-full ${
+                              day.times.length > 0 ? "bg-accent" : "bg-gray-200"
+                            }`}
                           />
                           <div className="text-center">
                             <p className="text-sm text-muted">{day.weekdayLabel}</p>
