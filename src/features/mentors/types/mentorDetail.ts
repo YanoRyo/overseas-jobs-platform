@@ -21,6 +21,7 @@ export type MentorDetailModel = {
     author: string;
     rating: number;
     comment: string;
+    createdAt: string;
   }[];
   lessons: number;
   specialties: string[];

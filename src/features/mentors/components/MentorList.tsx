@@ -47,7 +47,7 @@ export function MentorList() {
       } = await fetchMentorById(mentor.id);
 
       if (fetchError || !data) {
-        setBookingError("メンター情報の取得に失敗しました");
+        setBookingError("Failed to retrieve mentor information");
         return;
       }
 

@@ -61,6 +61,11 @@ const DEGREE_TYPE_LABELS: Record<string, string> = {
 
 const pad2 = (value: number) => value.toString().padStart(2, "0");
 
+/**
+ * Extracts date/time components from a Date object in the specified timezone.
+ * Uses Intl.DateTimeFormat to convert a UTC-based Date to local timezone parts.
+ * This approach avoids external libraries like date-fns-tz while maintaining accuracy.
+ */
 const getZonedDateParts = (date: Date, timeZone: string): DateParts => {
   const formatter = new Intl.DateTimeFormat("en-US", {
     timeZone,
@@ -88,6 +93,11 @@ const getZonedDateParts = (date: Date, timeZone: string): DateParts => {
   };
 };
 
+/**
+ * Calculates the UTC offset (in minutes) for a given timezone at a specific moment.
+ * The offset can vary due to DST, so it must be computed for each specific date.
+ * Returns positive values for timezones ahead of UTC (e.g., +540 for JST).
+ */
 const getTimeZoneOffset = (date: Date, timeZone: string) => {
   const parts = getZonedDateParts(date, timeZone);
   const asUtc = Date.UTC(
@@ -101,6 +111,11 @@ const getTimeZoneOffset = (date: Date, timeZone: string) => {
   return (asUtc - date.getTime()) / 60000;
 };
 
+/**
+ * Converts a local time (specified as date parts in a timezone) to a UTC Date object.
+ * Used to convert mentor's availability times (stored in their local timezone)
+ * to UTC for display in the viewer's timezone.
+ */
 const zonedTimeToUtc = (parts: DateParts, timeZone: string) => {
   const utcGuess = new Date(
     Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute, parts.second)
@@ -178,6 +193,18 @@ const buildWeeklySchedule = (
     scheduleMap.set(key, new Set());
   }
 
+  // Pre-group availability by dayOfWeek to avoid repeated filtering
+  const availabilityByDay = new Map<number, typeof availability>();
+  for (const slot of availability) {
+    if (!slot.isEnabled) continue;
+    const existing = availabilityByDay.get(slot.dayOfWeek);
+    if (existing) {
+      existing.push(slot);
+    } else {
+      availabilityByDay.set(slot.dayOfWeek, [slot]);
+    }
+  }
+
   const scanStartUtc = Date.UTC(scanStart.year, scanStart.month - 1, scanStart.day);
   const scanEndUtc = Date.UTC(scanEnd.year, scanEnd.month - 1, scanEnd.day);
   const totalScanDays = Math.round((scanEndUtc - scanStartUtc) / 86400000);
@@ -185,33 +212,33 @@ const buildWeeklySchedule = (
   for (let i = 0; i <= totalScanDays; i += 1) {
     const mentorDate = addDaysToDateParts(scanStart, i);
     const weekDay = new Date(Date.UTC(mentorDate.year, mentorDate.month - 1, mentorDate.day)).getUTCDay();
+    const slotsForDay = availabilityByDay.get(weekDay);
+    if (!slotsForDay) continue;
 
-    availability
-      .filter((slot) => slot.isEnabled && slot.dayOfWeek === weekDay)
-      .forEach((slot) => {
-        const startMinutes = parseTimeToMinutes(slot.startTime);
-        const endMinutes = parseTimeToMinutes(slot.endTime);
-        if (endMinutes <= startMinutes) return;
+    for (const slot of slotsForDay) {
+      const startMinutes = parseTimeToMinutes(slot.startTime);
+      const endMinutes = parseTimeToMinutes(slot.endTime);
+      if (endMinutes <= startMinutes) continue;
 
-        for (let minutes = startMinutes; minutes < endMinutes; minutes += 30) {
-          const hour = Math.floor(minutes / 60);
-          const minute = minutes % 60;
-          const utcDate = zonedTimeToUtc(
-            { ...mentorDate, hour, minute, second: 0 },
-            mentorTimeZone
-          );
+      for (let minutes = startMinutes; minutes < endMinutes; minutes += 30) {
+        const hour = Math.floor(minutes / 60);
+        const minute = minutes % 60;
+        const utcDate = zonedTimeToUtc(
+          { ...mentorDate, hour, minute, second: 0 },
+          mentorTimeZone
+        );
 
-          if (utcDate < viewerStartUtc || utcDate >= viewerEndUtc) continue;
+        if (utcDate < viewerStartUtc || utcDate >= viewerEndUtc) continue;
 
-          const viewerParts = getZonedDateParts(utcDate, viewerTimeZone);
-          const key = `${viewerParts.year}-${pad2(viewerParts.month)}-${pad2(viewerParts.day)}`;
-          const timeLabel = `${pad2(viewerParts.hour)}:${pad2(viewerParts.minute)}`;
-          const daySet = scheduleMap.get(key);
-          if (daySet) {
-            daySet.add(timeLabel);
-          }
+        const viewerParts = getZonedDateParts(utcDate, viewerTimeZone);
+        const key = `${viewerParts.year}-${pad2(viewerParts.month)}-${pad2(viewerParts.day)}`;
+        const timeLabel = `${pad2(viewerParts.hour)}:${pad2(viewerParts.minute)}`;
+        const daySet = scheduleMap.get(key);
+        if (daySet) {
+          daySet.add(timeLabel);
         }
-      });
+      }
+    }
   }
 
   let hasAnySlots = false;
@@ -257,11 +284,14 @@ export const MentorDetail = ({
     return match?.name ?? mentor.country;
   }, [mentor.country]);
 
-  const baseDateParts = getZonedDateParts(new Date(), selectedTimezone);
-  const weekStartParts = addDaysToDateParts(
-    { year: baseDateParts.year, month: baseDateParts.month, day: baseDateParts.day },
-    weekOffset * 7
-  );
+  // Memoize weekStartParts to ensure stable reference for weeklySchedule dependency
+  const weekStartParts = useMemo(() => {
+    const baseDateParts = getZonedDateParts(new Date(), selectedTimezone);
+    return addDaysToDateParts(
+      { year: baseDateParts.year, month: baseDateParts.month, day: baseDateParts.day },
+      weekOffset * 7
+    );
+  }, [selectedTimezone, weekOffset]);
 
   const weeklySchedule = useMemo(
     () =>
@@ -427,7 +457,13 @@ export const MentorDetail = ({
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
                             <p className="font-semibold text-primary">{review.author}</p>
-                            <span className="text-xs text-muted">Jan 15, 2024</span>
+                            <span className="text-xs text-muted">
+                              {new Date(review.createdAt).toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              })}
+                            </span>
                           </div>
                           {/* Star rating below name */}
                           <div className="text-yellow-500 text-sm">
@@ -615,35 +651,24 @@ export const MentorDetail = ({
                       <p className="text-sm text-muted">No education information registered.</p>
                     </div>
                   ) : (
-                    <div className="flex gap-6">
-                      {/* Year range: Left side */}
-                      <div className="text-sm text-muted whitespace-nowrap">
-                        2011 — 2015
-                      </div>
-                      {/* University & Degree: Right side */}
-                      <div className="space-y-1">
-                        <p className="text-base font-semibold text-primary">
-                          {mentor.university || "University not registered"}
-                        </p>
-                        <p className="text-sm text-secondary">
-                          {mentor.degree || "Degree not registered"}
-                          {mentor.degreeType && (
-                            <span className="ml-2 text-muted">
-                              ({DEGREE_TYPE_LABELS[mentor.degreeType] ?? mentor.degreeType})
-                            </span>
-                          )}
-                        </p>
-                        {mentor.specialization && (
-                          <p className="text-sm text-secondary">
-                            Major:{" "}
-                            <span className="text-primary">{mentor.specialization}</span>
-                          </p>
+                    <div className="space-y-1">
+                      <p className="text-base font-semibold text-primary">
+                        {mentor.university || "University not registered"}
+                      </p>
+                      <p className="text-sm text-secondary">
+                        {mentor.degree || "Degree not registered"}
+                        {mentor.degreeType && (
+                          <span className="ml-2 text-muted">
+                            ({DEGREE_TYPE_LABELS[mentor.degreeType] ?? mentor.degreeType})
+                          </span>
                         )}
-                        {/* "✓ Diploma verified" (green text) */}
-                        <p className="text-sm text-green-600 flex items-center gap-1">
-                          <span>✓</span> Diploma verified
+                      </p>
+                      {mentor.specialization && (
+                        <p className="text-sm text-secondary">
+                          Major:{" "}
+                          <span className="text-primary">{mentor.specialization}</span>
                         </p>
-                      </div>
+                      )}
                     </div>
                   )
                 ) : activeCareerTab === "work" ? (

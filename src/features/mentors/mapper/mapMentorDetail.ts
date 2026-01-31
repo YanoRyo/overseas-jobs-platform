@@ -42,6 +42,7 @@ export const mapMentorDetail = (
     author: r.user_id.slice(0, 8), // TODO: ユーザー名取得に変更
     rating: r.rating,
     comment: r.comment ?? '',
+    createdAt: r.created_at,
   })),
   lessons: mentor.lessons_count,
   specialties: expertise.map((e) => e.expertise),
