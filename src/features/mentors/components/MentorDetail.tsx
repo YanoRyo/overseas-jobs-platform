@@ -719,7 +719,7 @@ export const MentorDetail = ({
 
               {/* 3 buttons stacked vertically */}
               <button
-                className="w-full bg-pink-500 hover:bg-pink-600 focus:bg-pink-600 focus:ring-2 focus:ring-pink-500 focus:ring-offset-2 focus:ring-offset-background text-white py-3 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center gap-2"
+                className="w-full bg-accent hover:bg-accent-hover focus:bg-accent-hover focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-background text-white py-3 rounded-lg font-semibold transition-all duration-200 flex items-center justify-center gap-2"
                 onClick={onOpenBooking}
               >
                 <Zap className="w-5 h-5" />
