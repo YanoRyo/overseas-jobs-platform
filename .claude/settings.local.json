@@ -8,7 +8,9 @@
       "Bash(npx playwright:*)",
       "Bash(git mv:*)",
       "Bash(npx tsc:*)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "mcp__supabase__list_projects",
+      "mcp__supabase__get_project_url"
     ],
     "deny": [],
     "ask": []
