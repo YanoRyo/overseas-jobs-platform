@@ -17,13 +17,14 @@ export const useMentorDetail = (id: string) => {
         languages,
         expertise,
         reviews,
+        availability,
         error: fetchError,
       } = await fetchMentorById(id);
 
       if (fetchError || !data) {
         setError(true);
       } else {
-        setMentor(mapMentorDetail(data, languages, expertise, reviews));
+        setMentor(mapMentorDetail(data, languages, expertise, reviews, availability));
       }
 
       setLoading(false);
