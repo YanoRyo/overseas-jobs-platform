@@ -56,7 +56,7 @@ export const MentorRegistration = () => {
     setConfirmPassword,
     handleEmailSignup,
     handleGoogleSignup,
-  } = useSignup();
+  } = useSignup({ initialRole: 'mentor' });
 
   // 登録済みチェック中はローディング表示
   if (isCheckingRegistration) {
