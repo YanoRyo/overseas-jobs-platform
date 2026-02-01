@@ -4,8 +4,8 @@ import type {
   MentorExpertiseRow,
   MentorReviewRow,
   MentorAvailabilityRow,
-} from '@/lib/supabase/types';
-import { MentorDetailModel } from '../types';
+} from "@/lib/supabase/types";
+import { MentorDetailModel } from "../types";
 
 export const mapMentorDetail = (
   mentor: MentorRow,
@@ -15,10 +15,11 @@ export const mapMentorDetail = (
   availability: MentorAvailabilityRow[]
 ): MentorDetailModel => ({
   id: mentor.id,
+  userId: mentor.user_id,
   name: `${mentor.first_name} ${mentor.last_name}`,
   country: mentor.country_code,
   bio: mentor.introduction,
-  avatarUrl: mentor.avatar_url ?? '',
+  avatarUrl: mentor.avatar_url ?? "",
   price: mentor.hourly_rate,
   rating: Number(mentor.rating_avg),
   reviewCount: mentor.review_count,
@@ -41,13 +42,13 @@ export const mapMentorDetail = (
     id: r.id,
     author: r.user_id.slice(0, 8), // TODO: ユーザー名取得に変更
     rating: r.rating,
-    comment: r.comment ?? '',
+    comment: r.comment ?? "",
     createdAt: r.created_at,
   })),
   lessons: mentor.lessons_count,
   specialties: expertise.map((e) => e.expertise),
   intro: mentor.motivation,
-  introVideoUrl: mentor.video_url ?? '',
+  introVideoUrl: mentor.video_url ?? "",
   workExperience: mentor.work_experience,
   hasNoDegree: mentor.has_no_degree,
   university: mentor.university,

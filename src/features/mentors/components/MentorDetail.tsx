@@ -764,7 +764,7 @@ export const MentorDetail = ({
 
       {isMessageOpen && (
         <SendMessageModal
-          mentorId={mentor.id}
+          mentorId={mentor.userId}
           mentorName={mentor.name}
           isOpen={isMessageOpen}
           onClose={() => setIsMessageOpen(false)}

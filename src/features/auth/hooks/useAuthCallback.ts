@@ -48,9 +48,33 @@ export const useAuthCallback = () => {
 
       await supabase.from("users").upsert(payload);
 
-      const pendingReservation = localStorage.getItem("pendingReservation");
+      if (role === "mentor") {
+        // mentors.user_id に自分がいるかチェック
+        const { data: mentorRow, error } = await supabase
+          .from("mentors")
+          .select("id")
+          .eq("user_id", user.id)
+          .maybeSingle();
 
-      router.push(pendingReservation ? "/checkout" : redirect);
+        if (error) {
+          console.error(error);
+          router.push("/auth/login?role=mentor");
+          return;
+        }
+
+        if (!mentorRow) {
+          // mentor登録がない → 申請ページへ など
+          router.push("/mentor/onboarding");
+          return;
+        }
+
+        router.push("/mentor/dashboard");
+        return;
+      }
+
+      // student
+      const pending = localStorage.getItem("pendingReservation");
+      router.push(pending ? "/checkout" : redirect);
     };
 
     run();

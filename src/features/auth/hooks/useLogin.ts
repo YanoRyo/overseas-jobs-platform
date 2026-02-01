@@ -10,6 +10,7 @@ export const useLogin = () => {
   const redirect = searchParams.get("redirect") || "/";
   const redirectPath = redirect.startsWith("/") ? redirect : "/";
   const supabase = useSupabaseClient();
+
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -23,12 +24,12 @@ export const useLogin = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
 
     const { error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-
     setLoading(false);
 
     if (error) {
