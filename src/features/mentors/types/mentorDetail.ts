@@ -1,5 +1,6 @@
 export type MentorDetailModel = {
   id: string;
+  userId: string;
   name: string;
   country: string;
   bio: string;

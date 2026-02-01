@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
-import type { SendMessageInput } from "../types";
+import type { SendMessageInput } from "../types/sendMessageInput";
 
 export const useSendMessage = () => {
   const supabase = useSupabaseClient();
@@ -28,12 +28,14 @@ export const useSendMessage = () => {
       const userId = user.id;
 
       // ① 既存 conversation を探す
+      const mentorUserId = mentorId; // mentor の auth.user.id を渡す前提
+      const studentUserId = user.id;
+
       const { data: existingConversation, error: findError } = await supabase
         .from("conversation")
-        .select("*")
-        .or(
-          `and(mentor_id.eq.${mentorId},student_id.eq.${userId}),and(mentor_id.eq.${userId},student_id.eq.${mentorId})`
-        )
+        .select("id")
+        .eq("mentor_id", mentorUserId)
+        .eq("student_id", studentUserId)
         .maybeSingle();
 
       if (findError) throw findError;
@@ -45,15 +47,14 @@ export const useSendMessage = () => {
         const { data: newConversation, error: createError } = await supabase
           .from("conversation")
           .insert({
-            mentor_id: mentorId,
-            student_id: userId,
+            mentor_id: mentorUserId,
+            student_id: studentUserId,
             last_message_at: new Date().toISOString(),
           })
-          .select()
+          .select("id")
           .single();
 
         if (createError) throw createError;
-
         conversationId = newConversation.id;
       }
 
@@ -77,8 +78,21 @@ export const useSendMessage = () => {
 
       return true;
     } catch (err: unknown) {
-      console.error("Send error:", err);
-      console.log("stringify:", JSON.stringify(err, null, 2));
+      if (typeof err === "object" && err !== null) {
+        const e = err as {
+          message?: string;
+          details?: string;
+          hint?: string;
+          code?: string;
+        };
+        console.error("Send error message:", e.message);
+        console.error("Send error details:", e.details);
+        console.error("Send error hint:", e.hint);
+        console.error("Send error code:", e.code);
+        console.error("Send raw:", err);
+      } else {
+        console.error("Send error (non-object):", err);
+      }
       setError("送信に失敗しました");
       return false;
     } finally {

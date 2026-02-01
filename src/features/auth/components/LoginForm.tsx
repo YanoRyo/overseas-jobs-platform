@@ -1,9 +1,18 @@
 "use client";
-import { useRouter } from "next/navigation";
+
+import { useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useLogin } from "../hooks/useLogin";
 
 export const LoginForm = () => {
   const router = useRouter();
+  const sp = useSearchParams();
+
+  const role = useMemo(() => {
+    const r = sp.get("role");
+    return (r === "mentor" ? "mentor" : "student") as "mentor" | "student";
+  }, [sp]);
+
   const {
     email,
     password,
@@ -12,7 +21,12 @@ export const LoginForm = () => {
     setEmail,
     setPassword,
     handleSubmit,
-  } = useLogin();
+  } = useLogin({ role });
+
+  // Socialは未実装なので、押されたら「準備中」だけ出す
+  const [socialInfo, setSocialInfo] = useState<string | null>(null);
+
+  const title = role === "mentor" ? "Mentor Login" : "Student Login";
 
   return (
     <div className="max-w-md mx-auto p-6 mt-16 border rounded-md shadow-md">
@@ -28,15 +42,29 @@ export const LoginForm = () => {
         </button>
       </div>
 
-      <h1 className="text-4xl font-bold mb-8 text-center">Login</h1>
+      <h1 className="text-4xl font-bold mb-8 text-center">{title}</h1>
+
       {/* Socialログイン */}
-      <div className="flex flex-col gap-4 mb-6">
-        <button className="bg-red-500 text-white py-2 rounded-md hover:bg-red-600 transition-colors">
+      <div className="flex flex-col gap-4 mb-2">
+        <button
+          type="button"
+          onClick={() => setSocialInfo("Googleログインは準備中です")}
+          className="bg-red-500 text-white py-2 rounded-md hover:bg-red-600 transition-colors"
+        >
           Continue with Google
         </button>
-        <button className="bg-blue-700 text-white py-2 rounded-md hover:bg-blue-800 transition-colors">
+
+        <button
+          type="button"
+          onClick={() => setSocialInfo("Facebookログインは準備中です")}
+          className="bg-blue-700 text-white py-2 rounded-md hover:bg-blue-800 transition-colors"
+        >
           Continue with Facebook
         </button>
+
+        {socialInfo && (
+          <p className="text-xs text-gray-500 text-center">{socialInfo}</p>
+        )}
       </div>
 
       {/* or */}
@@ -49,6 +77,7 @@ export const LoginForm = () => {
       {/* Email/Passwordログインフォーム */}
       <form onSubmit={handleSubmit} className="space-y-6">
         {error && <p className="text-red-500">{error}</p>}
+
         <div>
           <label className="block mb-1 font-semibold">Email</label>
           <input
