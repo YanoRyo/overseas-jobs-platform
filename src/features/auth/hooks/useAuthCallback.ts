@@ -63,12 +63,13 @@ export const useAuthCallback = () => {
         }
 
         if (!mentorRow) {
-          // mentor登録がない → 申請ページへ など
-          router.push("/mentor/onboarding");
+          // mentor登録がない → 登録ページへ
+          router.push("/mentor/register");
           return;
         }
 
-        router.push("/mentor/dashboard");
+        // TODO: /mentor/dashboard ページを作成後に変更
+        router.push("/");
         return;
       }
 

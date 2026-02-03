@@ -559,7 +559,7 @@ export const MentorDetail = ({
 
                   <div className="mt-6 overflow-x-auto">
                     <div className="min-w-[640px] grid grid-cols-7 gap-4">
-                      {weeklySchedule.days.map((day, index) => (
+                      {weeklySchedule.days.map((day) => (
                         <div key={day.key} className="space-y-3">
                           {/* Color bar: Blue to gray */}
                           <div

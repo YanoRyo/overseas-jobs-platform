@@ -3,12 +3,24 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useOAuthSignIn } from "./useOAuthSignIn";
+import type { UserRole } from "../types";
 
-export const useLogin = () => {
+type UseLoginOptions = {
+  initialRole?: UserRole;
+  redirect?: string;
+};
+
+export const useLogin = (options?: UseLoginOptions) => {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirect") || "/";
-  const redirectPath = redirect.startsWith("/") ? redirect : "/";
+  const redirectFromParams = searchParams.get("redirect") || "/";
+  const redirectPath = options?.redirect
+    ? options.redirect.startsWith("/")
+      ? options.redirect
+      : "/"
+    : redirectFromParams.startsWith("/")
+      ? redirectFromParams
+      : "/";
   const supabase = useSupabaseClient();
 
   const [email, setEmail] = useState("");
@@ -18,7 +30,8 @@ export const useLogin = () => {
   const { role, setRole, signInWithGoogle, signInWithFacebook } =
     useOAuthSignIn({
       redirect: redirectPath,
-      requireRole: true,
+      initialRole: options?.initialRole,
+      requireRole: !options?.initialRole,
     });
 
   const handleSubmit = async (e: React.FormEvent) => {
