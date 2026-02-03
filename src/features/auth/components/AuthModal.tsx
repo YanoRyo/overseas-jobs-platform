@@ -18,6 +18,7 @@ type AuthModalProps = {
   title?: string;
   description?: string;
   redirectOnClose?: string;
+  redirectAfterAuth?: string;
   defaultMode?: "signup" | "login";
 };
 
@@ -28,13 +29,14 @@ export const AuthModal = ({
   title,
   description,
   redirectOnClose = "/",
+  redirectAfterAuth,
   defaultMode = "signup",
 }: AuthModalProps) => {
   const router = useRouter();
   const [mode, setMode] = useState<"signup" | "login">(defaultMode);
 
-  const signup = useSignup({ initialRole });
-  const login = useLogin({ initialRole });
+  const signup = useSignup({ initialRole, redirect: redirectAfterAuth });
+  const login = useLogin({ initialRole, redirect: redirectAfterAuth });
 
   const handleClose = () => {
     onClose();

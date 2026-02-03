@@ -1,7 +1,7 @@
 "use client";
 import { useState } from "react";
 import { Dialog } from "@headlessui/react";
-import { X } from "lucide-react";
+import { X, Sunrise, Sun, Sunset, Moon } from "lucide-react";
 import type { MentorDetailModel } from "@/features/mentors/types";
 import { useRouter } from "next/navigation";
 import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
@@ -70,11 +70,93 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
     router.push("/checkout");
   };
 
-  const timeSlots = {
-    朝: ["7:00", "8:00", "9:00"],
-    昼: ["12:00", "13:00", "14:00"],
-    夕方: ["16:00", "17:00", "18:00"],
-    夜: ["19:00", "20:00", "21:00"],
+  // 時間帯定義
+  const TIME_PERIODS = [
+    { name: "朝", icon: Sunrise, start: "06:00", end: "12:00" },
+    { name: "昼", icon: Sun, start: "12:00", end: "17:00" },
+    { name: "夕方", icon: Sunset, start: "17:00", end: "21:00" },
+    { name: "夜", icon: Moon, start: "21:00", end: "24:00" },
+  ] as const;
+
+  // 日付変更時の処理（選択済み時間が無効ならリセット）
+  const handleDateChange = (newDate: Date) => {
+    setSelectedDate(newDate);
+    if (selectedTime) {
+      const newDayOfWeek = newDate.getDay();
+      const enabledSlots = mentor.availability.filter(
+        (slot) => slot.dayOfWeek === newDayOfWeek && slot.isEnabled
+      );
+      const availableTimes: string[] = [];
+      for (const slot of enabledSlots) {
+        const startMinutes =
+          parseInt(slot.startTime.split(":")[0]) * 60 +
+          parseInt(slot.startTime.split(":")[1]);
+        const endMinutes =
+          parseInt(slot.endTime.split(":")[0]) * 60 +
+          parseInt(slot.endTime.split(":")[1]);
+        for (let minutes = startMinutes; minutes < endMinutes; minutes += 30) {
+          const hour = Math.floor(minutes / 60);
+          const minute = minutes % 60;
+          availableTimes.push(
+            `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`
+          );
+        }
+      }
+      if (!availableTimes.includes(selectedTime)) {
+        setSelectedTime(null);
+      }
+    }
+  };
+
+  // 時間文字列を分に変換
+  const parseTimeToMinutes = (time: string): number => {
+    const [hours, minutes] = time.split(":").map(Number);
+    return hours * 60 + minutes;
+  };
+
+  // 指定した日付の曜日に対して、メンターの availability から予約可能な時間スロットを取得
+  const getAvailableSlotsForDate = (date: Date): string[] => {
+    const dayOfWeek = date.getDay();
+
+    const enabledSlots = mentor.availability.filter(
+      (slot) => slot.dayOfWeek === dayOfWeek && slot.isEnabled
+    );
+
+    if (enabledSlots.length === 0) return [];
+
+    const times: string[] = [];
+    for (const slot of enabledSlots) {
+      const startMinutes = parseTimeToMinutes(slot.startTime);
+      const endMinutes = parseTimeToMinutes(slot.endTime);
+
+      for (let minutes = startMinutes; minutes < endMinutes; minutes += 30) {
+        const hour = Math.floor(minutes / 60);
+        const minute = minutes % 60;
+        times.push(
+          `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`
+        );
+      }
+    }
+
+    return [...new Set(times)].sort();
+  };
+
+  // 時間帯ごとにスロットをフィルタリング
+  const getTimeSlotsForPeriod = (
+    start: string,
+    end: string,
+    availableSlots: string[]
+  ) => {
+    return availableSlots.filter((time) => time >= start && time < end);
+  };
+
+  // タイムゾーンのGMTオフセットを取得
+  const getGmtOffset = (): string => {
+    const offsetMinutes = -new Date().getTimezoneOffset();
+    const hours = Math.floor(Math.abs(offsetMinutes) / 60);
+    const minutes = Math.abs(offsetMinutes) % 60;
+    const sign = offsetMinutes >= 0 ? "+" : "-";
+    return `GMT ${sign}${hours}:${minutes.toString().padStart(2, "0")}`;
   };
 
   return (
@@ -83,7 +165,7 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
       onClose={onClose}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
     >
-      <Dialog.Panel className="bg-surface rounded-2xl p-6 w-full max-w-xl space-y-6">
+      <Dialog.Panel className="bg-surface rounded-2xl p-6 w-full max-w-md space-y-6">
         {/* ① ヘッダー */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -94,30 +176,43 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
                 className="w-12 h-12 rounded-lg object-cover"
               />
             )}
-            <h2 className="text-xl font-semibold">
-              {mentor.name}さんを予約する
-            </h2>
+            <div>
+              <h2 className="text-xl font-semibold">
+                体験レッスンを予約する
+              </h2>
+              <p className="text-sm text-secondary mt-1">
+                あなたのレベルと学習プランについて講師と話し合います
+              </p>
+            </div>
           </div>
           <button onClick={onClose}>
             <X className="w-6 h-6 text-muted hover:text-primary transition-colors" />
           </button>
         </div>
 
-        {/* ② 時間選択 */}
-        <div className="flex gap-4">
-          {[25, 50].map((min) => (
-            <button
-              key={min}
-              onClick={() => setDuration(min)}
-              className={`flex-1 px-4 py-2 rounded-lg border text-center font-medium ${
-                duration === min
-                  ? "bg-accent text-white"
-                  : "border-border text-primary"
-              }`}
-            >
-              {min}分
-            </button>
-          ))}
+        {/* ② 時間選択（セグメントコントロール） */}
+        <div className="flex border border-border rounded-lg overflow-hidden">
+          <button
+            onClick={() => setDuration(25)}
+            className={`flex-1 px-4 py-3 text-center font-medium transition-colors ${
+              duration === 25
+                ? "bg-surface-hover text-primary"
+                : "bg-surface text-primary hover:bg-surface-hover"
+            }`}
+          >
+            25分
+          </button>
+          <div className="w-px bg-border" />
+          <button
+            onClick={() => setDuration(50)}
+            className={`flex-1 px-4 py-3 text-center font-medium transition-colors ${
+              duration === 50
+                ? "bg-surface-hover text-primary"
+                : "bg-surface text-primary hover:bg-surface-hover"
+            }`}
+          >
+            50分
+          </button>
         </div>
 
         {/* ③ カレンダー */}
@@ -125,11 +220,11 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
           <div className="flex justify-between items-center">
             {/* 先週ボタン（左矢印） */}
             <button
-              onClick={() =>
-                setSelectedDate(
-                  new Date(selectedDate.setDate(selectedDate.getDate() - 7))
-                )
-              }
+              onClick={() => {
+                const newDate = new Date(selectedDate);
+                newDate.setDate(newDate.getDate() - 7);
+                handleDateChange(newDate);
+              }}
               disabled={(() => {
                 const today = new Date();
                 const thisWeekStart = new Date(today);
@@ -142,7 +237,7 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
 
                 return selectedWeekStart <= thisWeekStart ? true : false;
               })()}
-              className="text-accent font-medium p-2 rounded-full hover:bg-surface-hover disabled:text-muted disabled:cursor-not-allowed transition-colors"
+              className="p-2 rounded-lg border border-border text-secondary hover:bg-surface-hover disabled:text-muted disabled:cursor-not-allowed transition-colors"
               aria-label="先週へ"
             >
               <svg
@@ -150,7 +245,7 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
-                className="w-8 h-8"
+                className="w-5 h-5"
               >
                 <path
                   strokeLinecap="round"
@@ -186,12 +281,12 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
 
             {/* 来週ボタン（右矢印） */}
             <button
-              onClick={() =>
-                setSelectedDate(
-                  new Date(selectedDate.setDate(selectedDate.getDate() + 7))
-                )
-              }
-              className="text-accent font-medium p-2 rounded-full hover:bg-surface-hover transition-colors"
+              onClick={() => {
+                const newDate = new Date(selectedDate);
+                newDate.setDate(newDate.getDate() + 7);
+                handleDateChange(newDate);
+              }}
+              className="p-2 rounded-lg border border-border text-secondary hover:bg-surface-hover transition-colors"
               aria-label="来週へ"
             >
               <svg
@@ -199,7 +294,7 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
                 fill="none"
                 viewBox="0 0 24 24"
                 stroke="currentColor"
-                className="w-8 h-8"
+                className="w-5 h-5"
               >
                 <path
                   strokeLinecap="round"
@@ -211,7 +306,7 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
             </button>
           </div>
 
-          <div className="flex justify-between">
+          <div className="flex justify-around">
             {Array.from({ length: 7 }).map((_, i) => {
               const startOfWeek = new Date(selectedDate);
               startOfWeek.setDate(
@@ -232,78 +327,88 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
               return (
                 <button
                   key={i}
-                  onClick={() => setSelectedDate(day)}
-                  className={`flex flex-col items-center p-2 w-10 h-14 rounded-lg cursor-pointer
-            ${
-              isSelected
-                ? "bg-accent text-white font-semibold"
-                : "bg-transparent text-primary hover:bg-surface-hover"
-            }
-          `}
+                  onClick={() => handleDateChange(day)}
+                  className="flex flex-col items-center gap-1 p-1 cursor-pointer"
                 >
-                  <span className="text-sm">{weekday}</span>
-                  <span className="text-lg">{dateNum}</span>
+                  <span
+                    className={`text-sm ${
+                      isSelected ? "text-pink-500 font-medium" : "text-secondary"
+                    }`}
+                  >
+                    {weekday}
+                  </span>
+                  <span
+                    className={`w-9 h-9 flex items-center justify-center text-base rounded-lg ${
+                      isSelected
+                        ? "bg-pink-100 text-pink-600 font-semibold border border-pink-300"
+                        : "text-primary hover:bg-surface-hover"
+                    }`}
+                  >
+                    {dateNum}
+                  </span>
                 </button>
               );
             })}
           </div>
         </div>
 
+        {/* タイムゾーン表示 */}
+        <p className="text-sm text-secondary">
+          あなたのタイムゾーン、
+          {Intl.DateTimeFormat().resolvedOptions().timeZone} ({getGmtOffset()})
+        </p>
+
         {/* ④ 時間帯ごとのスロット */}
         <div className="space-y-4">
-          {Object.entries(timeSlots).map(([period, slots]) => (
-            <div key={period}>
-              <p className="font-semibold mb-2">{period}</p>
-              <div className="flex flex-wrap gap-2">
-                {slots.map((time) => (
-                  <button
-                    key={time}
-                    onClick={() => setSelectedTime(time)}
-                    className={`px-3 py-2 rounded-lg border text-sm ${
-                      selectedTime === time
-                        ? "bg-accent text-white"
-                        : "border-border text-primary"
-                    }`}
-                  >
-                    {time}
-                  </button>
-                ))}
-              </div>
-            </div>
-          ))}
+          {(() => {
+            const availableSlots = getAvailableSlotsForDate(selectedDate);
+
+            if (availableSlots.length === 0) {
+              return (
+                <p className="text-secondary text-sm text-center py-4">
+                  この日は予約可能な時間がありません
+                </p>
+              );
+            }
+
+            return TIME_PERIODS.map(({ name, icon: Icon, start, end }) => {
+              const slots = getTimeSlotsForPeriod(start, end, availableSlots);
+              if (slots.length === 0) return null;
+
+              return (
+                <div key={name}>
+                  <div className="flex items-center gap-2 mb-2">
+                    <Icon className="w-4 h-4 text-muted" />
+                    <p className="font-semibold">{name}</p>
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    {slots.map((time) => (
+                      <button
+                        key={time}
+                        onClick={() => setSelectedTime(time)}
+                        className={`py-2 rounded-lg border text-sm text-center ${
+                          selectedTime === time
+                            ? "bg-accent text-white border-accent"
+                            : "border-border text-primary hover:bg-surface-hover"
+                        }`}
+                      >
+                        {time}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              );
+            });
+          })()}
         </div>
 
-        {/* ⑤ 続けるボタン＋注意書き */}
-        <div className="space-y-2">
-          <button
-            onClick={handleContinue}
-            className="relative w-full bg-accent text-white py-4 rounded-lg font-semibold hover:bg-accent-hover transition-colors"
-          >
-            続ける
-            <span className="absolute left-1/2 bottom-0 translate-x-[-50%] text-xs text-white opacity-70">
-              予約にはログインが必要です
-            </span>
-          </button>
-
-          <p className="text-sm text-center text-primary">
-            まだアカウントがありませんか？{" "}
-            <span className="inline-flex gap-1">
-              <button
-                onClick={() => router.push("/auth/login?redirect=checkout")}
-                className="text-accent underline hover:text-accent-hover font-semibold transition-colors"
-              >
-                ログイン
-              </button>
-              または
-              <button
-                onClick={() => router.push("/auth/signup?redirect=checkout")}
-                className="text-accent underline hover:text-accent-hover font-semibold transition-colors"
-              >
-                新規登録
-              </button>
-            </span>
-          </p>
-        </div>
+        {/* ⑤ 続けるボタン */}
+        <button
+          onClick={handleContinue}
+          className="w-full bg-accent text-white py-4 rounded-lg font-semibold hover:bg-accent-hover transition-colors"
+        >
+          続ける
+        </button>
       </Dialog.Panel>
     </Dialog>
   );
