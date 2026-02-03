@@ -1,103 +1,128 @@
 "use client";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useSignup } from "../hooks/useSignup";
+import { AuthShell } from "./AuthShell";
+import { AuthDivider } from "./AuthDivider";
+import { RoleSelector } from "./RoleSelector";
+import { SocialAuthButtons } from "./SocialAuthButtons";
 
 export const SignupForm = () => {
-  const router = useRouter();
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get("redirect");
+  const loginHref = redirect
+    ? `/auth/login?redirect=${encodeURIComponent(redirect)}`
+    : "/auth/login";
   const {
     email,
     password,
     confirmPassword,
+    role,
     rememberMe,
     loading,
     setEmail,
     setPassword,
     setConfirmPassword,
+    setRole,
     setRememberMe,
     handleEmailSignup,
     handleGoogleSignup,
     handleFacebookSignup,
   } = useSignup();
 
+  const inputClassName =
+    "w-full rounded-xl border border-border bg-white px-4 py-3 text-sm text-primary placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-blue-200";
+
   return (
-    <div className="max-w-md mx-auto p-6 mt-16 border rounded-md shadow-md">
-      <div className="mb-4">
-        <button
-          onClick={() => router.push("/")}
-          aria-label="Go back"
-          className="text-2xl hover:text-gray-600"
-          style={{ lineHeight: 1 }}
-        >
-          ←
-        </button>
-      </div>
-      <h1 className="text-4xl font-bold mb-8 text-center">Sign Up</h1>
-
-      {/* Social */}
-      <div className="flex flex-col gap-4 mb-6">
-        <button
-          onClick={handleGoogleSignup}
-          className="bg-red-500 text-white py-2 rounded-md hover:bg-red-600 transition-colors"
-        >
-          Continue with Google
-        </button>
-        <button
-          onClick={handleFacebookSignup}
-          className="bg-blue-700 text-white py-2 rounded-md hover:bg-blue-800 transition-colors"
-        >
-          Continue with Facebook
-        </button>
-      </div>
-
-      {/* or */}
-      <div className="flex items-center mb-6">
-        <div className="flex-grow border-t border-gray-300" />
-        <span className="mx-4 text-gray-500 font-semibold">or</span>
-        <div className="flex-grow border-t border-gray-300" />
-      </div>
-
-      {/* Email/Passwordログインフォーム */}
-      <form onSubmit={handleEmailSignup} className="space-y-6">
-        <input
-          type="email"
-          placeholder="Email"
-          className="w-full border border-gray-300 rounded-md p-2"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
+    <AuthShell
+      title="Create your account"
+      description={
+        <p className="text-sm text-secondary">
+          Already have an account?{" "}
+          <Link href={loginHref} className="text-accent hover:underline">
+            Log in
+          </Link>
+        </p>
+      }
+    >
+      <div className="space-y-6">
+        <RoleSelector
+          value={role}
+          onChange={setRole}
+          hint="Required to complete sign up."
+        />
+        <SocialAuthButtons
+          onGoogle={handleGoogleSignup}
+          onFacebook={handleFacebookSignup}
+          disabled={loading || !role}
         />
 
-        <input
-          type="password"
-          placeholder="Password"
-          className="w-full border border-gray-300 rounded-md p-2"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-        />
+        <AuthDivider />
 
-        <input
-          type="password"
-          placeholder="Confirm Password"
-          className="w-full border border-gray-300 rounded-md p-2"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-        />
+        <form onSubmit={handleEmailSignup} className="space-y-5">
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-primary">Email</label>
+            <input
+              type="email"
+              placeholder="you@example.com"
+              className={inputClassName}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+          </div>
 
-        <label className="flex items-center gap-2">
-          <input
-            type="checkbox"
-            checked={rememberMe}
-            onChange={() => setRememberMe(!rememberMe)}
-          />
-          Remember Me
-        </label>
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-primary">
+              Password
+            </label>
+            <input
+              type="password"
+              placeholder="Create a password"
+              className={inputClassName}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
 
-        <button
-          disabled={loading}
-          className="w-full bg-blue-600 text-white py-3 rounded-md"
-        >
-          Sign Up
-        </button>
-      </form>
-    </div>
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-primary">
+              Confirm password
+            </label>
+            <input
+              type="password"
+              placeholder="Confirm your password"
+              className={inputClassName}
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+            />
+          </div>
+
+          <label className="flex items-center gap-2 text-xs text-secondary">
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={() => setRememberMe(!rememberMe)}
+              className="h-4 w-4 rounded border-border text-accent focus:ring-accent"
+            />
+            Remember me
+          </label>
+
+          <button
+            disabled={loading || !role}
+            className="w-full rounded-xl bg-accent py-3 text-sm font-semibold text-white transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {loading ? "Creating account..." : "Sign up"}
+          </button>
+        </form>
+
+        <p className="text-center text-xs text-muted">
+          By continuing, you agree to our{" "}
+          <Link href="/policy" className="text-accent hover:underline">
+            Terms & Privacy Policy
+          </Link>
+          .
+        </p>
+      </div>
+    </AuthShell>
   );
 };

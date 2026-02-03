@@ -2,24 +2,47 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import type { UserRole } from "../types";
+import { useOAuthSignIn } from "./useOAuthSignIn";
 
-export const useSignup = () => {
+type UseSignupOptions = {
+  initialRole?: UserRole;
+};
+
+export const useSignup = (options?: UseSignupOptions) => {
   const supabase = useSupabaseClient();
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get("redirect") || "/";
+  const redirectPath = redirect.startsWith("/") ? redirect : "/";
+  const initialRole =
+    options?.initialRole === "student" || options?.initialRole === "mentor"
+      ? options.initialRole
+      : null;
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
+  const { role, setRole, signInWithGoogle, signInWithFacebook } =
+    useOAuthSignIn({
+      redirect: redirectPath,
+      initialRole,
+      requireRole: true,
+    });
 
   const handleEmailSignup = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    const selectedRole = role;
+    if (!selectedRole) {
+      alert("Please select a role.");
+      return;
+    }
+
     if (!email || !password || password !== confirmPassword) {
-      alert("入力内容を確認してください");
+      alert("Please check your inputs.");
       return;
     }
 
@@ -41,49 +64,33 @@ export const useSignup = () => {
       await supabase.from("users").upsert({
         id: data.user.id,
         username: email.split("@")[0],
-        role: "student",
+        role: selectedRole,
       });
     }
 
-    alert("確認メールを送信しました");
+    alert("We've sent you a confirmation email.");
     const pendingReservation = localStorage.getItem("pendingReservation");
     if (pendingReservation) {
       router.push("/checkout");
     } else {
-      router.push(redirect);
+      router.push(redirectPath);
     }
-  };
-
-  const handleGoogleSignup = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?redirect=${redirect}`,
-      },
-    });
-  };
-
-  const handleFacebookSignup = async () => {
-    await supabase.auth.signInWithOAuth({
-      provider: "facebook",
-      options: {
-        redirectTo: `${window.location.origin}/auth/callback?redirect=${redirect}`,
-      },
-    });
   };
 
   return {
     email,
     password,
     confirmPassword,
+    role,
     rememberMe,
     loading,
     setEmail,
     setPassword,
     setConfirmPassword,
+    setRole,
     setRememberMe,
     handleEmailSignup,
-    handleGoogleSignup,
-    handleFacebookSignup,
+    handleGoogleSignup: signInWithGoogle,
+    handleFacebookSignup: signInWithFacebook,
   };
 };

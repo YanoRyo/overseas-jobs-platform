@@ -1,131 +1,115 @@
 "use client";
-
-import { useMemo, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useLogin } from "../hooks/useLogin";
+import { AuthShell } from "./AuthShell";
+import { AuthDivider } from "./AuthDivider";
+import { RoleSelector } from "./RoleSelector";
+import { SocialAuthButtons } from "./SocialAuthButtons";
 
 export const LoginForm = () => {
-  const router = useRouter();
-  const sp = useSearchParams();
-
-  const role = useMemo(() => {
-    const r = sp.get("role");
-    return (r === "mentor" ? "mentor" : "student") as "mentor" | "student";
-  }, [sp]);
-
+  const searchParams = useSearchParams();
+  const redirect = searchParams.get("redirect");
+  const signupHref = redirect
+    ? `/auth/signup?redirect=${encodeURIComponent(redirect)}`
+    : "/auth/signup";
   const {
     email,
     password,
     loading,
     error,
+    role,
     setEmail,
     setPassword,
+    setRole,
     handleSubmit,
-  } = useLogin({ role });
+    handleGoogleLogin,
+    handleFacebookLogin,
+  } = useLogin();
 
-  // Socialは未実装なので、押されたら「準備中」だけ出す
-  const [socialInfo, setSocialInfo] = useState<string | null>(null);
-
-  const title = role === "mentor" ? "Mentor Login" : "Student Login";
+  const inputClassName =
+    "w-full rounded-xl border border-border bg-white px-4 py-3 text-sm text-primary placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-blue-200";
 
   return (
-    <div className="max-w-md mx-auto p-6 mt-16 border rounded-md shadow-md">
-      {/* 戻るボタン */}
-      <div className="mb-4">
-        <button
-          onClick={() => router.push("/")}
-          aria-label="Go back to home"
-          className="text-2xl hover:text-gray-600"
-          style={{ lineHeight: 1 }}
-        >
-          ←
-        </button>
-      </div>
+    <AuthShell
+      title="Log in"
+      description={
+        <p className="text-sm text-secondary">
+          New here?{" "}
+          <Link href={signupHref} className="text-accent hover:underline">
+            Create an account
+          </Link>
+        </p>
+      }
+    >
+      <div className="space-y-6">
+        <RoleSelector
+          value={role}
+          onChange={setRole}
+          hint="Required for first-time social sign-in."
+        />
+        <SocialAuthButtons
+          onGoogle={handleGoogleLogin}
+          onFacebook={handleFacebookLogin}
+          disabled={loading || !role}
+        />
 
-      <h1 className="text-4xl font-bold mb-8 text-center">{title}</h1>
+        <AuthDivider />
 
-      {/* Socialログイン */}
-      <div className="flex flex-col gap-4 mb-2">
-        <button
-          type="button"
-          onClick={() => setSocialInfo("Googleログインは準備中です")}
-          className="bg-red-500 text-white py-2 rounded-md hover:bg-red-600 transition-colors"
-        >
-          Continue with Google
-        </button>
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {error && <p className="text-sm text-error">{error}</p>}
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-primary">Email</label>
+            <input
+              type="email"
+              className={inputClassName}
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              required
+            />
+          </div>
 
-        <button
-          type="button"
-          onClick={() => setSocialInfo("Facebookログインは準備中です")}
-          className="bg-blue-700 text-white py-2 rounded-md hover:bg-blue-800 transition-colors"
-        >
-          Continue with Facebook
-        </button>
+          <div className="space-y-2">
+            <label className="text-sm font-semibold text-primary">
+              Password
+            </label>
+            <input
+              type="password"
+              className={inputClassName}
+              placeholder="Your password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+            />
+          </div>
 
-        {socialInfo && (
-          <p className="text-xs text-gray-500 text-center">{socialInfo}</p>
-        )}
-      </div>
+          <div className="text-right">
+            <Link
+              href="/auth/forgot-password"
+              className="text-xs font-semibold text-accent hover:underline"
+            >
+              Forgot password?
+            </Link>
+          </div>
 
-      {/* or */}
-      <div className="flex items-center mb-6">
-        <div className="flex-grow border-t border-gray-300" />
-        <span className="mx-4 text-gray-500 font-semibold">or</span>
-        <div className="flex-grow border-t border-gray-300" />
-      </div>
-
-      {/* Email/Passwordログインフォーム */}
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {error && <p className="text-red-500">{error}</p>}
-
-        <div>
-          <label className="block mb-1 font-semibold">Email</label>
-          <input
-            className="w-full border border-gray-300 rounded-md p-2"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-
-        <div>
-          <label className="block mb-1 font-semibold">Password</label>
-          <input
-            type="password"
-            className="w-full border border-gray-300 rounded-md p-2"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-
-        <div className="text-right">
-          <a
-            href="/auth/forgot-password"
-            className="text-sm text-blue-600 hover:underline"
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-xl bg-accent py-3 text-sm font-semibold text-white transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Forget your password?
-          </a>
-        </div>
+            {loading ? "Logging in..." : "Log in"}
+          </button>
+        </form>
 
-        <button
-          type="submit"
-          disabled={loading}
-          className={`w-full py-3 rounded-md font-semibold text-white ${
-            loading ? "bg-gray-400" : "bg-blue-600 hover:bg-blue-700"
-          }`}
-        >
-          {loading ? "Logging in..." : "Login"}
-        </button>
-      </form>
-
-      <p className="mt-6 text-center text-sm text-gray-600">
-        By logging in, you agree to our{" "}
-        <a href="/policy" className="text-blue-600 hover:underline">
-          Terms & Policy
-        </a>
-        .
-      </p>
-    </div>
+        <p className="text-center text-xs text-muted">
+          By continuing, you agree to our{" "}
+          <Link href="/policy" className="text-accent hover:underline">
+            Terms & Privacy Policy
+          </Link>
+          .
+        </p>
+      </div>
+    </AuthShell>
   );
 };
