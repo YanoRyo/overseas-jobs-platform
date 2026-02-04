@@ -165,7 +165,7 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
       onClose={onClose}
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
     >
-      <Dialog.Panel className="bg-surface rounded-2xl p-6 w-full max-w-md space-y-6">
+      <Dialog.Panel className="bg-surface rounded-2xl p-6 w-full max-w-md space-y-4 h-[700px] flex flex-col">
         {/* ① ヘッダー */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
@@ -191,24 +191,24 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
         </div>
 
         {/* ② 時間選択（セグメントコントロール） */}
-        <div className="flex border border-border rounded-lg overflow-hidden">
+        <div className="flex border border-gray-300 rounded-lg">
           <button
             onClick={() => setDuration(25)}
-            className={`flex-1 px-4 py-3 text-center font-medium transition-colors ${
+            className={`flex-1 py-2 text-sm text-center transition-colors rounded-l-lg ${
               duration === 25
-                ? "bg-surface-hover text-primary"
-                : "bg-surface text-primary hover:bg-surface-hover"
+                ? "bg-gray-100 font-semibold text-primary"
+                : "bg-white text-primary hover:bg-gray-50"
             }`}
           >
             25分
           </button>
-          <div className="w-px bg-border" />
+          <div className="w-px bg-gray-300" />
           <button
             onClick={() => setDuration(50)}
-            className={`flex-1 px-4 py-3 text-center font-medium transition-colors ${
+            className={`flex-1 py-2 text-sm text-center transition-colors rounded-r-lg ${
               duration === 50
-                ? "bg-surface-hover text-primary"
-                : "bg-surface text-primary hover:bg-surface-hover"
+                ? "bg-gray-100 font-semibold text-primary"
+                : "bg-white text-primary hover:bg-gray-50"
             }`}
           >
             50分
@@ -332,7 +332,7 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
                 >
                   <span
                     className={`text-sm ${
-                      isSelected ? "text-pink-500 font-medium" : "text-secondary"
+                      isSelected ? "text-blue-500 font-medium" : "text-secondary"
                     }`}
                   >
                     {weekday}
@@ -340,7 +340,7 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
                   <span
                     className={`w-9 h-9 flex items-center justify-center text-base rounded-lg ${
                       isSelected
-                        ? "bg-pink-100 text-pink-600 font-semibold border border-pink-300"
+                        ? "bg-blue-100 text-blue-600 font-semibold border border-blue-300"
                         : "text-primary hover:bg-surface-hover"
                     }`}
                   >
@@ -359,7 +359,7 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
         </p>
 
         {/* ④ 時間帯ごとのスロット */}
-        <div className="space-y-4">
+        <div className="space-y-4 flex-1 overflow-y-auto">
           {(() => {
             const availableSlots = getAvailableSlotsForDate(selectedDate);
 
@@ -405,7 +405,12 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
         {/* ⑤ 続けるボタン */}
         <button
           onClick={handleContinue}
-          className="w-full bg-accent text-white py-4 rounded-lg font-semibold hover:bg-accent-hover transition-colors"
+          disabled={!selectedTime}
+          className={`w-full py-3 rounded-lg font-semibold transition-colors mt-auto shrink-0 ${
+            selectedTime
+              ? "bg-accent text-white hover:bg-accent-hover"
+              : "bg-gray-200 text-gray-400 cursor-not-allowed"
+          }`}
         >
           続ける
         </button>
