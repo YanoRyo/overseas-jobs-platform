@@ -74,6 +74,13 @@ export const useAuthCallback = () => {
       }
 
       // student
+      // pendingBookingMentorId がある場合は redirect を優先（BookingModal を開くため）
+      const pendingBooking = localStorage.getItem("pendingBookingMentorId");
+      if (pendingBooking) {
+        router.push(redirect);
+        return;
+      }
+
       const pending = localStorage.getItem("pendingReservation");
       router.push(pending ? "/checkout" : redirect);
     };
