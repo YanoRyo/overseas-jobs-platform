@@ -7,7 +7,8 @@ import UserMenu from "./UserMenu";
 
 export function Header() {
   const pathname = usePathname();
-  const hideRight = pathname?.startsWith("/auth");
+  const hideRight =
+    pathname?.startsWith("/auth") || pathname?.startsWith("/mentor/register");
   return (
     <header className="sticky top-0 z-50 bg-white border-b">
       <div className="flex items-center justify-between h-16 px-6">
