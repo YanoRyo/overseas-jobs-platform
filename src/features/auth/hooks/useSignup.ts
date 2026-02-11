@@ -7,14 +7,21 @@ import { useOAuthSignIn } from "./useOAuthSignIn";
 
 type UseSignupOptions = {
   initialRole?: UserRole;
+  redirect?: string;
 };
 
 export const useSignup = (options?: UseSignupOptions) => {
   const supabase = useSupabaseClient();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirect") || "/";
-  const redirectPath = redirect.startsWith("/") ? redirect : "/";
+  const redirectFromParams = searchParams.get("redirect") || "/";
+  const redirectPath = options?.redirect
+    ? options.redirect.startsWith("/")
+      ? options.redirect
+      : "/"
+    : redirectFromParams.startsWith("/")
+      ? redirectFromParams
+      : "/";
   const initialRole =
     options?.initialRole === "student" || options?.initialRole === "mentor"
       ? options.initialRole
