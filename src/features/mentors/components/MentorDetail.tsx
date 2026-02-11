@@ -2,11 +2,20 @@
 
 import { useMemo, useState } from "react";
 import Flag from "react-world-flags";
-import { ChevronLeft, ChevronRight, ChevronDown, Info, Zap } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronDown,
+  Info,
+  Zap,
+} from "lucide-react";
 import BookingModal from "@/components/BookingModal";
 import { MentorDetailModel } from "../types";
 import { SendMessageModal } from "@/features/messages/components/SendMessageModal";
-import { COUNTRIES, TIMEZONE_OPTIONS } from "@/features/mentor/constants/options";
+import {
+  COUNTRIES,
+  TIMEZONE_OPTIONS,
+} from "@/features/shared/constants/options";
 
 type Props = {
   mentor: MentorDetailModel;
@@ -80,7 +89,9 @@ const getZonedDateParts = (date: Date, timeZone: string): DateParts => {
   });
   const parts = formatter.formatToParts(date);
   const lookup = Object.fromEntries(
-    parts.filter((part) => part.type !== "literal").map((part) => [part.type, part.value])
+    parts
+      .filter((part) => part.type !== "literal")
+      .map((part) => [part.type, part.value])
   ) as Record<string, string>;
 
   return {
@@ -118,14 +129,26 @@ const getTimeZoneOffset = (date: Date, timeZone: string) => {
  */
 const zonedTimeToUtc = (parts: DateParts, timeZone: string) => {
   const utcGuess = new Date(
-    Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute, parts.second)
+    Date.UTC(
+      parts.year,
+      parts.month - 1,
+      parts.day,
+      parts.hour,
+      parts.minute,
+      parts.second
+    )
   );
   const offsetMinutes = getTimeZoneOffset(utcGuess, timeZone);
   return new Date(utcGuess.getTime() - offsetMinutes * 60000);
 };
 
-const addDaysToDateParts = (parts: DateOnlyParts, days: number): DateOnlyParts => {
-  const date = new Date(Date.UTC(parts.year, parts.month - 1, parts.day + days));
+const addDaysToDateParts = (
+  parts: DateOnlyParts,
+  days: number
+): DateOnlyParts => {
+  const date = new Date(
+    Date.UTC(parts.year, parts.month - 1, parts.day + days)
+  );
   return {
     year: date.getUTCFullYear(),
     month: date.getUTCMonth() + 1,
@@ -162,11 +185,19 @@ const buildWeeklySchedule = (
   const mentorStartParts = getZonedDateParts(viewerStartUtc, mentorTimeZone);
   const mentorEndParts = getZonedDateParts(viewerEndUtc, mentorTimeZone);
   const scanStart = addDaysToDateParts(
-    { year: mentorStartParts.year, month: mentorStartParts.month, day: mentorStartParts.day },
+    {
+      year: mentorStartParts.year,
+      month: mentorStartParts.month,
+      day: mentorStartParts.day,
+    },
     -1
   );
   const scanEnd = addDaysToDateParts(
-    { year: mentorEndParts.year, month: mentorEndParts.month, day: mentorEndParts.day },
+    {
+      year: mentorEndParts.year,
+      month: mentorEndParts.month,
+      day: mentorEndParts.day,
+    },
     1
   );
 
@@ -179,7 +210,9 @@ const buildWeeklySchedule = (
 
   for (let i = 0; i < 7; i += 1) {
     const dayParts = addDaysToDateParts(weekStartParts, i);
-    const key = `${dayParts.year}-${pad2(dayParts.month)}-${pad2(dayParts.day)}`;
+    const key = `${dayParts.year}-${pad2(dayParts.month)}-${pad2(
+      dayParts.day
+    )}`;
     const dayUtc = zonedTimeToUtc(
       { ...dayParts, hour: 0, minute: 0, second: 0 },
       viewerTimeZone
@@ -205,13 +238,19 @@ const buildWeeklySchedule = (
     }
   }
 
-  const scanStartUtc = Date.UTC(scanStart.year, scanStart.month - 1, scanStart.day);
+  const scanStartUtc = Date.UTC(
+    scanStart.year,
+    scanStart.month - 1,
+    scanStart.day
+  );
   const scanEndUtc = Date.UTC(scanEnd.year, scanEnd.month - 1, scanEnd.day);
   const totalScanDays = Math.round((scanEndUtc - scanStartUtc) / 86400000);
 
   for (let i = 0; i <= totalScanDays; i += 1) {
     const mentorDate = addDaysToDateParts(scanStart, i);
-    const weekDay = new Date(Date.UTC(mentorDate.year, mentorDate.month - 1, mentorDate.day)).getUTCDay();
+    const weekDay = new Date(
+      Date.UTC(mentorDate.year, mentorDate.month - 1, mentorDate.day)
+    ).getUTCDay();
     const slotsForDay = availabilityByDay.get(weekDay);
     if (!slotsForDay) continue;
 
@@ -231,8 +270,12 @@ const buildWeeklySchedule = (
         if (utcDate < viewerStartUtc || utcDate >= viewerEndUtc) continue;
 
         const viewerParts = getZonedDateParts(utcDate, viewerTimeZone);
-        const key = `${viewerParts.year}-${pad2(viewerParts.month)}-${pad2(viewerParts.day)}`;
-        const timeLabel = `${pad2(viewerParts.hour)}:${pad2(viewerParts.minute)}`;
+        const key = `${viewerParts.year}-${pad2(viewerParts.month)}-${pad2(
+          viewerParts.day
+        )}`;
+        const timeLabel = `${pad2(viewerParts.hour)}:${pad2(
+          viewerParts.minute
+        )}`;
         const daySet = scheduleMap.get(key);
         if (daySet) {
           daySet.add(timeLabel);
@@ -268,11 +311,13 @@ export const MentorDetail = ({
   const [bioExpanded, setBioExpanded] = useState(false);
   const [reviewExpanded, setReviewExpanded] = useState(false);
   const [scheduleOpen, setScheduleOpen] = useState(true);
-  const [openSpecialtyIndex, setOpenSpecialtyIndex] = useState<number | null>(null);
-  const [isMessageOpen, setIsMessageOpen] = useState(false);
-  const [activeCareerTab, setActiveCareerTab] = useState<"education" | "work" | "certificate">(
-    "education"
+  const [openSpecialtyIndex, setOpenSpecialtyIndex] = useState<number | null>(
+    null
   );
+  const [isMessageOpen, setIsMessageOpen] = useState(false);
+  const [activeCareerTab, setActiveCareerTab] = useState<
+    "education" | "work" | "certificate"
+  >("education");
   const [selectedTimezone, setSelectedTimezone] = useState(
     mentor.timezone || "Asia/Tokyo"
   );
@@ -288,7 +333,11 @@ export const MentorDetail = ({
   const weekStartParts = useMemo(() => {
     const baseDateParts = getZonedDateParts(new Date(), selectedTimezone);
     return addDaysToDateParts(
-      { year: baseDateParts.year, month: baseDateParts.month, day: baseDateParts.day },
+      {
+        year: baseDateParts.year,
+        month: baseDateParts.month,
+        day: baseDateParts.day,
+      },
       weekOffset * 7
     );
   }, [selectedTimezone, weekOffset]);
@@ -304,9 +353,13 @@ export const MentorDetail = ({
     [mentor.availability, mentor.timezone, selectedTimezone, weekStartParts]
   );
 
-  const displayedReviews = reviewExpanded ? mentor.reviews : mentor.reviews.slice(0, 4);
+  const displayedReviews = reviewExpanded
+    ? mentor.reviews
+    : mentor.reviews.slice(0, 4);
   const languageList =
-    mentor.spokenLanguages.length > 0 ? mentor.spokenLanguages : [{ name: "Not registered", level: "" }];
+    mentor.spokenLanguages.length > 0
+      ? mentor.spokenLanguages
+      : [{ name: "Not registered", level: "" }];
 
   return (
     <div className="bg-surface">
@@ -331,20 +384,29 @@ export const MentorDetail = ({
 
                 <div className="flex-1 space-y-3">
                   <div>
-                    <h1 className="text-3xl font-semibold text-primary">{mentor.name}</h1>
+                    <h1 className="text-3xl font-semibold text-primary">
+                      {mentor.name}
+                    </h1>
                     {/* Subtitle: "From {countryName}" */}
                     <p className="mt-1 text-secondary flex items-center gap-2">
                       From {countryName}
-                      <Flag code={mentor.country} className="w-6 h-4 rounded-sm" />
+                      <Flag
+                        code={mentor.country}
+                        className="w-6 h-4 rounded-sm"
+                      />
                     </p>
                   </div>
                   {/* Introduction: Simple text without box decoration */}
                   {mentor.intro && (
-                    <p className="text-secondary leading-relaxed">{mentor.intro}</p>
+                    <p className="text-secondary leading-relaxed">
+                      {mentor.intro}
+                    </p>
                   )}
                   {/* Subjects: Inline format */}
                   <p className="text-sm text-secondary">
-                    <span className="font-semibold text-primary">Subjects: </span>
+                    <span className="font-semibold text-primary">
+                      Subjects:{" "}
+                    </span>
                     {mentor.subjects.length === 0
                       ? "Not registered"
                       : mentor.subjects.join(", ")}
@@ -386,7 +448,8 @@ export const MentorDetail = ({
                     {lang.name}
                     {lang.level && (
                       <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-sm font-medium">
-                        {LANGUAGE_LEVEL_LABELS[lang.level] ?? lang.level.toUpperCase()}
+                        {LANGUAGE_LEVEL_LABELS[lang.level] ??
+                          lang.level.toUpperCase()}
                       </span>
                     )}
                   </span>
@@ -398,13 +461,16 @@ export const MentorDetail = ({
             <section className="pb-8 border-b border-border last:border-b-0 last:pb-0">
               {/* Header: "Student Reviews" + Info icon with tooltip */}
               <div className="flex items-center gap-2">
-                <h2 className="text-xl font-semibold text-primary">Student Reviews</h2>
+                <h2 className="text-xl font-semibold text-primary">
+                  Student Reviews
+                </h2>
                 <div className="relative group">
                   <Info className="w-4 h-4 text-muted cursor-help" />
                   {/* Tooltip with arrow pointing to icon */}
                   <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block z-10">
                     <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 w-64">
-                      Only reviews from students who have taken lessons with this tutor are posted. See our{" "}
+                      Only reviews from students who have taken lessons with
+                      this tutor are posted. See our{" "}
                       <a
                         href="#"
                         onClick={(e) => e.preventDefault()}
@@ -431,7 +497,9 @@ export const MentorDetail = ({
 
               {/* Rating display: Below header */}
               <div className="flex items-center gap-3 mt-3">
-                <span className="text-4xl font-bold text-primary">{mentor.rating}</span>
+                <span className="text-4xl font-bold text-primary">
+                  {mentor.rating}
+                </span>
                 <span className="flex items-center justify-center w-10 h-10 rounded-full bg-yellow-100">
                   <span className="text-yellow-500 text-xl">★</span>
                 </span>
@@ -456,13 +524,18 @@ export const MentorDetail = ({
                         </div>
                         <div className="flex-1">
                           <div className="flex items-center gap-2">
-                            <p className="font-semibold text-primary">{review.author}</p>
+                            <p className="font-semibold text-primary">
+                              {review.author}
+                            </p>
                             <span className="text-xs text-muted">
-                              {new Date(review.createdAt).toLocaleDateString("en-US", {
-                                month: "short",
-                                day: "numeric",
-                                year: "numeric",
-                              })}
+                              {new Date(review.createdAt).toLocaleDateString(
+                                "en-US",
+                                {
+                                  month: "short",
+                                  day: "numeric",
+                                  year: "numeric",
+                                }
+                              )}
                             </span>
                           </div>
                           {/* Star rating below name */}
@@ -486,7 +559,9 @@ export const MentorDetail = ({
                     onClick={() => setReviewExpanded((prev) => !prev)}
                     className="px-6 py-2 border border-border rounded-full text-sm text-primary hover:bg-surface-hover transition"
                   >
-                    {reviewExpanded ? "Show less" : `Show all ${mentor.reviewCount} reviews`}
+                    {reviewExpanded
+                      ? "Show less"
+                      : `Show all ${mentor.reviewCount} reviews`}
                   </button>
                 </div>
               )}
@@ -502,7 +577,8 @@ export const MentorDetail = ({
                   <div className="mt-4 flex items-start gap-3 rounded-xl bg-gray-100 px-4 py-3 text-sm text-gray-700">
                     <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
                     <p>
-                      Select a time for your first lesson. Times are shown in your timezone.
+                      Select a time for your first lesson. Times are shown in
+                      your timezone.
                     </p>
                   </div>
 
@@ -568,7 +644,9 @@ export const MentorDetail = ({
                             }`}
                           />
                           <div className="text-center">
-                            <p className="text-sm text-muted">{day.weekdayLabel}</p>
+                            <p className="text-sm text-muted">
+                              {day.weekdayLabel}
+                            </p>
                             <p className="text-sm font-semibold text-primary">
                               {day.dateLabel}
                             </p>
@@ -627,7 +705,11 @@ export const MentorDetail = ({
                   <button
                     key={tab.id}
                     type="button"
-                    onClick={() => setActiveCareerTab(tab.id as "education" | "work" | "certificate")}
+                    onClick={() =>
+                      setActiveCareerTab(
+                        tab.id as "education" | "work" | "certificate"
+                      )
+                    }
                     className={`px-4 py-2 text-sm font-semibold rounded-full transition ${
                       activeCareerTab === tab.id
                         ? "bg-gray-100 text-primary"
@@ -644,7 +726,9 @@ export const MentorDetail = ({
                   mentor.hasNoDegree ? (
                     <div className="space-y-1">
                       <p className="font-semibold text-primary">No Degree</p>
-                      <p className="text-sm text-muted">No education information registered.</p>
+                      <p className="text-sm text-muted">
+                        No education information registered.
+                      </p>
                     </div>
                   ) : (
                     <div className="space-y-1">
@@ -655,14 +739,19 @@ export const MentorDetail = ({
                         {mentor.degree || "Degree not registered"}
                         {mentor.degreeType && (
                           <span className="ml-2 text-muted">
-                            ({DEGREE_TYPE_LABELS[mentor.degreeType] ?? mentor.degreeType})
+                            (
+                            {DEGREE_TYPE_LABELS[mentor.degreeType] ??
+                              mentor.degreeType}
+                            )
                           </span>
                         )}
                       </p>
                       {mentor.specialization && (
                         <p className="text-sm text-secondary">
                           Major:{" "}
-                          <span className="text-primary">{mentor.specialization}</span>
+                          <span className="text-primary">
+                            {mentor.specialization}
+                          </span>
                         </p>
                       )}
                     </div>
@@ -673,20 +762,28 @@ export const MentorDetail = ({
                       {mentor.workExperience}
                     </div>
                   ) : (
-                    <p className="text-sm text-muted">No work experience registered yet.</p>
+                    <p className="text-sm text-muted">
+                      No work experience registered yet.
+                    </p>
                   )
                 ) : (
-                  <p className="text-sm text-muted">No certificates registered yet.</p>
+                  <p className="text-sm text-muted">
+                    No certificates registered yet.
+                  </p>
                 )}
               </div>
             </section>
 
             {/* My Specialties */}
             <section className="pb-8 border-b border-border last:border-b-0 last:pb-0">
-              <h2 className="text-xl font-semibold text-primary">My Specialties</h2>
+              <h2 className="text-xl font-semibold text-primary">
+                My Specialties
+              </h2>
               <div className="mt-4 divide-y divide-border">
                 {mentor.specialties.length === 0 ? (
-                  <p className="text-sm text-muted">No specialties registered.</p>
+                  <p className="text-sm text-muted">
+                    No specialties registered.
+                  </p>
                 ) : (
                   mentor.specialties.map((item, index) => (
                     <div key={item} className="py-3">
@@ -694,7 +791,9 @@ export const MentorDetail = ({
                         type="button"
                         className="flex w-full items-center justify-between text-left font-semibold text-primary"
                         onClick={() =>
-                          setOpenSpecialtyIndex((prev) => (prev === index ? null : index))
+                          setOpenSpecialtyIndex((prev) =>
+                            prev === index ? null : index
+                          )
                         }
                       >
                         {item}
@@ -707,7 +806,8 @@ export const MentorDetail = ({
                       </button>
                       {openSpecialtyIndex === index && (
                         <p className="mt-2 text-sm text-secondary">
-                          Contact me via message to discuss specific lesson content in this area.
+                          Contact me via message to discuss specific lesson
+                          content in this area.
                         </p>
                       )}
                     </div>
@@ -724,16 +824,24 @@ export const MentorDetail = ({
               <div className="flex items-baseline justify-between gap-2">
                 <div className="text-center">
                   <div className="flex items-center gap-1">
-                    <span className="text-2xl font-bold text-primary">★{mentor.rating}</span>
+                    <span className="text-2xl font-bold text-primary">
+                      ★{mentor.rating}
+                    </span>
                   </div>
-                  <p className="text-xs text-muted">{mentor.reviewCount} reviews</p>
+                  <p className="text-xs text-muted">
+                    {mentor.reviewCount} reviews
+                  </p>
                 </div>
                 <div className="text-center">
-                  <span className="text-2xl font-bold text-primary">{mentor.lessons}</span>
+                  <span className="text-2xl font-bold text-primary">
+                    {mentor.lessons}
+                  </span>
                   <p className="text-xs text-muted">Lessons</p>
                 </div>
                 <div className="text-center">
-                  <span className="text-2xl font-bold text-primary">${mentor.price}</span>
+                  <span className="text-2xl font-bold text-primary">
+                    ${mentor.price}
+                  </span>
                   <p className="text-xs text-muted">50-min lesson</p>
                 </div>
               </div>
@@ -771,7 +879,9 @@ export const MentorDetail = ({
         />
       )}
 
-      {isBookingOpen && <BookingModal mentor={mentor} isOpen onClose={onCloseBooking} />}
+      {isBookingOpen && (
+        <BookingModal mentor={mentor} isOpen onClose={onCloseBooking} />
+      )}
     </div>
   );
 };

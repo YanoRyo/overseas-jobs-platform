@@ -1,10 +1,18 @@
-'use client';
+"use client";
 
-import { useState, useCallback } from 'react';
-import { Plus, Trash2, X } from 'lucide-react';
-import type { AboutFormData, MentorRegistrationLanguage, LanguageProficiency } from '../../types/registration';
-import { COUNTRIES, LANGUAGES, LANGUAGE_PROFICIENCY_OPTIONS } from '../../constants/options';
-import { StepNavigation } from '../shared/StepNavigation';
+import { useState, useCallback } from "react";
+import { Plus, Trash2, X } from "lucide-react";
+import type {
+  AboutFormData,
+  MentorRegistrationLanguage,
+  LanguageProficiency,
+} from "../../types/registration";
+import {
+  COUNTRIES,
+  LANGUAGES,
+  LANGUAGE_PROFICIENCY_OPTIONS,
+} from "../../../shared/constants/options";
+import { StepNavigation } from "../shared/StepNavigation";
 
 type AboutStepProps = {
   data: AboutFormData;
@@ -14,16 +22,22 @@ type AboutStepProps = {
   canGoNext: boolean;
 };
 
-export const AboutStep = ({ data, errors, onUpdate, onNext, canGoNext }: AboutStepProps) => {
-  const [expertiseInput, setExpertiseInput] = useState('');
+export const AboutStep = ({
+  data,
+  errors,
+  onUpdate,
+  onNext,
+  canGoNext,
+}: AboutStepProps) => {
+  const [expertiseInput, setExpertiseInput] = useState("");
 
   // 言語追加
   const addLanguage = useCallback(() => {
     const newLanguage: MentorRegistrationLanguage = {
       id: crypto.randomUUID(),
-      languageCode: '',
-      languageName: '',
-      proficiencyLevel: 'b2',
+      languageCode: "",
+      languageName: "",
+      proficiencyLevel: "b2",
     };
     onUpdate({ languages: [...data.languages, newLanguage] });
   }, [data.languages, onUpdate]);
@@ -42,12 +56,12 @@ export const AboutStep = ({ data, errors, onUpdate, onNext, canGoNext }: AboutSt
       const updatedLanguages = data.languages.map((lang) => {
         if (lang.id !== id) return lang;
 
-        if (field === 'languageCode') {
+        if (field === "languageCode") {
           const selectedLang = LANGUAGES.find((l) => l.code === value);
           return {
             ...lang,
             languageCode: value,
-            languageName: selectedLang?.name || '',
+            languageName: selectedLang?.name || "",
           };
         }
 
@@ -63,7 +77,7 @@ export const AboutStep = ({ data, errors, onUpdate, onNext, canGoNext }: AboutSt
     const trimmedValue = expertiseInput.trim();
     if (trimmedValue && !data.expertise.includes(trimmedValue)) {
       onUpdate({ expertise: [...data.expertise, trimmedValue] });
-      setExpertiseInput('');
+      setExpertiseInput("");
     }
   }, [expertiseInput, data.expertise, onUpdate]);
 
@@ -78,7 +92,7 @@ export const AboutStep = ({ data, errors, onUpdate, onNext, canGoNext }: AboutSt
   // Enterキーで追加
   const handleExpertiseKeyDown = useCallback(
     (e: React.KeyboardEvent<HTMLInputElement>) => {
-      if (e.key === 'Enter') {
+      if (e.key === "Enter") {
         e.preventDefault();
         addExpertise();
       }
@@ -92,7 +106,7 @@ export const AboutStep = ({ data, errors, onUpdate, onNext, canGoNext }: AboutSt
       const country = COUNTRIES.find((c) => c.code === countryCode);
       onUpdate({
         countryCode,
-        phoneCountryCode: country?.phoneCode || '',
+        phoneCountryCode: country?.phoneCode || "",
       });
     },
     [onUpdate]
@@ -104,8 +118,8 @@ export const AboutStep = ({ data, errors, onUpdate, onNext, canGoNext }: AboutSt
       <div>
         <h1 className="text-2xl font-bold text-primary">About</h1>
         <p className="text-secondary mt-2">
-          Start creating your public mentor profile. Your progress will be automatically saved as you
-          complete each section.
+          Start creating your public mentor profile. Your progress will be
+          automatically saved as you complete each section.
         </p>
       </div>
 
@@ -114,7 +128,10 @@ export const AboutStep = ({ data, errors, onUpdate, onNext, canGoNext }: AboutSt
         {/* Name fields */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="firstName" className="block text-sm font-medium text-primary mb-1">
+            <label
+              htmlFor="firstName"
+              className="block text-sm font-medium text-primary mb-1"
+            >
               First name <span className="text-error">*</span>
             </label>
             <input
@@ -126,17 +143,22 @@ export const AboutStep = ({ data, errors, onUpdate, onNext, canGoNext }: AboutSt
               className={`
                 w-full border rounded-lg px-3 py-2 bg-surface text-primary
                 placeholder:text-muted
-                ${errors.firstName ? 'border-error' : 'border-border'}
+                ${errors.firstName ? "border-error" : "border-border"}
                 focus:outline-none focus:ring-2 focus:ring-accent
               `}
               aria-required="true"
               aria-invalid={!!errors.firstName}
             />
-            {errors.firstName && <p className="text-error text-sm mt-1">{errors.firstName}</p>}
+            {errors.firstName && (
+              <p className="text-error text-sm mt-1">{errors.firstName}</p>
+            )}
           </div>
 
           <div>
-            <label htmlFor="lastName" className="block text-sm font-medium text-primary mb-1">
+            <label
+              htmlFor="lastName"
+              className="block text-sm font-medium text-primary mb-1"
+            >
               Last name <span className="text-error">*</span>
             </label>
             <input
@@ -148,19 +170,24 @@ export const AboutStep = ({ data, errors, onUpdate, onNext, canGoNext }: AboutSt
               className={`
                 w-full border rounded-lg px-3 py-2 bg-surface text-primary
                 placeholder:text-muted
-                ${errors.lastName ? 'border-error' : 'border-border'}
+                ${errors.lastName ? "border-error" : "border-border"}
                 focus:outline-none focus:ring-2 focus:ring-accent
               `}
               aria-required="true"
               aria-invalid={!!errors.lastName}
             />
-            {errors.lastName && <p className="text-error text-sm mt-1">{errors.lastName}</p>}
+            {errors.lastName && (
+              <p className="text-error text-sm mt-1">{errors.lastName}</p>
+            )}
           </div>
         </div>
 
         {/* Email */}
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-primary mb-1">
+          <label
+            htmlFor="email"
+            className="block text-sm font-medium text-primary mb-1"
+          >
             Email <span className="text-error">*</span>
           </label>
           <input
@@ -172,18 +199,23 @@ export const AboutStep = ({ data, errors, onUpdate, onNext, canGoNext }: AboutSt
             className={`
               w-full border rounded-lg px-3 py-2 bg-surface text-primary
               placeholder:text-muted
-              ${errors.email ? 'border-error' : 'border-border'}
+              ${errors.email ? "border-error" : "border-border"}
               focus:outline-none focus:ring-2 focus:ring-accent
             `}
             aria-required="true"
             aria-invalid={!!errors.email}
           />
-          {errors.email && <p className="text-error text-sm mt-1">{errors.email}</p>}
+          {errors.email && (
+            <p className="text-error text-sm mt-1">{errors.email}</p>
+          )}
         </div>
 
         {/* Country */}
         <div>
-          <label htmlFor="country" className="block text-sm font-medium text-primary mb-1">
+          <label
+            htmlFor="country"
+            className="block text-sm font-medium text-primary mb-1"
+          >
             Country of birth <span className="text-error">*</span>
           </label>
           <select
@@ -192,7 +224,7 @@ export const AboutStep = ({ data, errors, onUpdate, onNext, canGoNext }: AboutSt
             onChange={(e) => handleCountryChange(e.target.value)}
             className={`
               w-full border rounded-lg px-3 py-2 bg-surface text-primary
-              ${errors.countryCode ? 'border-error' : 'border-border'}
+              ${errors.countryCode ? "border-error" : "border-border"}
               focus:outline-none focus:ring-2 focus:ring-accent
             `}
             aria-required="true"
@@ -205,12 +237,17 @@ export const AboutStep = ({ data, errors, onUpdate, onNext, canGoNext }: AboutSt
               </option>
             ))}
           </select>
-          {errors.countryCode && <p className="text-error text-sm mt-1">{errors.countryCode}</p>}
+          {errors.countryCode && (
+            <p className="text-error text-sm mt-1">{errors.countryCode}</p>
+          )}
         </div>
 
         {/* Phone number */}
         <div>
-          <label htmlFor="phone" className="block text-sm font-medium text-primary mb-1">
+          <label
+            htmlFor="phone"
+            className="block text-sm font-medium text-primary mb-1"
+          >
             Phone number <span className="text-error">*</span>
           </label>
           <div className="flex gap-2">
@@ -234,20 +271,26 @@ export const AboutStep = ({ data, errors, onUpdate, onNext, canGoNext }: AboutSt
               className={`
                 flex-1 border rounded-lg px-3 py-2 bg-surface text-primary
                 placeholder:text-muted
-                ${errors.phoneNumber ? 'border-error' : 'border-border'}
+                ${errors.phoneNumber ? "border-error" : "border-border"}
                 focus:outline-none focus:ring-2 focus:ring-accent
               `}
               aria-required="true"
               aria-invalid={!!errors.phoneNumber}
             />
           </div>
-          {errors.phoneNumber && <p className="text-error text-sm mt-1">{errors.phoneNumber}</p>}
+          {errors.phoneNumber && (
+            <p className="text-error text-sm mt-1">{errors.phoneNumber}</p>
+          )}
         </div>
 
         {/* Expertise */}
         <div>
-          <label htmlFor="expertise" className="block text-sm font-medium text-primary mb-2">
-            Expertise / Topics you can help with <span className="text-error">*</span>
+          <label
+            htmlFor="expertise"
+            className="block text-sm font-medium text-primary mb-2"
+          >
+            Expertise / Topics you can help with{" "}
+            <span className="text-error">*</span>
           </label>
 
           {/* Expertise input */}
@@ -262,7 +305,7 @@ export const AboutStep = ({ data, errors, onUpdate, onNext, canGoNext }: AboutSt
               className={`
                 flex-1 border rounded-lg px-3 py-2 bg-surface text-primary
                 placeholder:text-muted
-                ${errors.expertise ? 'border-error' : 'border-border'}
+                ${errors.expertise ? "border-error" : "border-border"}
                 focus:outline-none focus:ring-2 focus:ring-accent
               `}
               aria-required="true"
@@ -300,13 +343,16 @@ export const AboutStep = ({ data, errors, onUpdate, onNext, canGoNext }: AboutSt
             </div>
           )}
 
-          {errors.expertise && <p className="text-error text-sm mt-1">{errors.expertise}</p>}
+          {errors.expertise && (
+            <p className="text-error text-sm mt-1">{errors.expertise}</p>
+          )}
         </div>
 
         {/* Languages */}
         <div>
           <label className="block text-sm font-medium text-primary mb-2">
-            Languages you can conduct sessions in <span className="text-error">*</span>
+            Languages you can conduct sessions in{" "}
+            <span className="text-error">*</span>
           </label>
 
           <div className="space-y-3">
@@ -314,7 +360,9 @@ export const AboutStep = ({ data, errors, onUpdate, onNext, canGoNext }: AboutSt
               <div key={lang.id} className="flex items-center gap-2">
                 <select
                   value={lang.languageCode}
-                  onChange={(e) => updateLanguage(lang.id, 'languageCode', e.target.value)}
+                  onChange={(e) =>
+                    updateLanguage(lang.id, "languageCode", e.target.value)
+                  }
                   className="flex-1 border border-border rounded-lg px-3 py-2 bg-surface text-primary focus:outline-none focus:ring-2 focus:ring-accent"
                 >
                   <option value="">Select language</option>
@@ -328,7 +376,11 @@ export const AboutStep = ({ data, errors, onUpdate, onNext, canGoNext }: AboutSt
                 <select
                   value={lang.proficiencyLevel}
                   onChange={(e) =>
-                    updateLanguage(lang.id, 'proficiencyLevel', e.target.value as LanguageProficiency)
+                    updateLanguage(
+                      lang.id,
+                      "proficiencyLevel",
+                      e.target.value as LanguageProficiency
+                    )
                   }
                   className="w-32 border border-border rounded-lg px-3 py-2 bg-surface text-primary focus:outline-none focus:ring-2 focus:ring-accent"
                 >
@@ -359,7 +411,9 @@ export const AboutStep = ({ data, errors, onUpdate, onNext, canGoNext }: AboutSt
               <span>Add another language</span>
             </button>
           </div>
-          {errors.languages && <p className="text-error text-sm mt-1">{errors.languages}</p>}
+          {errors.languages && (
+            <p className="text-error text-sm mt-1">{errors.languages}</p>
+          )}
         </div>
       </div>
 

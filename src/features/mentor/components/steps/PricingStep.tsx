@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { Info, DollarSign } from 'lucide-react';
-import type { PricingFormData } from '../../types/registration';
-import { PRICING_CONFIG } from '../../constants/options';
-import { StepNavigation } from '../shared/StepNavigation';
+import { Info, DollarSign } from "lucide-react";
+import type { PricingFormData } from "../../types/registration";
+import { PRICING_CONFIG } from "../../../shared/constants/options";
+import { StepNavigation } from "../shared/StepNavigation";
 
 type PricingStepProps = {
   data: PricingFormData;
@@ -27,7 +27,7 @@ export const PricingStep = ({
   const { minRate, maxRate, sessionDuration } = PRICING_CONFIG;
 
   const handleRateChange = (value: string) => {
-    if (value === '') {
+    if (value === "") {
       // 入力クリア時は最小値にリセット（バリデーションエラーを防止）
       onUpdate({ hourlyRate: minRate });
       return;
@@ -51,7 +51,10 @@ export const PricingStep = ({
 
       {/* Price input */}
       <div className="max-w-md">
-        <label htmlFor="hourlyRate" className="block text-sm font-medium text-primary mb-2">
+        <label
+          htmlFor="hourlyRate"
+          className="block text-sm font-medium text-primary mb-2"
+        >
           Session price <span className="text-error">*</span>
         </label>
 
@@ -62,14 +65,14 @@ export const PricingStep = ({
           <input
             type="number"
             id="hourlyRate"
-            value={data.hourlyRate || ''}
+            value={data.hourlyRate || ""}
             onChange={(e) => handleRateChange(e.target.value)}
             min={minRate}
             max={maxRate}
             step={1}
             className={`
               w-full border rounded-lg pl-10 pr-16 py-3 text-lg bg-surface text-primary placeholder:text-muted
-              ${errors.hourlyRate ? 'border-error' : 'border-border'}
+              ${errors.hourlyRate ? "border-error" : "border-border"}
               focus:outline-none focus:ring-2 focus:ring-accent
             `}
             aria-required="true"
@@ -84,7 +87,9 @@ export const PricingStep = ({
           Minimum: ${minRate} — Maximum: ${maxRate}
         </p>
 
-        {errors.hourlyRate && <p className="text-error text-sm mt-2">{errors.hourlyRate}</p>}
+        {errors.hourlyRate && (
+          <p className="text-error text-sm mt-2">{errors.hourlyRate}</p>
+        )}
       </div>
 
       {/* Platform commission info */}
@@ -94,9 +99,9 @@ export const PricingStep = ({
           <div className="text-sm text-secondary">
             <p className="font-medium text-primary mb-2">Platform commission</p>
             <p>
-              Our platform takes a small commission from each session to cover operational costs and
-              continue improving the service. The exact commission rate will be displayed in your
-              dashboard.
+              Our platform takes a small commission from each session to cover
+              operational costs and continue improving the service. The exact
+              commission rate will be displayed in your dashboard.
             </p>
           </div>
         </div>
@@ -108,7 +113,10 @@ export const PricingStep = ({
           <p className="text-sm text-secondary mb-1">Students will see:</p>
           <p className="text-2xl font-bold text-primary">
             ${data.hourlyRate}
-            <span className="text-base font-normal text-muted"> / {sessionDuration} min</span>
+            <span className="text-base font-normal text-muted">
+              {" "}
+              / {sessionDuration} min
+            </span>
           </p>
         </div>
       )}
