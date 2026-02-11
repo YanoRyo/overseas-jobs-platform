@@ -744,7 +744,7 @@ export const MentorDetail = ({
                 onClick={onOpenBooking}
               >
                 <Zap className="w-5 h-5" />
-                Book Trial Lesson
+                Book Lesson
               </button>
 
               <button

@@ -38,8 +38,8 @@ export default function MentorDetailPage({
     }
   }, [user, isAuthModalOpen, openBooking]);
 
-  // 「Book Trial Lesson」クリック時の処理
-  const handleBookTrialLesson = () => {
+  // 「Book Lesson」クリック時の処理
+  const handleBookLesson = () => {
     if (user) {
       openBooking();
     } else {
@@ -58,7 +58,7 @@ export default function MentorDetailPage({
       <MentorDetail
         mentor={mentor}
         isBookingOpen={isBookingOpen}
-        onOpenBooking={handleBookTrialLesson}
+        onOpenBooking={handleBookLesson}
         onCloseBooking={closeBooking}
       />
       <AuthModal
