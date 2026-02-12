@@ -78,30 +78,22 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
     { name: "夜", icon: Moon, start: "21:00", end: "24:00" },
   ] as const;
 
+  // duration変更時の処理（選択済み時間が無効ならリセット）
+  const handleDurationChange = (newDuration: number) => {
+    setDuration(newDuration);
+    if (selectedTime) {
+      const availableTimes = getAvailableSlotsForDate(selectedDate, newDuration);
+      if (!availableTimes.includes(selectedTime)) {
+        setSelectedTime(null);
+      }
+    }
+  };
+
   // 日付変更時の処理（選択済み時間が無効ならリセット）
   const handleDateChange = (newDate: Date) => {
     setSelectedDate(newDate);
     if (selectedTime) {
-      const newDayOfWeek = newDate.getDay();
-      const enabledSlots = mentor.availability.filter(
-        (slot) => slot.dayOfWeek === newDayOfWeek && slot.isEnabled
-      );
-      const availableTimes: string[] = [];
-      for (const slot of enabledSlots) {
-        const startMinutes =
-          parseInt(slot.startTime.split(":")[0]) * 60 +
-          parseInt(slot.startTime.split(":")[1]);
-        const endMinutes =
-          parseInt(slot.endTime.split(":")[0]) * 60 +
-          parseInt(slot.endTime.split(":")[1]);
-        for (let minutes = startMinutes; minutes < endMinutes; minutes += 30) {
-          const hour = Math.floor(minutes / 60);
-          const minute = minutes % 60;
-          availableTimes.push(
-            `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`
-          );
-        }
-      }
+      const availableTimes = getAvailableSlotsForDate(newDate, duration);
       if (!availableTimes.includes(selectedTime)) {
         setSelectedTime(null);
       }
@@ -114,8 +106,15 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
     return hours * 60 + minutes;
   };
 
+  // 分を時間文字列に変換
+  const formatTime = (minutes: number): string => {
+    const hour = Math.floor(minutes / 60);
+    const minute = minutes % 60;
+    return `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
+  };
+
   // 指定した日付の曜日に対して、メンターの availability から予約可能な時間スロットを取得
-  const getAvailableSlotsForDate = (date: Date): string[] => {
+  const getAvailableSlotsForDate = (date: Date, lessonDuration: number): string[] => {
     const dayOfWeek = date.getDay();
 
     const enabledSlots = mentor.availability.filter(
@@ -124,17 +123,18 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
 
     if (enabledSlots.length === 0) return [];
 
+    const now = new Date();
+    const isToday = date.toDateString() === now.toDateString();
+    const currentMinutes = isToday ? now.getHours() * 60 + now.getMinutes() : 0;
+
     const times: string[] = [];
     for (const slot of enabledSlots) {
       const startMinutes = parseTimeToMinutes(slot.startTime);
       const endMinutes = parseTimeToMinutes(slot.endTime);
 
-      for (let minutes = startMinutes; minutes < endMinutes; minutes += 30) {
-        const hour = Math.floor(minutes / 60);
-        const minute = minutes % 60;
-        times.push(
-          `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`
-        );
+      for (let minutes = startMinutes; minutes + lessonDuration <= endMinutes; minutes += 30) {
+        if (isToday && minutes <= currentMinutes) continue;
+        times.push(formatTime(minutes));
       }
     }
 
@@ -193,7 +193,7 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
         {/* ② 時間選択（セグメントコントロール） */}
         <div className="flex border border-gray-300 rounded-lg">
           <button
-            onClick={() => setDuration(25)}
+            onClick={() => handleDurationChange(25)}
             className={`flex-1 py-2 text-sm text-center transition-colors rounded-l-lg ${
               duration === 25
                 ? "bg-gray-100 font-semibold text-primary"
@@ -204,7 +204,7 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
           </button>
           <div className="w-px bg-gray-300" />
           <button
-            onClick={() => setDuration(50)}
+            onClick={() => handleDurationChange(50)}
             className={`flex-1 py-2 text-sm text-center transition-colors rounded-r-lg ${
               duration === 50
                 ? "bg-gray-100 font-semibold text-primary"
@@ -361,7 +361,7 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
         {/* ④ 時間帯ごとのスロット */}
         <div className="space-y-4 flex-1 overflow-y-auto">
           {(() => {
-            const availableSlots = getAvailableSlotsForDate(selectedDate);
+            const availableSlots = getAvailableSlotsForDate(selectedDate, duration);
 
             if (availableSlots.length === 0) {
               return (
