@@ -7,7 +7,7 @@ export const BackButton = () => {
 
   return (
     <button
-      onClick={() => router.push("/")}
+      onClick={() => router.back()}
       className="absolute top-0 -left-12 p-2 text-gray-400 hover:text-gray-600"
     >
       <ChevronLeft size={32} />
