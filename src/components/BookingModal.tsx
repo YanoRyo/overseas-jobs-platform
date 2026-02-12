@@ -5,6 +5,7 @@ import { X, Sunrise, Sun, Sunset, Moon } from "lucide-react";
 import type { MentorDetailModel } from "@/features/mentors/types";
 import { useRouter } from "next/navigation";
 import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
+import { useBookedSlots } from "@/features/checkout/hooks/useBookedSlots";
 
 type Props = {
   mentor: MentorDetailModel;
@@ -19,6 +20,12 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const router = useRouter();
+  const { isSlotBooked, loading: bookingsLoading } = useBookedSlots(
+    mentor.id,
+    selectedDate,
+    isOpen,
+    user?.id
+  );
 
   // 続けるボタン押下時の処理
   const handleContinue = async () => {
@@ -78,23 +85,29 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
     { name: "夜", icon: Moon, start: "21:00", end: "24:00" },
   ] as const;
 
-  // duration変更時の処理（選択済み時間が無効ならリセット）
+  // duration変更時の処理（選択済み時間が無効or予約済みならリセット）
   const handleDurationChange = (newDuration: number) => {
     setDuration(newDuration);
     if (selectedTime) {
       const availableTimes = getAvailableSlotsForDate(selectedDate, newDuration);
-      if (!availableTimes.includes(selectedTime)) {
+      if (
+        !availableTimes.includes(selectedTime) ||
+        isSlotBooked(selectedDate, selectedTime, newDuration)
+      ) {
         setSelectedTime(null);
       }
     }
   };
 
-  // 日付変更時の処理（選択済み時間が無効ならリセット）
+  // 日付変更時の処理（選択済み時間が無効or予約済みならリセット）
   const handleDateChange = (newDate: Date) => {
     setSelectedDate(newDate);
     if (selectedTime) {
       const availableTimes = getAvailableSlotsForDate(newDate, duration);
-      if (!availableTimes.includes(selectedTime)) {
+      if (
+        !availableTimes.includes(selectedTime) ||
+        isSlotBooked(newDate, selectedTime, duration)
+      ) {
         setSelectedTime(null);
       }
     }
@@ -359,7 +372,7 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
         </p>
 
         {/* ④ 時間帯ごとのスロット */}
-        <div className="space-y-4 flex-1 overflow-y-auto">
+        <div className={`space-y-4 flex-1 overflow-y-auto ${bookingsLoading ? "opacity-50 pointer-events-none" : ""}`}>
           {(() => {
             const availableSlots = getAvailableSlotsForDate(selectedDate, duration);
 
@@ -382,19 +395,25 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
                     <p className="font-semibold">{name}</p>
                   </div>
                   <div className="grid grid-cols-3 gap-2">
-                    {slots.map((time) => (
-                      <button
-                        key={time}
-                        onClick={() => setSelectedTime(time)}
-                        className={`py-2 rounded-lg border text-sm text-center ${
-                          selectedTime === time
-                            ? "bg-accent text-white border-accent"
-                            : "border-border text-primary hover:bg-surface-hover"
-                        }`}
-                      >
-                        {time}
-                      </button>
-                    ))}
+                    {slots.map((time) => {
+                      const booked = isSlotBooked(selectedDate, time, duration);
+                      return (
+                        <button
+                          key={time}
+                          onClick={() => !booked && setSelectedTime(time)}
+                          disabled={booked}
+                          className={`py-2 rounded-lg border text-sm text-center ${
+                            booked
+                              ? "bg-gray-100 text-gray-300 border-gray-200 cursor-not-allowed"
+                              : selectedTime === time
+                                ? "bg-accent text-white border-accent"
+                                : "border-border text-primary hover:bg-surface-hover"
+                          }`}
+                        >
+                          {time}
+                        </button>
+                      );
+                    })}
                   </div>
                 </div>
               );
