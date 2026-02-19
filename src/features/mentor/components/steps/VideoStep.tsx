@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
-import { Info, Check, X, ChevronDown, ChevronUp } from 'lucide-react';
-import type { VideoFormData } from '../../types/registration';
-import { VIDEO_REQUIREMENTS } from '../../constants/options';
-import { StepNavigation } from '../shared/StepNavigation';
+import { useState, useMemo } from "react";
+import { Info, Check, X, ChevronDown, ChevronUp } from "lucide-react";
+import type { VideoFormData } from "../../types/registration";
+import { VIDEO_REQUIREMENTS } from "../../../shared/constants/options";
+import { StepNavigation } from "../shared/StepNavigation";
 
 type VideoStepProps = {
   data: VideoFormData;
@@ -20,19 +20,21 @@ type VideoStepProps = {
 const extractYouTubeVideoId = (url: string): string | null => {
   try {
     const urlObj = new URL(url);
-    const hostname = urlObj.hostname.replace('www.', '');
+    const hostname = urlObj.hostname.replace("www.", "");
 
-    if (hostname === 'youtube.com') {
+    if (hostname === "youtube.com") {
       // /watch?v=VIDEO_ID
-      const vParam = urlObj.searchParams.get('v');
+      const vParam = urlObj.searchParams.get("v");
       if (vParam) return vParam;
 
       // /embed/VIDEO_ID, /shorts/VIDEO_ID, /live/VIDEO_ID
-      const pathMatch = urlObj.pathname.match(/^\/(embed|shorts|live)\/([a-zA-Z0-9_-]+)/);
+      const pathMatch = urlObj.pathname.match(
+        /^\/(embed|shorts|live)\/([a-zA-Z0-9_-]+)/
+      );
       if (pathMatch) return pathMatch[2];
     }
 
-    if (hostname === 'youtu.be') {
+    if (hostname === "youtu.be") {
       // youtu.be/VIDEO_ID
       const pathMatch = urlObj.pathname.match(/^\/([a-zA-Z0-9_-]+)/);
       if (pathMatch) return pathMatch[1];
@@ -81,15 +83,17 @@ export const VideoStep = ({
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-primary">Video introduction</h1>
-        <p className="text-secondary mt-2">Add a horizontal video of up to 2 minutes</p>
+        <p className="text-secondary mt-2">
+          Add a horizontal video of up to 2 minutes
+        </p>
       </div>
 
       {/* Info box */}
       <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
         <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
         <p className="text-sm text-blue-800">
-          Adding a video is optional but highly recommended to increase your booking rate. You can
-          add it later from your profile settings.
+          Adding a video is optional but highly recommended to increase your
+          booking rate. You can add it later from your profile settings.
         </p>
       </div>
 
@@ -97,8 +101,9 @@ export const VideoStep = ({
         {/* Left column - URL input and preview */}
         <div className="space-y-6">
           <p className="text-secondary">
-            Introduce yourself to students in the same language as your written description. If you
-            teach a different language, include a short sample.
+            Introduce yourself to students in the same language as your written
+            description. If you teach a different language, include a short
+            sample.
           </p>
 
           {/* Video preview */}
@@ -121,11 +126,14 @@ export const VideoStep = ({
 
           {/* URL input */}
           <div>
-            <label htmlFor="videoUrl" className="block text-sm font-medium text-primary mb-2">
+            <label
+              htmlFor="videoUrl"
+              className="block text-sm font-medium text-primary mb-2"
+            >
               Or paste a link to your video
             </label>
             <p className="text-sm text-muted mb-2">
-              Learn how to upload videos to{' '}
+              Learn how to upload videos to{" "}
               <a
                 href="https://www.youtube.com"
                 target="_blank"
@@ -133,8 +141,8 @@ export const VideoStep = ({
                 className="text-accent hover:underline"
               >
                 YouTube
-              </a>{' '}
-              or{' '}
+              </a>{" "}
+              or{" "}
               <a
                 href="https://vimeo.com"
                 target="_blank"
@@ -152,11 +160,13 @@ export const VideoStep = ({
               placeholder="https://www.youtube.com/watch?v=..."
               className={`
                 w-full border rounded-lg px-3 py-2 bg-surface text-primary placeholder:text-muted
-                ${errors.videoUrl ? 'border-error' : 'border-border'}
+                ${errors.videoUrl ? "border-error" : "border-border"}
                 focus:outline-none focus:ring-2 focus:ring-accent
               `}
             />
-            {errors.videoUrl && <p className="text-error text-sm mt-1">{errors.videoUrl}</p>}
+            {errors.videoUrl && (
+              <p className="text-error text-sm mt-1">{errors.videoUrl}</p>
+            )}
           </div>
         </div>
 
@@ -167,7 +177,9 @@ export const VideoStep = ({
             onClick={() => setShowRequirements(!showRequirements)}
             className="flex items-center justify-between w-full text-left"
           >
-            <h2 className="text-lg font-semibold text-primary">Video requirements</h2>
+            <h2 className="text-lg font-semibold text-primary">
+              Video requirements
+            </h2>
             {showRequirements ? (
               <ChevronUp className="w-5 h-5 text-muted" />
             ) : (
@@ -189,7 +201,10 @@ export const VideoStep = ({
                 </div>
                 <ul className="space-y-2">
                   {VIDEO_REQUIREMENTS.do.map((item, index) => (
-                    <li key={index} className="flex items-start gap-2 text-sm text-secondary">
+                    <li
+                      key={index}
+                      className="flex items-start gap-2 text-sm text-secondary"
+                    >
                       <span className="text-muted">•</span>
                       <span>{item}</span>
                     </li>
@@ -205,7 +220,10 @@ export const VideoStep = ({
                 </div>
                 <ul className="space-y-2">
                   {VIDEO_REQUIREMENTS.dont.map((item, index) => (
-                    <li key={index} className="flex items-start gap-2 text-sm text-secondary">
+                    <li
+                      key={index}
+                      className="flex items-start gap-2 text-sm text-secondary"
+                    >
                       <span className="text-muted">•</span>
                       <span>{item}</span>
                     </li>

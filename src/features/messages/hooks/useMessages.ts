@@ -11,7 +11,7 @@ const createClientId = () =>
 
 export const useMessages = (
   conversationId: string | null,
-  receiverId?: string | null // ★追加：相手user_id
+  receiverId?: string | null
 ) => {
   const supabase = useSupabaseClient();
   const user = useUser();

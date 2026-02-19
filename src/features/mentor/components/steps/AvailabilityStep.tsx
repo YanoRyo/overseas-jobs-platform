@@ -1,10 +1,18 @@
-'use client';
+"use client";
 
-import { useCallback } from 'react';
-import { Plus, Trash2, Info } from 'lucide-react';
-import type { AvailabilityFormData, AvailabilitySlot, DayOfWeek } from '../../types/registration';
-import { TIMEZONE_OPTIONS, DAY_OF_WEEK_OPTIONS, TIME_OPTIONS } from '../../constants/options';
-import { StepNavigation } from '../shared/StepNavigation';
+import { useCallback } from "react";
+import { Plus, Trash2, Info } from "lucide-react";
+import type {
+  AvailabilityFormData,
+  AvailabilitySlot,
+  DayOfWeek,
+} from "../../types/registration";
+import {
+  TIMEZONE_OPTIONS,
+  DAY_OF_WEEK_OPTIONS,
+  TIME_OPTIONS,
+} from "../../../shared/constants/options";
+import { StepNavigation } from "../shared/StepNavigation";
 
 type AvailabilityStepProps = {
   data: AvailabilityFormData;
@@ -35,8 +43,8 @@ export const AvailabilityStep = ({
       const newSlot: AvailabilitySlot = {
         id: crypto.randomUUID(),
         dayOfWeek,
-        startTime: '09:00',
-        endTime: '17:00',
+        startTime: "09:00",
+        endTime: "17:00",
         isEnabled: true,
       };
       onUpdate({ slots: [...data.slots, newSlot] });
@@ -56,7 +64,7 @@ export const AvailabilityStep = ({
   const handleSlotTimeChange = useCallback(
     (e: React.ChangeEvent<HTMLSelectElement>) => {
       const slotId = e.currentTarget.dataset.slotId;
-      const field = e.currentTarget.dataset.field as 'startTime' | 'endTime';
+      const field = e.currentTarget.dataset.field as "startTime" | "endTime";
       if (!slotId || !field) return;
 
       onUpdate({
@@ -71,7 +79,9 @@ export const AvailabilityStep = ({
   // 曜日のトグル
   const toggleDay = useCallback(
     (dayOfWeek: DayOfWeek) => {
-      const daySlots = data.slots.filter((slot) => slot.dayOfWeek === dayOfWeek);
+      const daySlots = data.slots.filter(
+        (slot) => slot.dayOfWeek === dayOfWeek
+      );
 
       if (daySlots.length === 0) {
         // スロットがない場合は追加
@@ -81,7 +91,9 @@ export const AvailabilityStep = ({
         const allEnabled = daySlots.every((slot) => slot.isEnabled);
         onUpdate({
           slots: data.slots.map((slot) =>
-            slot.dayOfWeek === dayOfWeek ? { ...slot, isEnabled: !allEnabled } : slot
+            slot.dayOfWeek === dayOfWeek
+              ? { ...slot, isEnabled: !allEnabled }
+              : slot
           ),
         });
       }
@@ -94,17 +106,25 @@ export const AvailabilityStep = ({
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-primary">Availability</h1>
-        <p className="text-secondary mt-2">Set your availability for sessions</p>
+        <p className="text-secondary mt-2">
+          Set your availability for sessions
+        </p>
       </div>
 
       {/* Timezone */}
       <div>
-        <h2 className="text-lg font-semibold text-primary mb-2">Set your timezone</h2>
+        <h2 className="text-lg font-semibold text-primary mb-2">
+          Set your timezone
+        </h2>
         <p className="text-secondary text-sm mb-3">
-          A correct timezone is essential to coordinate lessons with international students
+          A correct timezone is essential to coordinate lessons with
+          international students
         </p>
 
-        <label htmlFor="timezone" className="block text-sm font-medium text-primary mb-1">
+        <label
+          htmlFor="timezone"
+          className="block text-sm font-medium text-primary mb-1"
+        >
           Choose your timezone <span className="text-error">*</span>
         </label>
         <select
@@ -113,7 +133,7 @@ export const AvailabilityStep = ({
           onChange={(e) => onUpdate({ timezone: e.target.value })}
           className={`
             w-full md:w-96 border rounded-lg px-3 py-2 bg-surface text-primary
-            ${errors.timezone ? 'border-error' : 'border-border'}
+            ${errors.timezone ? "border-error" : "border-border"}
             focus:outline-none focus:ring-2 focus:ring-accent
           `}
           aria-required="true"
@@ -125,24 +145,32 @@ export const AvailabilityStep = ({
             </option>
           ))}
         </select>
-        {errors.timezone && <p className="text-error text-sm mt-1">{errors.timezone}</p>}
+        {errors.timezone && (
+          <p className="text-error text-sm mt-1">{errors.timezone}</p>
+        )}
       </div>
 
       {/* Availability */}
       <div>
-        <h2 className="text-lg font-semibold text-primary mb-2">Set your availability</h2>
+        <h2 className="text-lg font-semibold text-primary mb-2">
+          Set your availability
+        </h2>
         <p className="text-secondary text-sm mb-4">
-          Availability shows your potential working hours. Students can book lessons at these times.
+          Availability shows your potential working hours. Students can book
+          lessons at these times.
         </p>
 
         {/* Info box */}
         <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg mb-6">
           <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
           <div className="text-sm text-blue-800">
-            <p className="font-medium">Add popular hours to get more students</p>
+            <p className="font-medium">
+              Add popular hours to get more students
+            </p>
             <p className="mt-1">
-              Most students book lessons between 6:00 and 9:00 (popular hours). Add time slots
-              during these hours to triple your chances of getting booked.
+              Most students book lessons between 6:00 and 9:00 (popular hours).
+              Add time slots during these hours to triple your chances of
+              getting booked.
             </p>
           </div>
         </div>
@@ -154,7 +182,10 @@ export const AvailabilityStep = ({
             const isEnabled = slots.some((slot) => slot.isEnabled);
 
             return (
-              <div key={day.value} className="border border-border rounded-lg p-4">
+              <div
+                key={day.value}
+                className="border border-border rounded-lg p-4"
+              >
                 {/* Day header */}
                 <div className="flex items-center gap-3 mb-3">
                   <input
@@ -235,7 +266,9 @@ export const AvailabilityStep = ({
           })}
         </div>
 
-        {errors.slots && <p className="text-error text-sm mt-4">{errors.slots}</p>}
+        {errors.slots && (
+          <p className="text-error text-sm mt-4">{errors.slots}</p>
+        )}
       </div>
 
       {/* Navigation */}

@@ -110,34 +110,53 @@ export default function UserMenu() {
             </div>
           </div>
 
+          {/* Settings を追加 */}
           <div className="py-1">
             <button
               type="button"
-              onClick={goStudentLogin}
+              onClick={() => {
+                setOpen(false);
+                router.push("/settings");
+              }}
               className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
             >
-              Log in as Student
-            </button>
-
-            <button
-              type="button"
-              onClick={goMentorLogin}
-              className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
-            >
-              Log in as Mentor
+              Settings
             </button>
           </div>
 
-          <div className="border-t py-1">
-            <button
-              type="button"
-              onClick={logout}
-              disabled={!user}
-              className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50 disabled:opacity-40"
-            >
-              Log Out
-            </button>
-          </div>
+          {/* 未ログイン時だけログイン導線を表示 */}
+          {!user && (
+            <div className="py-1">
+              <button
+                type="button"
+                onClick={goStudentLogin}
+                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
+              >
+                Log in as Student
+              </button>
+
+              <button
+                type="button"
+                onClick={goMentorLogin}
+                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
+              >
+                Log in as Mentor
+              </button>
+            </div>
+          )}
+
+          {/* ログイン中だけログアウトを表示 */}
+          {user && (
+            <div className="border-t py-1">
+              <button
+                type="button"
+                onClick={logout}
+                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
+              >
+                Log Out
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>

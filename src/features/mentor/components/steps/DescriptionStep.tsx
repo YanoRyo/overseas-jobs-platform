@@ -1,9 +1,9 @@
-'use client';
+"use client";
 
-import { Info } from 'lucide-react';
-import type { DescriptionFormData } from '../../types/registration';
-import { VALIDATION_CONFIG } from '../../constants/options';
-import { StepNavigation } from '../shared/StepNavigation';
+import { Info } from "lucide-react";
+import type { DescriptionFormData } from "../../types/registration";
+import { VALIDATION_CONFIG } from "../../../shared/constants/options";
+import { StepNavigation } from "../shared/StepNavigation";
 
 type DescriptionStepProps = {
   data: DescriptionFormData;
@@ -22,7 +22,8 @@ export const DescriptionStep = ({
   onBack,
   canGoNext,
 }: DescriptionStepProps) => {
-  const { introduction, workExperience, motivation, headline } = VALIDATION_CONFIG;
+  const { introduction, workExperience, motivation, headline } =
+    VALIDATION_CONFIG;
 
   return (
     <div className="space-y-8">
@@ -30,8 +31,9 @@ export const DescriptionStep = ({
       <div>
         <h1 className="text-2xl font-bold text-primary">Profile description</h1>
         <p className="text-secondary mt-2">
-          This info will go on your public profile. Write it in the language you&apos;ll be
-          teaching and make sure to follow our guidelines to get approved.
+          This info will go on your public profile. Write it in the language
+          you&apos;ll be teaching and make sure to follow our guidelines to get
+          approved.
         </p>
       </div>
 
@@ -43,8 +45,9 @@ export const DescriptionStep = ({
             1. Introduce yourself <span className="text-error">*</span>
           </h2>
           <p className="text-secondary text-sm mb-3">
-            Show potential students who you are! Share your teaching experience and passion for
-            education and briefly mention your interests and hobbies.
+            Show potential students who you are! Share your teaching experience
+            and passion for education and briefly mention your interests and
+            hobbies.
           </p>
 
           <textarea
@@ -53,7 +56,7 @@ export const DescriptionStep = ({
             rows={6}
             className={`
               w-full border rounded-lg px-3 py-2 resize-none bg-surface text-primary placeholder:text-muted
-              ${errors.introduction ? 'border-error' : 'border-border'}
+              ${errors.introduction ? "border-error" : "border-border"}
               focus:outline-none focus:ring-2 focus:ring-accent
             `}
             aria-required="true"
@@ -68,7 +71,8 @@ export const DescriptionStep = ({
                 <div className="flex items-start gap-2 p-2 bg-blue-50 rounded-lg">
                   <Info className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
                   <p className="text-sm text-blue-800">
-                    Don&apos;t include your last name or present your information in a CV format
+                    Don&apos;t include your last name or present your
+                    information in a CV format
                   </p>
                 </div>
               )}
@@ -77,8 +81,8 @@ export const DescriptionStep = ({
               className={`text-sm ml-4 ${
                 data.introduction.length < introduction.minLength ||
                 data.introduction.length > introduction.maxLength
-                  ? 'text-error'
-                  : 'text-muted'
+                  ? "text-error"
+                  : "text-muted"
               }`}
             >
               {data.introduction.length}/{introduction.maxLength}
@@ -101,7 +105,7 @@ export const DescriptionStep = ({
             rows={4}
             className={`
               w-full border rounded-lg px-3 py-2 resize-none bg-surface text-primary placeholder:text-muted
-              ${errors.workExperience ? 'border-error' : 'border-border'}
+              ${errors.workExperience ? "border-error" : "border-border"}
               focus:outline-none focus:ring-2 focus:ring-accent
             `}
             aria-required="true"
@@ -116,8 +120,8 @@ export const DescriptionStep = ({
               className={`text-sm ml-auto ${
                 data.workExperience.length < workExperience.minLength ||
                 data.workExperience.length > workExperience.maxLength
-                  ? 'text-error'
-                  : 'text-muted'
+                  ? "text-error"
+                  : "text-muted"
               }`}
             >
               {data.workExperience.length}/{workExperience.maxLength}
@@ -140,7 +144,7 @@ export const DescriptionStep = ({
             rows={4}
             className={`
               w-full border rounded-lg px-3 py-2 resize-none bg-surface text-primary placeholder:text-muted
-              ${errors.motivation ? 'border-error' : 'border-border'}
+              ${errors.motivation ? "border-error" : "border-border"}
               focus:outline-none focus:ring-2 focus:ring-accent
             `}
             aria-required="true"
@@ -148,13 +152,15 @@ export const DescriptionStep = ({
           />
 
           <div className="flex items-center justify-between mt-2">
-            {errors.motivation && <p className="text-error text-sm">{errors.motivation}</p>}
+            {errors.motivation && (
+              <p className="text-error text-sm">{errors.motivation}</p>
+            )}
             <span
               className={`text-sm ml-auto ${
                 data.motivation.length < motivation.minLength ||
                 data.motivation.length > motivation.maxLength
-                  ? 'text-error'
-                  : 'text-muted'
+                  ? "text-error"
+                  : "text-muted"
               }`}
             >
               {data.motivation.length}/{motivation.maxLength}
@@ -178,7 +184,7 @@ export const DescriptionStep = ({
             placeholder="E.g. Experienced software engineer helping you land your dream job"
             className={`
               w-full border rounded-lg px-3 py-2 bg-surface text-primary placeholder:text-muted
-              ${errors.headline ? 'border-error' : 'border-border'}
+              ${errors.headline ? "border-error" : "border-border"}
               focus:outline-none focus:ring-2 focus:ring-accent
             `}
             aria-required="true"
@@ -186,12 +192,15 @@ export const DescriptionStep = ({
           />
 
           <div className="flex items-center justify-between mt-2">
-            {errors.headline && <p className="text-error text-sm">{errors.headline}</p>}
+            {errors.headline && (
+              <p className="text-error text-sm">{errors.headline}</p>
+            )}
             <span
               className={`text-sm ml-auto ${
-                data.headline.trim().length === 0 || data.headline.length > headline.maxLength
-                  ? 'text-error'
-                  : 'text-muted'
+                data.headline.trim().length === 0 ||
+                data.headline.length > headline.maxLength
+                  ? "text-error"
+                  : "text-muted"
               }`}
             >
               {data.headline.length}/{headline.maxLength}

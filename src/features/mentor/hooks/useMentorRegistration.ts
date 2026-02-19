@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useCallback, useMemo, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { useSupabaseClient } from '@supabase/auth-helpers-react';
+import { useState, useCallback, useMemo, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import {
   type RegistrationStep,
   type StepStatus,
@@ -16,27 +16,34 @@ import {
   type PricingFormData,
   REGISTRATION_STEPS,
   initialMentorRegistrationFormData,
-} from '../types/registration';
-import { VALIDATION_CONFIG, PRICING_CONFIG } from '../constants/options';
-import { registerMentor, checkMentorExistsByUserId } from '@/lib/supabase/mentors';
-import type { MentorInsert } from '@/lib/supabase/types';
+} from "../types/registration";
+import {
+  VALIDATION_CONFIG,
+  PRICING_CONFIG,
+} from "../../shared/constants/options";
+import {
+  registerMentor,
+  checkMentorExistsByUserId,
+} from "@/lib/supabase/mentors";
+import type { MentorInsert } from "@/lib/supabase/types";
 
 // ========================================
 // バリデーション関数
 // ========================================
 
 const validateEmail = (email: string): string | null => {
-  if (!email) return 'Email is required';
+  if (!email) return "Email is required";
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) return 'Please enter a valid email address';
+  if (!emailRegex.test(email)) return "Please enter a valid email address";
   return null;
 };
 
 const validatePhoneNumber = (phone: string): string | null => {
-  if (!phone) return 'Phone number is required';
+  if (!phone) return "Phone number is required";
   // 数字のみ許可（ハイフンやスペースは除去後）
-  const digitsOnly = phone.replace(/[\s-]/g, '');
-  if (!/^\d{7,15}$/.test(digitsOnly)) return 'Please enter a valid phone number';
+  const digitsOnly = phone.replace(/[\s-]/g, "");
+  if (!/^\d{7,15}$/.test(digitsOnly))
+    return "Please enter a valid phone number";
   return null;
 };
 
@@ -45,60 +52,66 @@ const validateVideoUrl = (url: string): string | null => {
 
   try {
     const urlObj = new URL(url);
-    const hostname = urlObj.hostname.replace('www.', '');
+    const hostname = urlObj.hostname.replace("www.", "");
 
     // YouTube: youtube.com または youtu.be
-    if (hostname === 'youtube.com') {
+    if (hostname === "youtube.com") {
       // /watch?v=VIDEO_ID
-      if (urlObj.searchParams.has('v')) return null;
+      if (urlObj.searchParams.has("v")) return null;
       // /embed/VIDEO_ID, /shorts/VIDEO_ID, /live/VIDEO_ID
-      if (/^\/(embed|shorts|live)\/[a-zA-Z0-9_-]+/.test(urlObj.pathname)) return null;
+      if (/^\/(embed|shorts|live)\/[a-zA-Z0-9_-]+/.test(urlObj.pathname))
+        return null;
     }
-    if (hostname === 'youtu.be' && urlObj.pathname.length > 1) {
+    if (hostname === "youtu.be" && urlObj.pathname.length > 1) {
       return null;
     }
 
     // Vimeo: vimeo.com
-    if (hostname === 'vimeo.com' && /^\/\d+/.test(urlObj.pathname)) {
+    if (hostname === "vimeo.com" && /^\/\d+/.test(urlObj.pathname)) {
       return null;
     }
 
-    return 'Please enter a valid YouTube or Vimeo URL';
+    return "Please enter a valid YouTube or Vimeo URL";
   } catch {
-    return 'Please enter a valid YouTube or Vimeo URL';
+    return "Please enter a valid YouTube or Vimeo URL";
   }
 };
 
-export const validateAboutStep = (data: AboutFormData): Record<string, string> => {
+export const validateAboutStep = (
+  data: AboutFormData
+): Record<string, string> => {
   const errors: Record<string, string> = {};
 
-  if (!data.firstName.trim()) errors.firstName = 'First name is required';
-  if (!data.lastName.trim()) errors.lastName = 'Last name is required';
+  if (!data.firstName.trim()) errors.firstName = "First name is required";
+  if (!data.lastName.trim()) errors.lastName = "Last name is required";
 
   const emailError = validateEmail(data.email);
   if (emailError) errors.email = emailError;
 
-  if (!data.countryCode) errors.countryCode = 'Country is required';
+  if (!data.countryCode) errors.countryCode = "Country is required";
 
   const phoneError = validatePhoneNumber(data.phoneNumber);
   if (phoneError) errors.phoneNumber = phoneError;
 
-  if (data.expertise.length === 0) errors.expertise = 'Please select at least one expertise';
+  if (data.expertise.length === 0)
+    errors.expertise = "Please select at least one expertise";
 
   // 言語が追加されていない、または全ての言語でlanguageCodeが未選択の場合はエラー
   const validLanguages = data.languages.filter((lang) => lang.languageCode);
   if (validLanguages.length === 0) {
-    errors.languages = 'Please add at least one language';
+    errors.languages = "Please add at least one language";
   }
 
   return errors;
 };
 
-export const validatePhotoStep = (data: PhotoFormData): Record<string, string> => {
+export const validatePhotoStep = (
+  data: PhotoFormData
+): Record<string, string> => {
   const errors: Record<string, string> = {};
 
   if (!data.avatarUrl && !data.avatarFile) {
-    errors.avatar = 'Please upload a profile photo';
+    errors.avatar = "Please upload a profile photo";
   }
 
   return errors;
@@ -109,9 +122,12 @@ export const validateEducationStep = (): Record<string, string> => {
   return {};
 };
 
-export const validateDescriptionStep = (data: DescriptionFormData): Record<string, string> => {
+export const validateDescriptionStep = (
+  data: DescriptionFormData
+): Record<string, string> => {
   const errors: Record<string, string> = {};
-  const { introduction, workExperience, motivation, headline } = VALIDATION_CONFIG;
+  const { introduction, workExperience, motivation, headline } =
+    VALIDATION_CONFIG;
 
   if (data.introduction.length < introduction.minLength) {
     errors.introduction = `Introduction must be at least ${introduction.minLength} characters`;
@@ -132,7 +148,7 @@ export const validateDescriptionStep = (data: DescriptionFormData): Record<strin
   }
 
   if (!data.headline.trim()) {
-    errors.headline = 'Headline is required';
+    errors.headline = "Headline is required";
   } else if (data.headline.length > headline.maxLength) {
     errors.headline = `Headline must be no more than ${headline.maxLength} characters`;
   }
@@ -140,7 +156,9 @@ export const validateDescriptionStep = (data: DescriptionFormData): Record<strin
   return errors;
 };
 
-export const validateVideoStep = (data: VideoFormData): Record<string, string> => {
+export const validateVideoStep = (
+  data: VideoFormData
+): Record<string, string> => {
   const errors: Record<string, string> = {};
 
   const urlError = validateVideoUrl(data.videoUrl);
@@ -149,14 +167,16 @@ export const validateVideoStep = (data: VideoFormData): Record<string, string> =
   return errors;
 };
 
-export const validateAvailabilityStep = (data: AvailabilityFormData): Record<string, string> => {
+export const validateAvailabilityStep = (
+  data: AvailabilityFormData
+): Record<string, string> => {
   const errors: Record<string, string> = {};
 
-  if (!data.timezone) errors.timezone = 'Please select a timezone';
+  if (!data.timezone) errors.timezone = "Please select a timezone";
 
   const enabledSlots = data.slots.filter((slot) => slot.isEnabled);
   if (enabledSlots.length === 0) {
-    errors.slots = 'Please set at least one available time slot';
+    errors.slots = "Please set at least one available time slot";
   }
 
   // 各スロットの時間チェック（複数エラーを収集）
@@ -171,13 +191,17 @@ export const validateAvailabilityStep = (data: AvailabilityFormData): Record<str
     errors.slots =
       invalidSlotIndices.length === 1
         ? `End time must be after start time for slot ${invalidSlotIndices[0]}`
-        : `End time must be after start time for slots ${invalidSlotIndices.join(', ')}`;
+        : `End time must be after start time for slots ${invalidSlotIndices.join(
+            ", "
+          )}`;
   }
 
   return errors;
 };
 
-export const validatePricingStep = (data: PricingFormData): Record<string, string> => {
+export const validatePricingStep = (
+  data: PricingFormData
+): Record<string, string> => {
   const errors: Record<string, string> = {};
   const { minRate, maxRate } = PRICING_CONFIG;
 
@@ -240,14 +264,16 @@ export const useMentorRegistration = (): UseMentorRegistrationReturn => {
   const [formData, setFormData] = useState<MentorRegistrationFormData>(
     initialMentorRegistrationFormData
   );
-  const [stepStatuses, setStepStatuses] = useState<Record<RegistrationStep, StepStatus>>({
-    about: 'current',
-    photo: 'pending',
-    education: 'pending',
-    description: 'pending',
-    video: 'pending',
-    availability: 'pending',
-    pricing: 'pending',
+  const [stepStatuses, setStepStatuses] = useState<
+    Record<RegistrationStep, StepStatus>
+  >({
+    about: "current",
+    photo: "pending",
+    education: "pending",
+    description: "pending",
+    video: "pending",
+    availability: "pending",
+    pricing: "pending",
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -267,7 +293,7 @@ export const useMentorRegistration = (): UseMentorRegistrationReturn => {
       const exists = await checkMentorExistsByUserId(supabase, user.id);
       if (exists) {
         // TODO: 将来的にはプロフィール編集ページ(/mentor/profile/edit)にリダイレクトする
-        router.push('/');
+        router.push("/");
         return;
       }
 
@@ -285,19 +311,19 @@ export const useMentorRegistration = (): UseMentorRegistrationReturn => {
   // 現在のステップのバリデーション結果を取得
   const currentStepErrors = useMemo((): Record<string, string> => {
     switch (currentStep) {
-      case 'about':
+      case "about":
         return validateAboutStep(formData.about);
-      case 'photo':
+      case "photo":
         return validatePhotoStep(formData.photo);
-      case 'education':
+      case "education":
         return validateEducationStep();
-      case 'description':
+      case "description":
         return validateDescriptionStep(formData.description);
-      case 'video':
+      case "video":
         return validateVideoStep(formData.video);
-      case 'availability':
+      case "availability":
         return validateAvailabilityStep(formData.availability);
-      case 'pricing':
+      case "pricing":
         return validatePricingStep(formData.pricing);
       default:
         return {};
@@ -327,12 +353,12 @@ export const useMentorRegistration = (): UseMentorRegistrationReturn => {
       setCurrentStepIndex(index);
       // completed/skipped ステータスは保持する（クリックで戻れるように）
       setStepStatuses((prev) => {
-        if (prev[step] === 'completed' || prev[step] === 'skipped') {
+        if (prev[step] === "completed" || prev[step] === "skipped") {
           return prev;
         }
         return {
           ...prev,
-          [step]: 'current',
+          [step]: "current",
         };
       });
       setErrors({});
@@ -345,7 +371,7 @@ export const useMentorRegistration = (): UseMentorRegistrationReturn => {
     // 現在のステップを完了に
     setStepStatuses((prev) => ({
       ...prev,
-      [currentStep]: 'completed',
+      [currentStep]: "completed",
     }));
 
     if (!isLastStep) {
@@ -356,7 +382,7 @@ export const useMentorRegistration = (): UseMentorRegistrationReturn => {
       setMaxReachedStepIndex((prev) => Math.max(prev, nextIndex));
       setStepStatuses((prev) => ({
         ...prev,
-        [nextStep]: 'current',
+        [nextStep]: "current",
       }));
       setErrors({});
     }
@@ -373,10 +399,10 @@ export const useMentorRegistration = (): UseMentorRegistrationReturn => {
           ...prev,
           // completed/skipped状態を保持、それ以外はpendingに
           [currentStep]:
-            currentStatus === 'completed' || currentStatus === 'skipped'
+            currentStatus === "completed" || currentStatus === "skipped"
               ? currentStatus
-              : 'pending',
-          [prevStep]: 'current',
+              : "pending",
+          [prevStep]: "current",
         };
       });
       setErrors({});
@@ -389,7 +415,7 @@ export const useMentorRegistration = (): UseMentorRegistrationReturn => {
 
     setStepStatuses((prev) => ({
       ...prev,
-      [currentStep]: 'skipped',
+      [currentStep]: "skipped",
     }));
 
     if (!isLastStep) {
@@ -400,7 +426,7 @@ export const useMentorRegistration = (): UseMentorRegistrationReturn => {
       setMaxReachedStepIndex((prev) => Math.max(prev, nextIndex));
       setStepStatuses((prev) => ({
         ...prev,
-        [nextStep]: 'current',
+        [nextStep]: "current",
       }));
       setErrors({});
     }
@@ -421,19 +447,25 @@ export const useMentorRegistration = (): UseMentorRegistrationReturn => {
     }));
   }, []);
 
-  const updateEducationData = useCallback((data: Partial<EducationFormData>) => {
-    setFormData((prev) => ({
-      ...prev,
-      education: { ...prev.education, ...data },
-    }));
-  }, []);
+  const updateEducationData = useCallback(
+    (data: Partial<EducationFormData>) => {
+      setFormData((prev) => ({
+        ...prev,
+        education: { ...prev.education, ...data },
+      }));
+    },
+    []
+  );
 
-  const updateDescriptionData = useCallback((data: Partial<DescriptionFormData>) => {
-    setFormData((prev) => ({
-      ...prev,
-      description: { ...prev.description, ...data },
-    }));
-  }, []);
+  const updateDescriptionData = useCallback(
+    (data: Partial<DescriptionFormData>) => {
+      setFormData((prev) => ({
+        ...prev,
+        description: { ...prev.description, ...data },
+      }));
+    },
+    []
+  );
 
   const updateVideoData = useCallback((data: Partial<VideoFormData>) => {
     setFormData((prev) => ({
@@ -442,12 +474,15 @@ export const useMentorRegistration = (): UseMentorRegistrationReturn => {
     }));
   }, []);
 
-  const updateAvailabilityData = useCallback((data: Partial<AvailabilityFormData>) => {
-    setFormData((prev) => ({
-      ...prev,
-      availability: { ...prev.availability, ...data },
-    }));
-  }, []);
+  const updateAvailabilityData = useCallback(
+    (data: Partial<AvailabilityFormData>) => {
+      setFormData((prev) => ({
+        ...prev,
+        availability: { ...prev.availability, ...data },
+      }));
+    },
+    []
+  );
 
   const updatePricingData = useCallback((data: Partial<PricingFormData>) => {
     setFormData((prev) => ({
@@ -475,7 +510,7 @@ export const useMentorRegistration = (): UseMentorRegistrationReturn => {
       } = await supabase.auth.getUser();
 
       if (authError || !user) {
-        setErrors({ submit: 'Please login to continue.' });
+        setErrors({ submit: "Please login to continue." });
         return;
       }
 
@@ -533,15 +568,15 @@ export const useMentorRegistration = (): UseMentorRegistrationReturn => {
       });
 
       if (registerError) {
-        setErrors({ submit: 'Registration failed. Please try again.' });
+        setErrors({ submit: "Registration failed. Please try again." });
         return;
       }
 
       // 6. 登録完了後のリダイレクト（トップページへ）
-      router.push('/');
+      router.push("/");
     } catch (error) {
-      console.error('submitRegistration failed', error);
-      setErrors({ submit: 'Registration failed. Please try again.' });
+      console.error("submitRegistration failed", error);
+      setErrors({ submit: "Registration failed. Please try again." });
     } finally {
       setIsSubmitting(false);
     }

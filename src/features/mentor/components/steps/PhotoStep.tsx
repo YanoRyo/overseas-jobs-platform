@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useCallback, useRef, useEffect, useState } from 'react';
-import { Upload, Check, User } from 'lucide-react';
-import type { PhotoFormData } from '../../types/registration';
-import { PHOTO_REQUIREMENTS } from '../../constants/options';
-import { StepNavigation } from '../shared/StepNavigation';
+import { useCallback, useRef, useEffect, useState } from "react";
+import { Upload, Check, User } from "lucide-react";
+import type { PhotoFormData } from "../../types/registration";
+import { PHOTO_REQUIREMENTS } from "../../../shared/constants/options";
+import { StepNavigation } from "../shared/StepNavigation";
 
 type PhotoStepProps = {
   data: PhotoFormData;
@@ -35,14 +35,14 @@ export const PhotoStep = ({
       setFileError(null);
 
       // ファイル形式チェック
-      if (!file.type.startsWith('image/')) {
-        setFileError('Please select an image file');
+      if (!file.type.startsWith("image/")) {
+        setFileError("Please select an image file");
         return;
       }
 
       // ファイルサイズチェック (5MB)
       if (file.size > 5 * 1024 * 1024) {
-        setFileError('File size must be less than 5MB');
+        setFileError("File size must be less than 5MB");
         return;
       }
 
@@ -88,7 +88,7 @@ export const PhotoStep = ({
           <div
             className={`
             w-48 h-48 rounded-xl overflow-hidden bg-surface border-2
-            ${errors.avatar ? 'border-error' : 'border-border'}
+            ${errors.avatar ? "border-error" : "border-border"}
             flex items-center justify-center
           `}
           >
@@ -115,7 +115,7 @@ export const PhotoStep = ({
             "
           >
             <Upload className="w-4 h-4" />
-            <span>{previewUrl ? 'Upload new photo' : 'Upload photo'}</span>
+            <span>{previewUrl ? "Upload new photo" : "Upload photo"}</span>
           </button>
 
           <input
@@ -134,7 +134,9 @@ export const PhotoStep = ({
 
         {/* Requirements checklist */}
         <div className="flex-1">
-          <h2 className="text-lg font-semibold text-primary mb-4">What your photo needs</h2>
+          <h2 className="text-lg font-semibold text-primary mb-4">
+            What your photo needs
+          </h2>
           <ul className="space-y-3">
             {PHOTO_REQUIREMENTS.map((requirement, index) => (
               <li key={index} className="flex items-start gap-3">
