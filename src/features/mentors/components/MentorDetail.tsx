@@ -9,7 +9,9 @@ import {
   Info,
   Zap,
 } from "lucide-react";
+import { useUser } from "@supabase/auth-helpers-react";
 import BookingModal from "@/components/BookingModal";
+import { useBookedSlots } from "@/features/checkout/hooks/useBookedSlots";
 import { MentorDetailModel } from "../types";
 import { SendMessageModal } from "@/features/messages/components/SendMessageModal";
 import {
@@ -22,6 +24,7 @@ type Props = {
   isBookingOpen: boolean;
   onOpenBooking: () => void;
   onCloseBooking: () => void;
+  onTimeSlotClick?: (dateKey: string, time: string) => void;
 };
 
 type DateParts = {
@@ -67,6 +70,8 @@ const DEGREE_TYPE_LABELS: Record<string, string> = {
   doctorate: "Doctorate",
   diploma: "Diploma / Certificate",
 };
+
+const DEFAULT_DURATION = 25;
 
 const pad2 = (value: number) => value.toString().padStart(2, "0");
 
@@ -307,7 +312,9 @@ export const MentorDetail = ({
   isBookingOpen,
   onOpenBooking,
   onCloseBooking,
+  onTimeSlotClick,
 }: Props) => {
+  const user = useUser();
   const [bioExpanded, setBioExpanded] = useState(false);
   const [reviewExpanded, setReviewExpanded] = useState(false);
   const [scheduleOpen, setScheduleOpen] = useState(true);
@@ -323,6 +330,20 @@ export const MentorDetail = ({
   );
   const [weekOffset, setWeekOffset] = useState(0);
   const isPrevWeekDisabled = weekOffset <= 0;
+
+  // Schedule表示中の週に対応するDateを生成（useBookedSlotsの週範囲算出用）
+  const scheduleWeekDate = useMemo(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + weekOffset * 7);
+    return d;
+  }, [weekOffset]);
+
+  const { isSlotBooked } = useBookedSlots(
+    mentor.id,
+    scheduleWeekDate,
+    scheduleOpen,
+    user?.id
+  );
 
   const countryName = useMemo(() => {
     const match = COUNTRIES.find((country) => country.code === mentor.country);
@@ -655,16 +676,30 @@ export const MentorDetail = ({
                             {day.times.length === 0 ? (
                               <p className="text-xs text-muted">-</p>
                             ) : (
-                              day.times.map((time) => (
-                                <a
-                                  key={`${day.key}-${time}`}
-                                  href="#"
-                                  onClick={(event) => event.preventDefault()}
-                                  className="block text-sm text-primary underline underline-offset-4 hover:text-accent"
-                                >
-                                  {time}
-                                </a>
-                              ))
+                              day.times.map((time) => {
+                                const slotDate = new Date(`${day.key}T00:00:00`);
+                                const booked = isSlotBooked(slotDate, time, DEFAULT_DURATION);
+                                return booked ? (
+                                  <span
+                                    key={`${day.key}-${time}`}
+                                    className="block text-sm text-gray-300 cursor-not-allowed"
+                                  >
+                                    {time}
+                                  </span>
+                                ) : (
+                                  <a
+                                    key={`${day.key}-${time}`}
+                                    href="#"
+                                    onClick={(event) => {
+                                      event.preventDefault();
+                                      onTimeSlotClick?.(day.key, time);
+                                    }}
+                                    className="block text-sm text-primary underline underline-offset-4 hover:text-accent"
+                                  >
+                                    {time}
+                                  </a>
+                                );
+                              })
                             )}
                           </div>
                         </div>
@@ -852,7 +887,7 @@ export const MentorDetail = ({
                 onClick={onOpenBooking}
               >
                 <Zap className="w-5 h-5" />
-                Book Trial Lesson
+                Book Lesson
               </button>
 
               <button

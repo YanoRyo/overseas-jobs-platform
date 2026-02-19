@@ -7,6 +7,10 @@ import BookingModal from "@/components/BookingModal";
 import { MentorDetailModel, MentorListItem } from "../types";
 import { fetchMentorById } from "@/lib/supabase/mentors";
 import { mapMentorDetail } from "../mapper/mapMentorDetail";
+import { useUser } from "@supabase/auth-helpers-react";
+import { AuthModal } from "@/features/auth/components/AuthModal";
+
+const PENDING_BOOKING_KEY = "pendingBookingMentorId";
 
 export function MentorList() {
   const {
@@ -20,9 +24,12 @@ export function MentorList() {
     hasSearched,
   } = useMentorSearch();
 
+  const user = useUser();
   const [selectedMentor, setSelectedMentor] =
     useState<MentorDetailModel | null>(null);
   const [bookingLoading, setBookingLoading] = useState(false);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [pendingMentorId, setPendingMentorId] = useState<string | null>(null);
 
   // 初回マウント時に全件取得
   useEffect(() => {
@@ -32,8 +39,8 @@ export function MentorList() {
 
   const [bookingError, setBookingError] = useState<string | null>(null);
 
-  // 予約ボタンクリック時にメンター詳細を取得
-  const handleBook = async (mentor: MentorListItem) => {
+  // メンター詳細を取得して BookingModal を開く
+  const fetchAndOpenBooking = async (mentorId: string) => {
     setBookingLoading(true);
     setBookingError(null);
     try {
@@ -44,14 +51,20 @@ export function MentorList() {
         reviews,
         availability,
         error: fetchError,
-      } = await fetchMentorById(mentor.id);
+      } = await fetchMentorById(mentorId);
 
       if (fetchError || !data) {
         setBookingError("Failed to retrieve mentor information");
         return;
       }
 
-      const detailModel = mapMentorDetail(data, languages, expertise, reviews, availability);
+      const detailModel = mapMentorDetail(
+        data,
+        languages,
+        expertise,
+        reviews,
+        availability
+      );
       setSelectedMentor(detailModel);
     } catch {
       setBookingError("メンター情報の取得に失敗しました");
@@ -59,6 +72,41 @@ export function MentorList() {
       setBookingLoading(false);
     }
   };
+
+  // 予約ボタンクリック時の処理
+  const handleBook = async (mentor: MentorListItem) => {
+    if (!user) {
+      // 未ログイン: AuthModal を表示し、メンターIDを localStorage に保存
+      localStorage.setItem(PENDING_BOOKING_KEY, mentor.id);
+      setPendingMentorId(mentor.id);
+      setIsAuthModalOpen(true);
+      return;
+    }
+
+    // ログイン済み: BookingModal を開く
+    await fetchAndOpenBooking(mentor.id);
+  };
+
+  // OAuth認証後、ページリロード時に BookingModal を自動で開く
+  useEffect(() => {
+    const storedMentorId = localStorage.getItem(PENDING_BOOKING_KEY);
+    if (user && storedMentorId) {
+      localStorage.removeItem(PENDING_BOOKING_KEY);
+      setIsAuthModalOpen(false);
+      setPendingMentorId(null);
+      fetchAndOpenBooking(storedMentorId);
+    }
+  }, [user]);
+
+  // メール認証でのログイン成功後、AuthModal を閉じて BookingModal を開く
+  useEffect(() => {
+    if (user && pendingMentorId && isAuthModalOpen) {
+      localStorage.removeItem(PENDING_BOOKING_KEY);
+      setIsAuthModalOpen(false);
+      fetchAndOpenBooking(pendingMentorId);
+      setPendingMentorId(null);
+    }
+  }, [user, pendingMentorId, isAuthModalOpen]);
 
   return (
     <div className="flex flex-col gap-6 p-6 max-w-screen-md mx-auto w-full">
@@ -117,6 +165,20 @@ export function MentorList() {
           onClose={() => setSelectedMentor(null)}
         />
       )}
+
+      <AuthModal
+        open={isAuthModalOpen}
+        onClose={() => {
+          setIsAuthModalOpen(false);
+          setPendingMentorId(null);
+        }}
+        defaultMode="login"
+        initialRole="student"
+        title="ログインして予約を続ける"
+        description="体験レッスンを予約するにはログインが必要です"
+        redirectOnClose=""
+        redirectAfterAuth="/"
+      />
     </div>
   );
 }
