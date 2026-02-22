@@ -82,7 +82,11 @@ export default function UserMenu() {
   const logout = async () => {
     setOpen(false);
     setUsername(null);
-    await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      console.error("signOut error:", error);
+    }
+    router.replace("/");
     router.refresh();
   };
 
