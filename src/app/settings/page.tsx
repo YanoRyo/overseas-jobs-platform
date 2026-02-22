@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
-import { SettingsLayout } from "@/features/settings";
+import { MentorSettingsLayout, SettingsLayout } from "@/features/settings";
 import type { UserRole } from "@/features/auth/types";
 
 type ViewerRole = UserRole | null;
@@ -53,6 +53,10 @@ export default function SettingsPage() {
   }
 
   if (!viewerRole) return null;
+
+  if (viewerRole === "mentor") {
+    return <MentorSettingsLayout />;
+  }
 
   return <SettingsLayout />;
 }
