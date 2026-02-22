@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { MentorTopTabs } from "./MentorTopTabs";
 import { MentorSettingsNav } from "./MentorSettingsNav";
 import type { MentorSettingsSection } from "../types/mentorSettings";
+import { useMentorSettings } from "../hooks/useMentorSettings";
 
 const SECTION_TITLES: Record<MentorSettingsSection, string> = {
   about: "About",
@@ -16,10 +17,26 @@ const SECTION_TITLES: Record<MentorSettingsSection, string> = {
 };
 
 export function MentorSettingsLayout() {
+  const { loading, fetchError, formData } = useMentorSettings();
   const [activeSection, setActiveSection] =
     useState<MentorSettingsSection>("about");
 
   const title = useMemo(() => SECTION_TITLES[activeSection], [activeSection]);
+
+  const previewText = useMemo(() => {
+    if (activeSection === "about") {
+      return `${formData.about.firstName} ${formData.about.lastName}`.trim();
+    }
+    if (activeSection === "description") {
+      return formData.description.headline.trim();
+    }
+    if (activeSection === "pricing") {
+      return formData.pricing.hourlyRate > 0
+        ? `$${formData.pricing.hourlyRate}`
+        : "";
+    }
+    return "";
+  }, [activeSection, formData]);
 
   return (
     <div className="min-h-screen bg-[#fafafb]">
@@ -34,9 +51,16 @@ export function MentorSettingsLayout() {
           </h1>
 
           <div className="rounded-xl border border-[#e3e4ea] bg-white p-6">
-            <p className="text-sm text-[#606579]">
-              このセクションの編集フォームは次のコミットで実装します。
-            </p>
+            {loading ? (
+              <p className="text-sm text-[#606579]">Loading profile...</p>
+            ) : fetchError ? (
+              <p className="text-sm text-[#c32a68]">{fetchError}</p>
+            ) : (
+              <p className="text-sm text-[#606579]">
+                このセクションの編集フォームは次のコミットで実装します。
+                {previewText ? ` 現在値: ${previewText}` : ""}
+              </p>
+            )}
           </div>
         </section>
       </main>
