@@ -2,7 +2,13 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
-import { validateAboutStep } from "@/features/mentor/utils/validation";
+import {
+  validateAboutStep,
+  validateAvailabilityStep,
+  validateDescriptionStep,
+  validatePricingStep,
+  validateVideoStep,
+} from "@/features/mentor/utils/validation";
 import type { MentorSettingsFormData } from "../types/mentorSettings";
 import { initialMentorSettingsFormData } from "../types/mentorSettings";
 import type { MentorSettingsSection } from "../types/mentorSettings";
@@ -25,6 +31,20 @@ export function useMentorSettings() {
     useState<MentorSettingsSection | null>(null);
   const [formData, setFormData] = useState<MentorSettingsFormData>(
     initialMentorSettingsFormData
+  );
+
+  const syncUsersProfile = useCallback(
+    async (patch: Record<string, string | null>) => {
+      if (!user) return { ok: false };
+
+      const { error } = await supabase
+        .from("users")
+        .update(patch)
+        .eq("id", user.id);
+
+      return { ok: !error };
+    },
+    [supabase, user]
   );
 
   const fetchMentorSettings = useCallback(async () => {
@@ -245,6 +265,172 @@ export function useMentorSettings() {
     }
   }, [formData.about, mentorId, supabase, user]);
 
+  const saveEducation = useCallback(async (): Promise<SaveResult> => {
+    if (!mentorId) return { ok: false, message: "Mentor profile not found" };
+
+    setSavingSection("education");
+    try {
+      const { error } = await supabase
+        .from("mentors")
+        .update({
+          has_no_degree: formData.education.hasNoDegree,
+          university: formData.education.university || null,
+          degree: formData.education.degree || null,
+          degree_type: formData.education.degreeType,
+          specialization: formData.education.specialization || null,
+        })
+        .eq("id", mentorId);
+
+      if (error) return { ok: false, message: "Failed to save education" };
+      return { ok: true, message: "Saved" };
+    } catch {
+      return { ok: false, message: "Unexpected error" };
+    } finally {
+      setSavingSection(null);
+    }
+  }, [formData.education, mentorId, supabase]);
+
+  const saveDescription = useCallback(async (): Promise<SaveResult> => {
+    if (!mentorId) return { ok: false, message: "Mentor profile not found" };
+
+    const errors = validateDescriptionStep(formData.description);
+    if (Object.keys(errors).length > 0) {
+      return { ok: false, message: Object.values(errors)[0] ?? "Validation failed" };
+    }
+
+    setSavingSection("description");
+    try {
+      const { error } = await supabase
+        .from("mentors")
+        .update({
+          introduction: formData.description.introduction,
+          work_experience: formData.description.workExperience,
+          motivation: formData.description.motivation,
+          headline: formData.description.headline,
+        })
+        .eq("id", mentorId);
+
+      if (error) return { ok: false, message: "Failed to save description" };
+      return { ok: true, message: "Saved" };
+    } catch {
+      return { ok: false, message: "Unexpected error" };
+    } finally {
+      setSavingSection(null);
+    }
+  }, [formData.description, mentorId, supabase]);
+
+  const saveVideo = useCallback(async (): Promise<SaveResult> => {
+    if (!mentorId) return { ok: false, message: "Mentor profile not found" };
+
+    const errors = validateVideoStep(formData.video);
+    if (Object.keys(errors).length > 0) {
+      return { ok: false, message: Object.values(errors)[0] ?? "Validation failed" };
+    }
+
+    setSavingSection("video");
+    try {
+      const { error } = await supabase
+        .from("mentors")
+        .update({
+          video_url: formData.video.videoUrl || null,
+        })
+        .eq("id", mentorId);
+
+      if (error) return { ok: false, message: "Failed to save video URL" };
+      return { ok: true, message: "Saved" };
+    } catch {
+      return { ok: false, message: "Unexpected error" };
+    } finally {
+      setSavingSection(null);
+    }
+  }, [formData.video, mentorId, supabase]);
+
+  const saveAvailability = useCallback(async (): Promise<SaveResult> => {
+    if (!mentorId) return { ok: false, message: "Mentor profile not found" };
+
+    const errors = validateAvailabilityStep(formData.availability);
+    if (Object.keys(errors).length > 0) {
+      return { ok: false, message: Object.values(errors)[0] ?? "Validation failed" };
+    }
+
+    setSavingSection("availability");
+    try {
+      const { error: mentorUpdateError } = await supabase
+        .from("mentors")
+        .update({ timezone: formData.availability.timezone })
+        .eq("id", mentorId);
+
+      if (mentorUpdateError) {
+        return { ok: false, message: "Failed to save timezone" };
+      }
+
+      const { error: deleteError } = await supabase
+        .from("mentor_availability")
+        .delete()
+        .eq("mentor_id", mentorId);
+
+      if (deleteError) {
+        return { ok: false, message: "Failed to replace availability" };
+      }
+
+      if (formData.availability.slots.length > 0) {
+        const { error: insertError } = await supabase
+          .from("mentor_availability")
+          .insert(
+            formData.availability.slots.map((slot) => ({
+              mentor_id: mentorId,
+              day_of_week: slot.dayOfWeek,
+              start_time: slot.startTime,
+              end_time: slot.endTime,
+              is_enabled: slot.isEnabled,
+            }))
+          );
+
+        if (insertError) {
+          return { ok: false, message: "Failed to replace availability" };
+        }
+      }
+
+      const synced = await syncUsersProfile({
+        timezone: formData.availability.timezone,
+      });
+
+      if (!synced.ok) {
+        return { ok: false, message: "Failed to sync timezone to users" };
+      }
+
+      return { ok: true, message: "Saved" };
+    } catch {
+      return { ok: false, message: "Unexpected error" };
+    } finally {
+      setSavingSection(null);
+    }
+  }, [formData.availability, mentorId, supabase, syncUsersProfile]);
+
+  const savePricing = useCallback(async (): Promise<SaveResult> => {
+    if (!mentorId) return { ok: false, message: "Mentor profile not found" };
+
+    const errors = validatePricingStep(formData.pricing);
+    if (Object.keys(errors).length > 0) {
+      return { ok: false, message: Object.values(errors)[0] ?? "Validation failed" };
+    }
+
+    setSavingSection("pricing");
+    try {
+      const { error } = await supabase
+        .from("mentors")
+        .update({ hourly_rate: formData.pricing.hourlyRate })
+        .eq("id", mentorId);
+
+      if (error) return { ok: false, message: "Failed to save pricing" };
+      return { ok: true, message: "Saved" };
+    } catch {
+      return { ok: false, message: "Unexpected error" };
+    } finally {
+      setSavingSection(null);
+    }
+  }, [formData.pricing, mentorId, supabase]);
+
   useEffect(() => {
     fetchMentorSettings();
   }, [fetchMentorSettings]);
@@ -257,6 +443,11 @@ export function useMentorSettings() {
     formData,
     setFormData,
     saveAbout,
+    saveEducation,
+    saveDescription,
+    saveVideo,
+    saveAvailability,
+    savePricing,
     refetch: fetchMentorSettings,
   };
 }

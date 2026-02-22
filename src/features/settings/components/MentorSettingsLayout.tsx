@@ -7,6 +7,11 @@ import type { MentorSettingsSection } from "../types/mentorSettings";
 import { useMentorSettings } from "../hooks/useMentorSettings";
 import { AboutSection } from "./mentor-sections/AboutSection";
 import { PhotoSection } from "./mentor-sections/PhotoSection";
+import { EducationSection } from "./mentor-sections/EducationSection";
+import { DescriptionSection } from "./mentor-sections/DescriptionSection";
+import { VideoSection } from "./mentor-sections/VideoSection";
+import { AvailabilitySection } from "./mentor-sections/AvailabilitySection";
+import { PricingSection } from "./mentor-sections/PricingSection";
 
 const SECTION_TITLES: Record<MentorSettingsSection, string> = {
   about: "About",
@@ -27,16 +32,48 @@ export function MentorSettingsLayout() {
     savingSection,
     setFormData,
     saveAbout,
+    saveEducation,
+    saveDescription,
+    saveVideo,
+    saveAvailability,
+    savePricing,
   } = useMentorSettings();
   const [activeSection, setActiveSection] =
     useState<MentorSettingsSection>("about");
-  const [aboutMessage, setAboutMessage] = useState<string | null>(null);
+  const [sectionMessage, setSectionMessage] = useState<
+    Partial<Record<MentorSettingsSection, string>>
+  >({});
 
   const title = SECTION_TITLES[activeSection];
 
   const saveAboutSection = async () => {
     const result = await saveAbout();
-    setAboutMessage(result.message);
+    setSectionMessage((prev) => ({ ...prev, about: result.message }));
+  };
+
+  const saveEducationSection = async () => {
+    const result = await saveEducation();
+    setSectionMessage((prev) => ({ ...prev, education: result.message }));
+  };
+
+  const saveDescriptionSection = async () => {
+    const result = await saveDescription();
+    setSectionMessage((prev) => ({ ...prev, description: result.message }));
+  };
+
+  const saveVideoSection = async () => {
+    const result = await saveVideo();
+    setSectionMessage((prev) => ({ ...prev, video: result.message }));
+  };
+
+  const saveAvailabilitySection = async () => {
+    const result = await saveAvailability();
+    setSectionMessage((prev) => ({ ...prev, availability: result.message }));
+  };
+
+  const savePricingSection = async () => {
+    const result = await savePricing();
+    setSectionMessage((prev) => ({ ...prev, pricing: result.message }));
   };
 
   return (
@@ -60,7 +97,7 @@ export function MentorSettingsLayout() {
               <AboutSection
                 data={formData.about}
                 saving={savingSection === "about"}
-                message={aboutMessage}
+                message={sectionMessage.about ?? null}
                 onChange={(patch) => {
                   setFormData((prev) => ({
                     ...prev,
@@ -79,6 +116,71 @@ export function MentorSettingsLayout() {
                     photo: { avatarUrl: url },
                   }));
                 }}
+              />
+            ) : activeSection === "education" ? (
+              <EducationSection
+                data={formData.education}
+                saving={savingSection === "education"}
+                message={sectionMessage.education ?? null}
+                onChange={(patch) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    education: { ...prev.education, ...patch },
+                  }));
+                }}
+                onSave={saveEducationSection}
+              />
+            ) : activeSection === "description" ? (
+              <DescriptionSection
+                data={formData.description}
+                saving={savingSection === "description"}
+                message={sectionMessage.description ?? null}
+                onChange={(patch) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    description: { ...prev.description, ...patch },
+                  }));
+                }}
+                onSave={saveDescriptionSection}
+              />
+            ) : activeSection === "video" ? (
+              <VideoSection
+                data={formData.video}
+                saving={savingSection === "video"}
+                message={sectionMessage.video ?? null}
+                onChange={(patch) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    video: { ...prev.video, ...patch },
+                  }));
+                }}
+                onSave={saveVideoSection}
+              />
+            ) : activeSection === "availability" ? (
+              <AvailabilitySection
+                data={formData.availability}
+                saving={savingSection === "availability"}
+                message={sectionMessage.availability ?? null}
+                onChange={(patch) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    availability: { ...prev.availability, ...patch },
+                  }));
+                }}
+                onSave={saveAvailabilitySection}
+              />
+            ) : activeSection === "pricing" ? (
+              <PricingSection
+                data={formData.pricing}
+                saving={savingSection === "pricing"}
+                message={sectionMessage.pricing ?? null}
+                onChange={(patch) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    pricing: { ...prev.pricing, ...patch },
+                  }));
+                }}
+                onSave={savePricingSection}
               />
             ) : (
               <p className="text-sm text-[#606579]">
