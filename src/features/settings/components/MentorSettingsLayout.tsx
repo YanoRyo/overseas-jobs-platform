@@ -1,10 +1,12 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { MentorTopTabs } from "./MentorTopTabs";
 import { MentorSettingsNav } from "./MentorSettingsNav";
 import type { MentorSettingsSection } from "../types/mentorSettings";
 import { useMentorSettings } from "../hooks/useMentorSettings";
+import { AboutSection } from "./mentor-sections/AboutSection";
+import { PhotoSection } from "./mentor-sections/PhotoSection";
 
 const SECTION_TITLES: Record<MentorSettingsSection, string> = {
   about: "About",
@@ -17,26 +19,25 @@ const SECTION_TITLES: Record<MentorSettingsSection, string> = {
 };
 
 export function MentorSettingsLayout() {
-  const { loading, fetchError, formData } = useMentorSettings();
+  const {
+    loading,
+    fetchError,
+    mentorId,
+    formData,
+    savingSection,
+    setFormData,
+    saveAbout,
+  } = useMentorSettings();
   const [activeSection, setActiveSection] =
     useState<MentorSettingsSection>("about");
+  const [aboutMessage, setAboutMessage] = useState<string | null>(null);
 
-  const title = useMemo(() => SECTION_TITLES[activeSection], [activeSection]);
+  const title = SECTION_TITLES[activeSection];
 
-  const previewText = useMemo(() => {
-    if (activeSection === "about") {
-      return `${formData.about.firstName} ${formData.about.lastName}`.trim();
-    }
-    if (activeSection === "description") {
-      return formData.description.headline.trim();
-    }
-    if (activeSection === "pricing") {
-      return formData.pricing.hourlyRate > 0
-        ? `$${formData.pricing.hourlyRate}`
-        : "";
-    }
-    return "";
-  }, [activeSection, formData]);
+  const saveAboutSection = async () => {
+    const result = await saveAbout();
+    setAboutMessage(result.message);
+  };
 
   return (
     <div className="min-h-screen bg-[#fafafb]">
@@ -55,10 +56,33 @@ export function MentorSettingsLayout() {
               <p className="text-sm text-[#606579]">Loading profile...</p>
             ) : fetchError ? (
               <p className="text-sm text-[#c32a68]">{fetchError}</p>
+            ) : activeSection === "about" ? (
+              <AboutSection
+                data={formData.about}
+                saving={savingSection === "about"}
+                message={aboutMessage}
+                onChange={(patch) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    about: { ...prev.about, ...patch },
+                  }));
+                }}
+                onSave={saveAboutSection}
+              />
+            ) : activeSection === "photo" ? (
+              <PhotoSection
+                mentorId={mentorId}
+                avatarUrl={formData.photo.avatarUrl}
+                onSaved={(url) => {
+                  setFormData((prev) => ({
+                    ...prev,
+                    photo: { avatarUrl: url },
+                  }));
+                }}
+              />
             ) : (
               <p className="text-sm text-[#606579]">
                 このセクションの編集フォームは次のコミットで実装します。
-                {previewText ? ` 現在値: ${previewText}` : ""}
               </p>
             )}
           </div>

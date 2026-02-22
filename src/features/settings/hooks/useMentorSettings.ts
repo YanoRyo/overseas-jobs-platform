@@ -2,10 +2,17 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
+import { validateAboutStep } from "@/features/mentor/utils/validation";
 import type { MentorSettingsFormData } from "../types/mentorSettings";
 import { initialMentorSettingsFormData } from "../types/mentorSettings";
+import type { MentorSettingsSection } from "../types/mentorSettings";
 
 const NO_ROWS_ERROR_CODE = "PGRST116";
+
+type SaveResult = {
+  ok: boolean;
+  message: string;
+};
 
 export function useMentorSettings() {
   const supabase = useSupabaseClient();
@@ -14,6 +21,8 @@ export function useMentorSettings() {
   const [loading, setLoading] = useState(true);
   const [mentorId, setMentorId] = useState<string | null>(null);
   const [fetchError, setFetchError] = useState<string | null>(null);
+  const [savingSection, setSavingSection] =
+    useState<MentorSettingsSection | null>(null);
   const [formData, setFormData] = useState<MentorSettingsFormData>(
     initialMentorSettingsFormData
   );
@@ -124,6 +133,118 @@ export function useMentorSettings() {
     setLoading(false);
   }, [supabase, user]);
 
+  const saveAbout = useCallback(async (): Promise<SaveResult> => {
+    if (!mentorId || !user) {
+      return { ok: false, message: "Mentor profile not found" };
+    }
+
+    const errors = validateAboutStep({
+      firstName: formData.about.firstName,
+      lastName: formData.about.lastName,
+      email: formData.about.email,
+      countryCode: formData.about.countryCode,
+      phoneCountryCode: formData.about.phoneCountryCode,
+      phoneNumber: formData.about.phoneNumber,
+      expertise: formData.about.expertise,
+      languages: formData.about.languages,
+    });
+
+    if (Object.keys(errors).length > 0) {
+      return {
+        ok: false,
+        message: Object.values(errors)[0] ?? "Validation failed",
+      };
+    }
+
+    setSavingSection("about");
+    try {
+      const { error: mentorError } = await supabase
+        .from("mentors")
+        .update({
+          first_name: formData.about.firstName,
+          last_name: formData.about.lastName,
+          email: formData.about.email,
+          country_code: formData.about.countryCode,
+          phone_country_code: formData.about.phoneCountryCode,
+          phone_number: formData.about.phoneNumber,
+        })
+        .eq("id", mentorId);
+
+      if (mentorError) {
+        return { ok: false, message: "Failed to save profile" };
+      }
+
+      const { error: deleteLanguageError } = await supabase
+        .from("mentor_languages")
+        .delete()
+        .eq("mentor_id", mentorId);
+
+      if (deleteLanguageError) {
+        return { ok: false, message: "Failed to replace languages" };
+      }
+
+      const languageRows = formData.about.languages
+        .filter((item) => item.languageCode)
+        .map((item) => ({
+          mentor_id: mentorId,
+          language_code: item.languageCode,
+          language_name: item.languageName,
+          proficiency_level: item.proficiencyLevel,
+        }));
+
+      if (languageRows.length > 0) {
+        const { error: insertLanguageError } = await supabase
+          .from("mentor_languages")
+          .insert(languageRows);
+        if (insertLanguageError) {
+          return { ok: false, message: "Failed to replace languages" };
+        }
+      }
+
+      const { error: deleteExpertiseError } = await supabase
+        .from("mentor_expertise")
+        .delete()
+        .eq("mentor_id", mentorId);
+
+      if (deleteExpertiseError) {
+        return { ok: false, message: "Failed to replace expertise" };
+      }
+
+      const expertiseRows = formData.about.expertise.map((item) => ({
+        mentor_id: mentorId,
+        expertise: item,
+      }));
+      if (expertiseRows.length > 0) {
+        const { error: insertExpertiseError } = await supabase
+          .from("mentor_expertise")
+          .insert(expertiseRows);
+        if (insertExpertiseError) {
+          return { ok: false, message: "Failed to replace expertise" };
+        }
+      }
+
+      const { error: userError } = await supabase
+        .from("users")
+        .update({
+          first_name: formData.about.firstName,
+          last_name: formData.about.lastName,
+          phone_country_code: formData.about.phoneCountryCode,
+          phone_number: formData.about.phoneNumber,
+        })
+        .eq("id", user.id);
+
+      if (userError) {
+        return { ok: false, message: "Failed to sync user profile" };
+      }
+
+      return { ok: true, message: "Saved" };
+    } catch {
+      return { ok: false, message: "Unexpected error" };
+    } finally {
+      setSavingSection(null);
+    }
+  }, [formData.about, mentorId, supabase, user]);
+
   useEffect(() => {
     fetchMentorSettings();
   }, [fetchMentorSettings]);
@@ -132,8 +253,10 @@ export function useMentorSettings() {
     loading,
     mentorId,
     fetchError,
+    savingSection,
     formData,
     setFormData,
+    saveAbout,
     refetch: fetchMentorSettings,
   };
 }
