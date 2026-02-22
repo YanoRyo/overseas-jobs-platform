@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+
 const TABS = ["Home", "Messages", "My lessons", "Learn", "Settings"] as const;
 
 export function MentorTopTabs() {
@@ -8,6 +10,7 @@ export function MentorTopTabs() {
       <div className="flex h-14 items-end gap-8 px-6">
         {TABS.map((tab) => {
           const active = tab === "Settings";
+          const isHome = tab === "Home";
           return (
             <div
               key={tab}
@@ -15,7 +18,13 @@ export function MentorTopTabs() {
                 active ? "text-[#1f1f2d]" : "text-[#52576a]"
               }`}
             >
-              {tab}
+              {isHome ? (
+                <Link href="/" className="hover:text-[#1f1f2d]">
+                  {tab}
+                </Link>
+              ) : (
+                tab
+              )}
               {active && (
                 <span className="absolute inset-x-0 -bottom-px h-[3px] bg-[#2563eb]" />
               )}
