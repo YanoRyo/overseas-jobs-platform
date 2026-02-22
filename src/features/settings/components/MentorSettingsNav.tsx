@@ -19,7 +19,7 @@ type Props = {
 
 export function MentorSettingsNav({ active, onChange }: Props) {
   return (
-    <nav className="w-56">
+    <nav className="mt-4 w-56">
       <ul className="space-y-3">
         {SECTIONS.map((section) => {
           const selected = section.id === active;
@@ -28,7 +28,7 @@ export function MentorSettingsNav({ active, onChange }: Props) {
               <button
                 type="button"
                 onClick={() => onChange(section.id)}
-                className={`relative w-full pl-4 text-left text-sm font-medium transition ${
+                className={`relative w-full pl-4 text-left text-[18px] font-medium transition ${
                   selected ? "text-[#1f1f2d]" : "text-[#52576a] hover:text-[#1f1f2d]"
                 }`}
               >

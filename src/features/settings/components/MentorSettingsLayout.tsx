@@ -80,11 +80,11 @@ export function MentorSettingsLayout() {
     <div className="min-h-screen bg-[#fafafb]">
       <MentorTopTabs />
 
-      <main className="mx-auto flex max-w-[1200px] gap-16 px-6 py-12">
+      <main className="mx-auto flex max-w-[1200px] gap-16 px-6 py-10">
         <MentorSettingsNav active={activeSection} onChange={setActiveSection} />
 
         <section className="min-h-[520px] w-full max-w-[680px]">
-          <h1 className="mb-6 text-[48px] text-5xl font-bold tracking-[-0.02em] text-[#1f1f2d]">
+          <h1 className="mb-6 text-[48px] font-bold tracking-[-0.02em] text-[#1f1f2d]">
             {title}
           </h1>
 

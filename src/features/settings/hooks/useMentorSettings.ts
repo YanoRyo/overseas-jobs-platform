@@ -158,6 +158,21 @@ export function useMentorSettings() {
       return { ok: false, message: "Mentor profile not found" };
     }
 
+    const normalizedExpertise = [
+      ...new Set(
+        formData.about.expertise
+          .map((item) => item.trim())
+          .filter((item) => item.length > 0)
+      ),
+    ];
+    const normalizedLanguages = formData.about.languages
+      .map((item) => ({
+        ...item,
+        languageCode: item.languageCode.trim(),
+        languageName: item.languageName.trim(),
+      }))
+      .filter((item) => item.languageCode.length > 0);
+
     const errors = validateAboutStep({
       firstName: formData.about.firstName,
       lastName: formData.about.lastName,
@@ -165,8 +180,11 @@ export function useMentorSettings() {
       countryCode: formData.about.countryCode,
       phoneCountryCode: formData.about.phoneCountryCode,
       phoneNumber: formData.about.phoneNumber,
-      expertise: formData.about.expertise,
-      languages: formData.about.languages,
+      expertise: normalizedExpertise,
+      languages:
+        normalizedLanguages.length > 0
+          ? normalizedLanguages
+          : formData.about.languages,
     });
 
     if (Object.keys(errors).length > 0) {
@@ -203,9 +221,7 @@ export function useMentorSettings() {
         return { ok: false, message: "Failed to replace languages" };
       }
 
-      const languageRows = formData.about.languages
-        .filter((item) => item.languageCode)
-        .map((item) => ({
+      const languageRows = normalizedLanguages.map((item) => ({
           mentor_id: mentorId,
           language_code: item.languageCode,
           language_name: item.languageName,
@@ -230,7 +246,7 @@ export function useMentorSettings() {
         return { ok: false, message: "Failed to replace expertise" };
       }
 
-      const expertiseRows = formData.about.expertise.map((item) => ({
+      const expertiseRows = normalizedExpertise.map((item) => ({
         mentor_id: mentorId,
         expertise: item,
       }));
@@ -256,6 +272,18 @@ export function useMentorSettings() {
       if (userError) {
         return { ok: false, message: "Failed to sync user profile" };
       }
+
+      setFormData((prev) => ({
+        ...prev,
+        about: {
+          ...prev.about,
+          expertise: normalizedExpertise,
+          languages:
+            normalizedLanguages.length > 0
+              ? normalizedLanguages
+              : prev.about.languages,
+        },
+      }));
 
       return { ok: true, message: "Saved" };
     } catch {
