@@ -31,7 +31,7 @@ export function PricingSection({ data, saving, message, onChange, onSave }: Prop
           type="button"
           onClick={onSave}
           disabled={saving}
-          className="h-11 w-full rounded-[10px] border-2 border-[#1f1f2d] bg-[#ff77ad] text-lg font-semibold text-[#111318] disabled:opacity-60"
+          className="h-11 w-full rounded-[10px] border-2 border-[#1d4ed8] bg-[#2563eb] text-lg font-semibold text-white disabled:opacity-60"
         >
           {saving ? "Saving..." : "Save changes"}
         </button>

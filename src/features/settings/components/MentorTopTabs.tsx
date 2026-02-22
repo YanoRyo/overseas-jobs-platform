@@ -5,7 +5,7 @@ const TABS = ["Home", "Messages", "My lessons", "Learn", "Settings"] as const;
 export function MentorTopTabs() {
   return (
     <div className="border-b border-[#e6e7eb] bg-white">
-      <div className="mx-auto flex h-14 max-w-[1200px] items-end gap-8 px-6">
+      <div className="flex h-14 items-end gap-8 px-6">
         {TABS.map((tab) => {
           const active = tab === "Settings";
           return (
@@ -17,7 +17,7 @@ export function MentorTopTabs() {
             >
               {tab}
               {active && (
-                <span className="absolute inset-x-0 -bottom-px h-[3px] bg-[#ff6ea9]" />
+                <span className="absolute inset-x-0 -bottom-px h-[3px] bg-[#2563eb]" />
               )}
             </div>
           );
