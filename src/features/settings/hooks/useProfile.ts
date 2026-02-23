@@ -12,32 +12,38 @@ export function useProfile() {
   const [loading, setLoading] = useState(true);
 
   const fetchProfile = useCallback(async () => {
-    if (!user) {
-      setProfile(null);
-      setLoading(false);
-      return;
-    }
-
     setLoading(true);
-    const { data, error } = await supabase
-      .from("users")
-      .select(
-        "id, username, first_name, last_name, avatar_url, avatar_updated_at, phone_country_code, phone_number, timezone"
-      )
-      .eq("id", user.id)
-      .maybeSingle();
 
-    if (error) {
-      console.error("fetchProfile error", error);
+    try {
+      if (!user) {
+        setProfile(null);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from("users")
+        .select(
+          "id, username, first_name, last_name, avatar_url, avatar_updated_at, phone_country_code, phone_number, timezone"
+        )
+        .eq("id", user.id)
+        .maybeSingle();
+
+      if (error) {
+        console.error("fetchProfile error", error);
+        setProfile(null);
+      } else {
+        setProfile((data as Profile) ?? null);
+      }
+    } catch (error) {
+      console.error("fetchProfile unexpected error", error);
       setProfile(null);
-    } else {
-      setProfile((data as Profile) ?? null);
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   }, [supabase, user]);
 
   useEffect(() => {
-    fetchProfile();
+    void fetchProfile();
   }, [fetchProfile]);
 
   const updateProfile = useCallback(
