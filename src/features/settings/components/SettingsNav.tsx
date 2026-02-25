@@ -7,21 +7,28 @@ export function SettingsNav({
   active: "account";
   onChange: (v: "account") => void;
 }) {
-  return (
-    <nav className="w-64 flex-shrink-0">
-      <div className="text-sm font-semibold text-gray-900 mb-4">Settings</div>
+  const selected = active === "account";
 
-      <button
-        type="button"
-        onClick={() => onChange("account")}
-        className={`w-full text-left px-3 py-2 rounded-lg text-sm ${
-          active === "account"
-            ? "bg-gray-100 font-semibold"
-            : "hover:bg-gray-50 text-gray-700"
-        }`}
-      >
-        Account
-      </button>
+  return (
+    <nav className="mt-4 w-56">
+      <ul className="space-y-3">
+        <li>
+          <button
+            type="button"
+            onClick={() => onChange("account")}
+            className={`relative w-full pl-4 text-left text-[18px] font-medium transition ${
+              selected
+                ? "text-[#1f1f2d]"
+                : "text-[#52576a] hover:text-[#1f1f2d]"
+            }`}
+          >
+            {selected && (
+              <span className="absolute left-0 top-1/2 h-7 w-[3px] -translate-y-1/2 bg-[#2563eb]" />
+            )}
+            Account
+          </button>
+        </li>
+      </ul>
     </nav>
   );
 }

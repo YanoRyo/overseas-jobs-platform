@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useProfile } from "../hooks/useProfile";
 import { SettingsNav } from "./SettingsNav";
 import { AccountSettings } from "./AccountSettings";
+import { SettingsTopTabs } from "./SettingsTopTabs";
 
 export function SettingsLayout() {
   const router = useRouter();
@@ -34,11 +35,15 @@ export function SettingsLayout() {
   if (!user) return null;
 
   return (
-    <div className="max-w-6xl mx-auto px-6 py-10">
-      <div className="flex gap-10">
+    <div className="min-h-screen bg-[#fafafb]">
+      <SettingsTopTabs role="student" activeTabId="settings" />
+
+      <main className="mx-auto flex max-w-[1200px] gap-16 px-6 py-10">
         <SettingsNav active={active} onChange={setActive} />
-        {active === "account" && <AccountSettings />}
-      </div>
+        <section className="w-full max-w-[760px]">
+          {active === "account" && <AccountSettings />}
+        </section>
+      </main>
     </div>
   );
 }

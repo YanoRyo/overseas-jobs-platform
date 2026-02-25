@@ -207,17 +207,17 @@ export function AccountSettings() {
           </select>
 
           {/* 保存 */}
-          <div className="flex items-center gap-3">
+          <div className="space-y-2">
             <button
               type="button"
               onClick={onSave}
               disabled={!canEdit || saving}
-              className="px-5 py-2 rounded-lg bg-black text-white text-sm font-semibold disabled:opacity-50"
+              className="h-11 w-full rounded-[10px] border-2 border-[#1d4ed8] bg-[#2563eb] text-lg font-semibold text-white disabled:opacity-60"
             >
-              {saving ? "Saving..." : "Save Changes"}
+              {saving ? "Saving..." : "Save changes"}
             </button>
 
-            {msg && <div className="text-sm text-gray-600">{msg}</div>}
+            {msg && <div className="text-sm text-[#606579]">{msg}</div>}
           </div>
         </div>
       </div>
