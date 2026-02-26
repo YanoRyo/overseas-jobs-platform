@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import { MentorTopTabs } from "./MentorTopTabs";
 import { MentorSettingsNav } from "./MentorSettingsNav";
 import type { MentorSettingsSection } from "../types/mentorSettings";
 import { useMentorSettings } from "../hooks/useMentorSettings";
@@ -12,6 +11,7 @@ import { DescriptionSection } from "./mentor-sections/DescriptionSection";
 import { VideoSection } from "./mentor-sections/VideoSection";
 import { AvailabilitySection } from "./mentor-sections/AvailabilitySection";
 import { PricingSection } from "./mentor-sections/PricingSection";
+import { SettingsTopTabs } from "./SettingsTopTabs";
 
 const SECTION_TITLES: Record<MentorSettingsSection, string> = {
   about: "About",
@@ -78,7 +78,7 @@ export function MentorSettingsLayout() {
 
   return (
     <div className="min-h-screen bg-[#fafafb]">
-      <MentorTopTabs />
+      <SettingsTopTabs role="mentor" activeTabId="settings" />
 
       <main className="mx-auto flex max-w-[1200px] gap-16 px-6 py-10">
         <MentorSettingsNav active={activeSection} onChange={setActiveSection} />
