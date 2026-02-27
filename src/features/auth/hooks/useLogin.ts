@@ -4,6 +4,10 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useOAuthSignIn } from "./useOAuthSignIn";
 import type { UserRole } from "../types";
+import {
+  isEmailNotConfirmedError,
+  toResendErrorMessage,
+} from "../utils/authError";
 
 type UseLoginOptions = {
   initialRole?: UserRole;
@@ -27,6 +31,9 @@ export const useLogin = (options?: UseLoginOptions) => {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [needsEmailVerification, setNeedsEmailVerification] = useState(false);
+  const [resendLoading, setResendLoading] = useState(false);
+  const [resendMessage, setResendMessage] = useState<string | null>(null);
   const { role, setRole, signInWithGoogle, signInWithFacebook } =
     useOAuthSignIn({
       redirect: redirectPath,
@@ -38,6 +45,8 @@ export const useLogin = (options?: UseLoginOptions) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setNeedsEmailVerification(false);
+    setResendMessage(null);
 
     const { error } = await supabase.auth.signInWithPassword({
       email,
@@ -46,6 +55,11 @@ export const useLogin = (options?: UseLoginOptions) => {
     setLoading(false);
 
     if (error) {
+      if (isEmailNotConfirmedError(error)) {
+        setError("Please verify your email before logging in.");
+        setNeedsEmailVerification(true);
+        return;
+      }
       setError(error.message);
       return;
     }
@@ -53,16 +67,49 @@ export const useLogin = (options?: UseLoginOptions) => {
     router.push(redirectPath);
   };
 
+  const handleResendVerification = async () => {
+    if (!email) {
+      setResendMessage("Please enter your email address.");
+      return;
+    }
+
+    setResendLoading(true);
+    setResendMessage(null);
+
+    const { error } = await supabase.auth.resend({
+      type: "signup",
+      email,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+      },
+    });
+
+    if (error) {
+      setResendMessage(toResendErrorMessage(error));
+      setResendLoading(false);
+      return;
+    }
+
+    setResendMessage(
+      "If your account exists, a verification email has been sent."
+    );
+    setResendLoading(false);
+  };
+
   return {
     email,
     password,
     loading,
     error,
+    needsEmailVerification,
+    resendLoading,
+    resendMessage,
     role,
     setEmail,
     setPassword,
     setRole,
     handleSubmit,
+    handleResendVerification,
     handleGoogleLogin: signInWithGoogle,
     handleFacebookLogin: signInWithFacebook,
   };

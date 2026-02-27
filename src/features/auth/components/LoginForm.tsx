@@ -18,11 +18,15 @@ export const LoginForm = () => {
     password,
     loading,
     error,
+    needsEmailVerification,
+    resendLoading,
+    resendMessage,
     role,
     setEmail,
     setPassword,
     setRole,
     handleSubmit,
+    handleResendVerification,
     handleGoogleLogin,
     handleFacebookLogin,
   } = useLogin();
@@ -58,6 +62,24 @@ export const LoginForm = () => {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {error && <p className="text-sm text-error">{error}</p>}
+          {needsEmailVerification && (
+            <div className="space-y-2 rounded-xl border border-border bg-surface px-4 py-3">
+              <p className="text-xs text-secondary">
+                Need a new verification email?
+              </p>
+              <button
+                type="button"
+                onClick={handleResendVerification}
+                disabled={resendLoading}
+                className="text-xs font-semibold text-accent hover:underline disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {resendLoading ? "Sending..." : "Resend verification email"}
+              </button>
+            </div>
+          )}
+          {resendMessage && (
+            <p className="text-xs text-secondary">{resendMessage}</p>
+          )}
           <div className="space-y-2">
             <label className="text-sm font-semibold text-primary">Email</label>
             <input
