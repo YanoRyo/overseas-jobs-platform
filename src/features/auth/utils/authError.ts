@@ -8,6 +8,8 @@ const EMAIL_NOT_CONFIRMED_CODES = new Set([
   "provider_email_needs_verification",
 ]);
 
+const RESEND_CANDIDATE_CODES = new Set(["invalid_credentials"]);
+
 export const isEmailNotConfirmedError = (error: AuthErrorLike | null) => {
   if (!error) return false;
 
@@ -20,6 +22,18 @@ export const isEmailNotConfirmedError = (error: AuthErrorLike | null) => {
     normalizedMessage.includes("email not confirmed") ||
     normalizedMessage.includes("email is not confirmed")
   );
+};
+
+export const shouldSuggestVerificationResend = (error: AuthErrorLike | null) => {
+  if (!error) return false;
+  if (isEmailNotConfirmedError(error)) return true;
+
+  if (error.code && RESEND_CANDIDATE_CODES.has(error.code)) {
+    return true;
+  }
+
+  const normalizedMessage = error.message?.toLowerCase() ?? "";
+  return normalizedMessage.includes("invalid login credentials");
 };
 
 export const toResendErrorMessage = (error: AuthErrorLike | null) => {

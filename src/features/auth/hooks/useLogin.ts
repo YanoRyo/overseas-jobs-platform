@@ -6,6 +6,7 @@ import { useOAuthSignIn } from "./useOAuthSignIn";
 import type { UserRole } from "../types";
 import {
   isEmailNotConfirmedError,
+  shouldSuggestVerificationResend,
   toResendErrorMessage,
 } from "../utils/authError";
 
@@ -60,6 +61,15 @@ export const useLogin = (options?: UseLoginOptions) => {
         setNeedsEmailVerification(true);
         return;
       }
+
+      if (shouldSuggestVerificationResend(error)) {
+        setError(
+          "Invalid login credentials. If you recently signed up, try resending the verification email."
+        );
+        setNeedsEmailVerification(true);
+        return;
+      }
+
       setError(error.message);
       return;
     }
