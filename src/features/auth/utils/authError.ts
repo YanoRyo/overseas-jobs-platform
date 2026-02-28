@@ -36,7 +36,9 @@ export const shouldSuggestVerificationResend = (error: AuthErrorLike | null) => 
   return normalizedMessage.includes("invalid login credentials");
 };
 
-export const toResendErrorMessage = (error: AuthErrorLike | null) => {
+export const toResendErrorMessage = (
+  error: AuthErrorLike | null,
+): string | null => {
   if (!error) return null;
 
   if (error.code === "over_email_send_rate_limit") {
@@ -44,4 +46,27 @@ export const toResendErrorMessage = (error: AuthErrorLike | null) => {
   }
 
   return "Could not resend the verification email. Please try again.";
+};
+
+const RESET_PASSWORD_ERROR_MESSAGES: Record<string, string> = {
+  same_password: "Please choose a different password.",
+  weak_password: "Please choose a stronger password.",
+};
+
+const RESET_PASSWORD_FALLBACK_MESSAGE =
+  "Could not update password. Please request a new reset link.";
+
+export const toResetPasswordErrorMessage = (
+  error: AuthErrorLike | null,
+): string | null => {
+  if (!error) return null;
+
+  if (error.code) {
+    return (
+      RESET_PASSWORD_ERROR_MESSAGES[error.code] ??
+      RESET_PASSWORD_FALLBACK_MESSAGE
+    );
+  }
+
+  return RESET_PASSWORD_FALLBACK_MESSAGE;
 };
