@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useUser } from "@supabase/auth-helpers-react";
 import { MentorSettingsNav } from "./MentorSettingsNav";
 import type { MentorSettingsSection } from "../types/mentorSettings";
 import { useMentorSettings } from "../hooks/useMentorSettings";
@@ -11,7 +12,9 @@ import { DescriptionSection } from "./mentor-sections/DescriptionSection";
 import { VideoSection } from "./mentor-sections/VideoSection";
 import { AvailabilitySection } from "./mentor-sections/AvailabilitySection";
 import { PricingSection } from "./mentor-sections/PricingSection";
+import { PasswordChangeSection } from "./PasswordChangeSection";
 import { SettingsTopTabs } from "./SettingsTopTabs";
+import { isEmailProvider } from "@/features/auth/utils/authProvider";
 
 const SECTION_TITLES: Record<MentorSettingsSection, string> = {
   about: "About",
@@ -21,9 +24,12 @@ const SECTION_TITLES: Record<MentorSettingsSection, string> = {
   video: "Video introduction",
   availability: "Availability",
   pricing: "Pricing",
+  password: "Password",
 };
 
 export function MentorSettingsLayout() {
+  const user = useUser();
+  const showPassword = isEmailProvider(user);
   const {
     loading,
     fetchError,
@@ -81,7 +87,7 @@ export function MentorSettingsLayout() {
       <SettingsTopTabs role="mentor" activeTabId="settings" />
 
       <main className="mx-auto flex max-w-[1200px] gap-16 px-6 py-10">
-        <MentorSettingsNav active={activeSection} onChange={setActiveSection} />
+        <MentorSettingsNav active={activeSection} onChange={setActiveSection} showPassword={showPassword} />
 
         <section className="min-h-[520px] w-full max-w-[680px]">
           <h1 className="mb-6 text-[48px] font-bold tracking-[-0.02em] text-[#1f1f2d]">
@@ -182,11 +188,9 @@ export function MentorSettingsLayout() {
                 }}
                 onSave={savePricingSection}
               />
-            ) : (
-              <p className="text-sm text-[#606579]">
-                このセクションの編集フォームは次のコミットで実装します。
-              </p>
-            )}
+            ) : activeSection === "password" ? (
+              <PasswordChangeSection />
+            ) : null}
           </div>
         </section>
       </main>

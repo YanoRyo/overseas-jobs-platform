@@ -48,25 +48,36 @@ export const toResendErrorMessage = (
   return "Could not resend the verification email. Please try again.";
 };
 
-const RESET_PASSWORD_ERROR_MESSAGES: Record<string, string> = {
+const PASSWORD_ERROR_MESSAGES: Record<string, string> = {
   same_password: "Please choose a different password.",
   weak_password: "Please choose a stronger password.",
 };
 
-const RESET_PASSWORD_FALLBACK_MESSAGE =
-  "Could not update password. Please request a new reset link.";
-
-export const toResetPasswordErrorMessage = (
+const toPasswordErrorMessage = (
   error: AuthErrorLike | null,
+  fallback: string,
 ): string | null => {
   if (!error) return null;
 
   if (error.code) {
-    return (
-      RESET_PASSWORD_ERROR_MESSAGES[error.code] ??
-      RESET_PASSWORD_FALLBACK_MESSAGE
-    );
+    return PASSWORD_ERROR_MESSAGES[error.code] ?? fallback;
   }
 
-  return RESET_PASSWORD_FALLBACK_MESSAGE;
+  return fallback;
 };
+
+export const toResetPasswordErrorMessage = (
+  error: AuthErrorLike | null,
+): string | null =>
+  toPasswordErrorMessage(
+    error,
+    "Could not update password. Please request a new reset link.",
+  );
+
+export const toChangePasswordErrorMessage = (
+  error: AuthErrorLike | null,
+): string | null =>
+  toPasswordErrorMessage(
+    error,
+    "Could not update password. Please try again.",
+  );

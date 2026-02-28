@@ -4,6 +4,7 @@ import {
   shouldSuggestVerificationResend,
   toResendErrorMessage,
   toResetPasswordErrorMessage,
+  toChangePasswordErrorMessage,
 } from "../authError";
 
 describe("isEmailNotConfirmedError", () => {
@@ -173,5 +174,53 @@ describe("toResetPasswordErrorMessage", () => {
     expect(toResetPasswordErrorMessage(error)).toBe(
       "Could not update password. Please request a new reset link."
     );
+  });
+});
+
+describe("toChangePasswordErrorMessage", () => {
+  test("should return null when error is null", () => {
+    expect(toChangePasswordErrorMessage(null)).toBeNull();
+  });
+
+  test("should return different password message when code is same_password", () => {
+    const error = { code: "same_password" };
+
+    expect(toChangePasswordErrorMessage(error)).toBe(
+      "Please choose a different password."
+    );
+  });
+
+  test("should return stronger password message when code is weak_password", () => {
+    const error = { code: "weak_password" };
+
+    expect(toChangePasswordErrorMessage(error)).toBe(
+      "Please choose a stronger password."
+    );
+  });
+
+  test("should return settings-specific fallback for unknown error codes", () => {
+    const error = { code: "unknown_error" };
+
+    expect(toChangePasswordErrorMessage(error)).toBe(
+      "Could not update password. Please try again."
+    );
+  });
+
+  test("should return settings-specific fallback when code is null", () => {
+    const error = { code: null };
+
+    expect(toChangePasswordErrorMessage(error)).toBe(
+      "Could not update password. Please try again."
+    );
+  });
+
+  test("should use different fallback than toResetPasswordErrorMessage", () => {
+    const error = { code: "some_unknown_code" };
+
+    const changeResult = toChangePasswordErrorMessage(error);
+    const resetResult = toResetPasswordErrorMessage(error);
+
+    expect(changeResult).not.toBe(resetResult);
+    expect(changeResult).not.toContain("reset link");
   });
 });
