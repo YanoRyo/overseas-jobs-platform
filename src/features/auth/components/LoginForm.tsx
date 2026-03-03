@@ -1,9 +1,11 @@
 "use client";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import { AUTH_INPUT_CLASS_NAME, AUTH_SUBMIT_BUTTON_CLASS_NAME } from "../constants/styles";
 import { useLogin } from "../hooks/useLogin";
 import { AuthShell } from "./AuthShell";
 import { AuthDivider } from "./AuthDivider";
+import { EmailVerificationAlert } from "./EmailVerificationAlert";
 import { RoleSelector } from "./RoleSelector";
 import { SocialAuthButtons } from "./SocialAuthButtons";
 
@@ -18,17 +20,18 @@ export const LoginForm = () => {
     password,
     loading,
     error,
+    needsEmailVerification,
+    resendLoading,
+    resendMessage,
     role,
     setEmail,
     setPassword,
     setRole,
     handleSubmit,
+    handleResendVerification,
     handleGoogleLogin,
     handleFacebookLogin,
   } = useLogin();
-
-  const inputClassName =
-    "w-full rounded-xl border border-border bg-white px-4 py-3 text-sm text-primary placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-blue-200";
 
   return (
     <AuthShell
@@ -58,11 +61,18 @@ export const LoginForm = () => {
 
         <form onSubmit={handleSubmit} className="space-y-5">
           {error && <p className="text-sm text-error">{error}</p>}
+          {needsEmailVerification && (
+            <EmailVerificationAlert
+              onResend={handleResendVerification}
+              resendLoading={resendLoading}
+              resendMessage={resendMessage}
+            />
+          )}
           <div className="space-y-2">
             <label className="text-sm font-semibold text-primary">Email</label>
             <input
               type="email"
-              className={inputClassName}
+              className={AUTH_INPUT_CLASS_NAME}
               placeholder="you@example.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -76,7 +86,7 @@ export const LoginForm = () => {
             </label>
             <input
               type="password"
-              className={inputClassName}
+              className={AUTH_INPUT_CLASS_NAME}
               placeholder="Your password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -96,7 +106,7 @@ export const LoginForm = () => {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-xl bg-accent py-3 text-sm font-semibold text-white transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
+            className={AUTH_SUBMIT_BUTTON_CLASS_NAME}
           >
             {loading ? "Logging in..." : "Log in"}
           </button>

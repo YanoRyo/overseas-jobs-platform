@@ -4,14 +4,17 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useProfile } from "../hooks/useProfile";
 import { SettingsNav } from "./SettingsNav";
+import type { SettingsTab } from "./SettingsNav";
 import { AccountSettings } from "./AccountSettings";
+import { PasswordChangeSection } from "./PasswordChangeSection";
 import { SettingsTopTabs } from "./SettingsTopTabs";
+import { isEmailProvider } from "@/features/auth/utils/authProvider";
 
 export function SettingsLayout() {
   const router = useRouter();
   const { user, loading } = useProfile();
 
-  const [active, setActive] = useState<"account">("account");
+  const [active, setActive] = useState<SettingsTab>("account");
 
   // user が復元されるまで一瞬待つ
   const [authChecked, setAuthChecked] = useState(false);
@@ -27,21 +30,36 @@ export function SettingsLayout() {
   }, [authChecked, user, router]);
 
   // authChecked になるまでは何も判定しない（チラつき防止）
-  if (!authChecked || loading) {
+  // NOTE: loading を条件に含めると、パスワード変更などで
+  // セッションリフレッシュが走った際にページ全体が Loading に戻ってしまうため、
+  // 初回ロード完了を示す authChecked のみで判定する
+  if (!authChecked) {
     return <div className="px-6 py-10 text-sm text-gray-400">Loading...</div>;
   }
 
   // 未ログインはリダイレクト中なので画面は出さない
   if (!user) return null;
 
+  const showPassword = isEmailProvider(user);
+
   return (
     <div className="min-h-screen bg-[#fafafb]">
       <SettingsTopTabs role="student" activeTabId="settings" />
 
       <main className="mx-auto flex max-w-[1200px] gap-16 px-6 py-10">
-        <SettingsNav active={active} onChange={setActive} />
+        <SettingsNav
+          active={active}
+          onChange={setActive}
+          showPassword={showPassword}
+        />
         <section className="w-full max-w-[760px]">
           {active === "account" && <AccountSettings />}
+          {active === "password" && (
+            <>
+              <h1 className="text-3xl font-bold mb-6">Change Password</h1>
+              <PasswordChangeSection />
+            </>
+          )}
         </section>
       </main>
     </div>

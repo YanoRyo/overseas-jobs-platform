@@ -11,7 +11,8 @@ export type MentorSettingsSection =
   | "description"
   | "video"
   | "availability"
-  | "pricing";
+  | "pricing"
+  | "password";
 
 export type MentorSettingsLanguage = {
   id: string;
