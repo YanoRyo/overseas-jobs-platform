@@ -46,6 +46,10 @@ export async function GET() {
     );
   }
 
+  if (payments.length === 0) {
+    return NextResponse.json({ payments: [] });
+  }
+
   // 関連するbookingとmentor情報を取得
   const bookingIds = [...new Set(payments.map((p) => p.booking_id))];
   const mentorIds = [...new Set(payments.map((p) => p.mentor_id))];

@@ -49,10 +49,21 @@ export async function POST() {
       accountId = account.id;
 
       // mentorsテーブルにstripe_account_idを保存
-      await adminDb
+      const { error: updateError } = await adminDb
         .from("mentors")
         .update({ stripe_account_id: accountId })
         .eq("id", mentor.id);
+
+      if (updateError) {
+        console.error(
+          `CRITICAL: Stripe account created (${accountId}) but DB update failed for mentor ${mentor.id}:`,
+          updateError
+        );
+        return NextResponse.json(
+          { error: "アカウント情報の保存に失敗しました" },
+          { status: 500 }
+        );
+      }
     }
 
     // オンボーディングURLを生成

@@ -34,7 +34,7 @@ export default function AdminPaymentsPage() {
   const fetchPayments = async () => {
     try {
       const res = await fetch("/api/admin/payments");
-      if (res.status === 403) {
+      if (res.status === 401 || res.status === 403) {
         router.push("/");
         return;
       }
