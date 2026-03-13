@@ -7,6 +7,7 @@ export const useCheckout = () => {
   const router = useRouter();
   const [reservation, setReservation] = useState<ReservationData | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [amountCents, setAmountCents] = useState<number | null>(null);
   const [paymentError, setPaymentError] = useState<string | null>(null);
   const [loadingPayment, setLoadingPayment] = useState(false);
 
@@ -58,6 +59,7 @@ export const useCheckout = () => {
           return;
         }
         setClientSecret(data.clientSecret);
+        setAmountCents(data.amount);
       } catch {
         setPaymentError("決済の初期化に失敗しました");
       } finally {
@@ -71,6 +73,7 @@ export const useCheckout = () => {
   return {
     reservation,
     clientSecret,
+    amountCents,
     paymentError,
     loadingPayment,
     router,

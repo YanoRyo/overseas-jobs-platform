@@ -117,10 +117,13 @@ export async function POST(request: Request) {
     }
 
     // bookings.status → 'completed'
-    await adminDb
+    const { error: bookingUpdateError } = await adminDb
       .from("bookings")
       .update({ status: "completed" })
       .eq("id", payment.booking_id);
+    if (bookingUpdateError) {
+      console.error("Failed to update booking status to completed:", bookingUpdateError);
+    }
 
     return NextResponse.json({ success: true, payoutId: payout.id });
   } catch (err) {

@@ -7,7 +7,7 @@ import { ReservationSummary } from "./ReservationSummary";
 import { PaymentSection } from "./PaymentSection";
 
 export const CheckoutLayout = () => {
-  const { reservation, clientSecret, paymentError, loadingPayment } =
+  const { reservation, clientSecret, amountCents, paymentError, loadingPayment } =
     useCheckout();
 
   if (!reservation) return null;
@@ -39,7 +39,7 @@ export const CheckoutLayout = () => {
               stripe={getStripe()}
               options={{ clientSecret }}
             >
-              <PaymentSection reservation={reservation} />
+              <PaymentSection amountCents={amountCents} />
             </Elements>
           ) : null}
         </div>

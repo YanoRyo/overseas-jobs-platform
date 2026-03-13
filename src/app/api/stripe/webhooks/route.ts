@@ -129,10 +129,13 @@ export async function POST(request: Request) {
       case "payout.failed": {
         const payout = event.data.object as Stripe.Payout;
         if (payout.id) {
-          const { error: payoutFailError } = await adminDb
+          // update と同時に payment_id を取得（1クエリで完結）
+          const { data: payoutRecord, error: payoutFailError } = await adminDb
             .from("payouts")
             .update({ status: "failed" })
-            .eq("stripe_payout_id", payout.id);
+            .eq("stripe_payout_id", payout.id)
+            .select("payment_id")
+            .single();
 
           if (payoutFailError) {
             console.error("Failed to update payout failure status:", payoutFailError);
@@ -140,11 +143,6 @@ export async function POST(request: Request) {
           }
 
           // bookings.statusをconfirmedに戻して管理者が再承認できるようにする
-          const { data: payoutRecord } = await adminDb
-            .from("payouts")
-            .select("payment_id")
-            .eq("stripe_payout_id", payout.id)
-            .single();
           if (payoutRecord) {
             const { data: payment } = await adminDb
               .from("payments")
@@ -152,10 +150,13 @@ export async function POST(request: Request) {
               .eq("id", payoutRecord.payment_id)
               .single();
             if (payment) {
-              await adminDb
+              const { error: bookingRevertError } = await adminDb
                 .from("bookings")
                 .update({ status: "confirmed" })
                 .eq("id", payment.booking_id);
+              if (bookingRevertError) {
+                console.error("Failed to revert booking status on payout failure:", bookingRevertError);
+              }
             }
           }
         }

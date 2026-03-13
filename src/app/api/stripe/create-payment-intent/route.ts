@@ -82,11 +82,12 @@ export async function POST(request: Request) {
     );
   }
 
-  // 既存のpaymentレコードがあるか確認（二重作成防止）
+  // 既存のpaymentレコードがあるか確認（二重作成防止。failedは除外し再作成を許可）
   const { data: existingPayment } = await adminDb
     .from("payments")
-    .select("stripe_payment_intent_id")
+    .select("stripe_payment_intent_id, amount")
     .eq("booking_id", bookingId)
+    .neq("status", "failed")
     .single();
 
   if (existingPayment) {
@@ -94,7 +95,7 @@ export async function POST(request: Request) {
     const pi = await stripe.paymentIntents.retrieve(
       existingPayment.stripe_payment_intent_id
     );
-    return NextResponse.json({ clientSecret: pi.client_secret });
+    return NextResponse.json({ clientSecret: pi.client_secret, amount: existingPayment.amount });
   }
 
   // メンターのStripe情報を取得
@@ -198,7 +199,7 @@ export async function POST(request: Request) {
       );
     }
 
-    return NextResponse.json({ clientSecret: paymentIntent.client_secret });
+    return NextResponse.json({ clientSecret: paymentIntent.client_secret, amount });
   } catch (err) {
     console.error("PaymentIntent creation error:", err);
     return NextResponse.json(

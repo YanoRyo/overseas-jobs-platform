@@ -8,25 +8,19 @@ import {
 } from "@stripe/react-stripe-js";
 import { ShieldCheck } from "lucide-react";
 import ReviewCarousel from "@/components/ReviewCarousel";
-import { ReservationData } from "../types/reservation";
 
 export const PaymentSection = ({
-  reservation,
+  amountCents,
 }: {
-  reservation: ReservationData;
+  amountCents: number | null;
 }) => {
   const stripe = useStripe();
   const elements = useElements();
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 表示用の金額を算出（hourlyRateはドル単位で保存されている）
-  // サーバー側と同じロジック: hourlyRate * 100でセント変換 → calculateLessonFee
-  const hourlyRateCents = Math.round(reservation.hourlyRate * 100);
-  const amountCents = Math.ceil(
-    (hourlyRateCents * reservation.duration) / 60
-  );
-  const displayAmount = (amountCents / 100).toFixed(2);
+  // サーバーから返された金額を表示（Single Source of Truth）
+  const displayAmount = amountCents != null ? (amountCents / 100).toFixed(2) : "---";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
