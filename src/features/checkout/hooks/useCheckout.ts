@@ -49,6 +49,14 @@ export const useCheckout = () => {
           setPaymentError(data.error || "決済の初期化に失敗しました");
           return;
         }
+        // 既に決済済みの場合は完了ページへリダイレクト
+        if (data.alreadyPaid) {
+          localStorage.removeItem("pendingReservation");
+          router.push(
+            `/checkout/complete?payment_intent_client_secret=${data.clientSecret}&redirect_status=succeeded`
+          );
+          return;
+        }
         setClientSecret(data.clientSecret);
       } catch {
         setPaymentError("決済の初期化に失敗しました");

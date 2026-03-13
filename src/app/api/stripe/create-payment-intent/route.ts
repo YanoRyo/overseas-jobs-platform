@@ -51,6 +51,23 @@ export async function POST(request: Request) {
   }
 
   if (booking.status !== "pending") {
+    // 支払済みの場合はclientSecretを返してリダイレクトさせる
+    const { data: paidPayment } = await adminDb
+      .from("payments")
+      .select("stripe_payment_intent_id, status")
+      .eq("booking_id", bookingId)
+      .single();
+
+    if (paidPayment && (paidPayment.status === "succeeded" || paidPayment.status === "pending")) {
+      const pi = await stripe.paymentIntents.retrieve(
+        paidPayment.stripe_payment_intent_id
+      );
+      return NextResponse.json({
+        alreadyPaid: true,
+        clientSecret: pi.client_secret,
+      });
+    }
+
     return NextResponse.json(
       { error: "Booking is not in pending status" },
       { status: 400 }
@@ -130,7 +147,9 @@ export async function POST(request: Request) {
     );
   }
 
-  const amount = calculateLessonFee(mentor.hourly_rate, durationMinutes);
+  // hourly_rateはドル単位（例: 30 = $30）で保存されているため、セントに変換
+  const hourlyRateCents = Math.round(mentor.hourly_rate * 100);
+  const amount = calculateLessonFee(hourlyRateCents, durationMinutes);
 
   // Stripeの最小金額チェック（USD: $0.50 = 50セント）
   if (amount < 50) {

@@ -20,10 +20,11 @@ export const PaymentSection = ({
   const [processing, setProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 表示用の金額を算出（セント → ドル）
-  // サーバー側のcalculateLessonFeeと同じ計算ロジック: Math.ceil((hourlyRate * duration) / 60)
+  // 表示用の金額を算出（hourlyRateはドル単位で保存されている）
+  // サーバー側と同じロジック: hourlyRate * 100でセント変換 → calculateLessonFee
+  const hourlyRateCents = Math.round(reservation.hourlyRate * 100);
   const amountCents = Math.ceil(
-    (reservation.hourlyRate * reservation.duration) / 60
+    (hourlyRateCents * reservation.duration) / 60
   );
   const displayAmount = (amountCents / 100).toFixed(2);
 
