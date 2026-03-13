@@ -1,11 +1,14 @@
 "use client";
+import { Elements } from "@stripe/react-stripe-js";
+import { getStripe } from "@/lib/stripe/client";
 import { useCheckout } from "../hooks/useCheckout";
 import { BackButton } from "./BackButton";
 import { ReservationSummary } from "./ReservationSummary";
 import { PaymentSection } from "./PaymentSection";
 
 export const CheckoutLayout = () => {
-  const { reservation } = useCheckout();
+  const { reservation, clientSecret, amountCents, paymentError, loadingPayment } =
+    useCheckout();
 
   if (!reservation) return null;
 
@@ -16,7 +19,29 @@ export const CheckoutLayout = () => {
 
         <div className="bg-white rounded-xl shadow-lg p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
           <ReservationSummary reservation={reservation} />
-          <PaymentSection reservation={reservation} />
+
+          {loadingPayment ? (
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold border-b pb-2">
+                お支払い方法
+              </h2>
+              <div className="h-[200px] animate-pulse rounded-[10px] bg-gray-100" />
+            </div>
+          ) : paymentError ? (
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold border-b pb-2">
+                お支払い方法
+              </h2>
+              <p className="text-sm text-[#c32a68]">{paymentError}</p>
+            </div>
+          ) : clientSecret ? (
+            <Elements
+              stripe={getStripe()}
+              options={{ clientSecret }}
+            >
+              <PaymentSection amountCents={amountCents} />
+            </Elements>
+          ) : null}
         </div>
       </div>
     </div>

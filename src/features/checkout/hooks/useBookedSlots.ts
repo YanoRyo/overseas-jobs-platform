@@ -42,15 +42,17 @@ export const useBookedSlots = (
       const weekEnd = new Date(weekStart);
       weekEnd.setDate(weekEnd.getDate() + 7);
 
-      // 自分以外のpending予約を取得（自分のpending予約はブロック対象外）
+      // 自分以外の有効な予約を取得（自分のpending予約はブロック対象外）
+      // pending（期限内）とconfirmedの予約でスロットをブロック
       const { data, error } = await supabase
         .from("bookings")
         .select("start_time, end_time")
         .eq("mentor_id", mentorId)
-        .eq("status", "pending")
+        .in("status", ["pending", "confirmed"])
         .neq("user_id", userId)
         .gte("start_time", weekStart.toISOString())
-        .lt("start_time", weekEnd.toISOString());
+        .lt("start_time", weekEnd.toISOString())
+        .or(`status.eq.confirmed,expires_at.gt.${new Date().toISOString()}`);
 
       if (error) {
         console.error("Failed to fetch booked slots:", error);

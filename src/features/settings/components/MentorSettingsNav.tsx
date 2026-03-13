@@ -11,6 +11,7 @@ const BASE_SECTIONS: { id: MentorSettingsSection; label: string }[] = [
   { id: "video", label: "Video" },
   { id: "availability", label: "Availability" },
   { id: "pricing", label: "Pricing" },
+  { id: "payout", label: "Payout" },
 ];
 
 const SECTIONS_WITH_PASSWORD: { id: MentorSettingsSection; label: string }[] = [

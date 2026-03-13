@@ -11,8 +11,8 @@ export async function middleware(req: NextRequest) {
   } = await supabase.auth.getSession();
 
   const isAuthPage = req.nextUrl.pathname.startsWith("/auth");
-  const isProtected = ["/checkout", "/dashboard", "/protected"].some((path) =>
-    req.nextUrl.pathname.startsWith(path)
+  const isProtected = ["/checkout", "/dashboard", "/protected", "/admin"].some(
+    (path) => req.nextUrl.pathname.startsWith(path)
   );
 
   if (isProtected && !session) {
@@ -31,5 +31,5 @@ export async function middleware(req: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/checkout", "/dashboard", "/protected/**"], // 認証が必要なルートを指定
+  matcher: ["/checkout/:path*", "/dashboard", "/protected/:path*", "/admin/:path*"],
 };
