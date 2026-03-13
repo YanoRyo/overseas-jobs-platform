@@ -40,11 +40,12 @@ export function PayoutSection() {
       const res = await fetch("/api/stripe/connect/create-account", {
         method: "POST",
       });
-      if (!res.ok) throw new Error("Failed to create account");
-      const { url } = await res.json();
-      window.location.href = url;
-    } catch {
-      setError("アカウントの作成に失敗しました");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "アカウントの作成に失敗しました");
+      if (!data.url) throw new Error("リダイレクトURLを取得できませんでした");
+      window.location.href = data.url;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "アカウントの作成に失敗しました");
       setActionLoading(false);
     }
   };
@@ -56,11 +57,12 @@ export function PayoutSection() {
       const res = await fetch("/api/stripe/connect/dashboard-link", {
         method: "POST",
       });
-      if (!res.ok) throw new Error("Failed to create dashboard link");
-      const { url } = await res.json();
-      window.open(url, "_blank");
-    } catch {
-      setError("ダッシュボードリンクの取得に失敗しました");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "ダッシュボードリンクの取得に失敗しました");
+      if (!data.url) throw new Error("ダッシュボードURLを取得できませんでした");
+      window.open(data.url, "_blank");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "ダッシュボードリンクの取得に失敗しました");
     } finally {
       setActionLoading(false);
     }
