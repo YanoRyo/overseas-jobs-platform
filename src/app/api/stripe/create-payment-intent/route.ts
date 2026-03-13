@@ -177,7 +177,7 @@ export async function POST(request: Request) {
     );
 
     // paymentsテーブルにレコード挿入
-    await adminDb.from("payments").insert({
+    const { error: insertError } = await adminDb.from("payments").insert({
       booking_id: booking.id,
       user_id: user.id,
       mentor_id: mentor.id,
@@ -186,6 +186,17 @@ export async function POST(request: Request) {
       currency: "usd",
       status: "pending",
     });
+
+    if (insertError) {
+      console.error(
+        `CRITICAL: PaymentIntent created (${paymentIntent.id}) but payments INSERT failed for booking ${booking.id}:`,
+        insertError
+      );
+      return NextResponse.json(
+        { error: "決済情報のDB記録に失敗しました" },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({ clientSecret: paymentIntent.client_secret });
   } catch (err) {

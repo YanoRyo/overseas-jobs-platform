@@ -138,6 +138,26 @@ export async function POST(request: Request) {
             console.error("Failed to update payout failure status:", payoutFailError);
             throw payoutFailError;
           }
+
+          // bookings.statusをconfirmedに戻して管理者が再承認できるようにする
+          const { data: payoutRecord } = await adminDb
+            .from("payouts")
+            .select("payment_id")
+            .eq("stripe_payout_id", payout.id)
+            .single();
+          if (payoutRecord) {
+            const { data: payment } = await adminDb
+              .from("payments")
+              .select("booking_id")
+              .eq("id", payoutRecord.payment_id)
+              .single();
+            if (payment) {
+              await adminDb
+                .from("bookings")
+                .update({ status: "confirmed" })
+                .eq("id", payment.booking_id);
+            }
+          }
         }
         break;
       }

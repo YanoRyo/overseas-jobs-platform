@@ -58,11 +58,12 @@ export async function POST(request: Request) {
     );
   }
 
-  // 二重payout防止: 既にpayoutレコードが存在する場合は拒否
+  // 二重payout防止: 成功済みまたは処理中のpayoutがある場合は拒否（failedは再試行可能）
   const { data: existingPayout } = await adminDb
     .from("payouts")
-    .select("id")
+    .select("id, status")
     .eq("payment_id", paymentId)
+    .not("status", "eq", "failed")
     .maybeSingle();
 
   if (existingPayout) {
