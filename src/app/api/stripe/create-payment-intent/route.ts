@@ -95,16 +95,24 @@ export async function POST(request: Request) {
   }
 
   // Stripe APIでリアルタイムにcharges_enabledを検証
-  const account = await stripe.accounts.retrieve(mentor.stripe_account_id);
-  if (!account.charges_enabled) {
-    // DBの stripe_onboarding_completed も同期更新
-    await adminDb
-      .from("mentors")
-      .update({ stripe_onboarding_completed: false })
-      .eq("id", mentor.id);
+  try {
+    const account = await stripe.accounts.retrieve(mentor.stripe_account_id);
+    if (!account.charges_enabled) {
+      // DBの stripe_onboarding_completed も同期更新
+      await adminDb
+        .from("mentors")
+        .update({ stripe_onboarding_completed: false })
+        .eq("id", mentor.id);
+      return NextResponse.json(
+        { error: "このメンターは現在決済を受け付けていません" },
+        { status: 400 }
+      );
+    }
+  } catch (err) {
+    console.error("Stripe account retrieve error:", err);
     return NextResponse.json(
-      { error: "このメンターは現在決済を受け付けていません" },
-      { status: 400 }
+      { error: "決済情報の確認に失敗しました" },
+      { status: 500 }
     );
   }
 
@@ -113,7 +121,24 @@ export async function POST(request: Request) {
     (new Date(booking.end_time).getTime() -
       new Date(booking.start_time).getTime()) /
     (1000 * 60);
+
+  // 不正な時間データのバリデーション
+  if (durationMinutes <= 0) {
+    return NextResponse.json(
+      { error: "予約の時間データが不正です" },
+      { status: 400 }
+    );
+  }
+
   const amount = calculateLessonFee(mentor.hourly_rate, durationMinutes);
+
+  // Stripeの最小金額チェック（USD: $0.50 = 50セント）
+  if (amount < 50) {
+    return NextResponse.json(
+      { error: "決済金額が最低金額を下回っています" },
+      { status: 400 }
+    );
+  }
 
   try {
     // PaymentIntent作成

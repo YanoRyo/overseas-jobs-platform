@@ -94,13 +94,26 @@ export async function POST(request: Request) {
     );
 
     // payoutsテーブルにレコード挿入
-    await adminDb.from("payouts").insert({
+    const { error: insertError } = await adminDb.from("payouts").insert({
       payment_id: payment.id,
       mentor_id: payment.mentor_id,
       stripe_payout_id: payout.id,
       amount: payment.amount,
       status: "pending",
     });
+
+    if (insertError) {
+      // Stripe側ではpayoutが実行済みだがDBに記録されていない状態
+      // payout.paidイベントで後からDBに反映される可能性があるが、ログに記録して手動対応可能にする
+      console.error(
+        `CRITICAL: Stripe payout created (${payout.id}) but DB insert failed for payment ${payment.id}:`,
+        insertError
+      );
+      return NextResponse.json(
+        { error: "入金処理のDB記録に失敗しました。管理者に連絡してください。" },
+        { status: 500 }
+      );
+    }
 
     // bookings.status → 'completed'
     await adminDb

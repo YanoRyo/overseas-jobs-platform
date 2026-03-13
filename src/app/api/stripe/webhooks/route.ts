@@ -43,19 +43,29 @@ export async function POST(request: Request) {
 
         if (!payment || payment.status === "succeeded") break;
 
-        await adminDb
+        const { error: updateError } = await adminDb
           .from("payments")
           .update({ status: "succeeded", paid_at: new Date().toISOString() })
           .eq("id", payment.id);
 
+        if (updateError) {
+          console.error("Failed to update payment status:", updateError);
+          throw updateError;
+        }
+
         // booking確認
         const bookingId = pi.metadata.booking_id;
         if (bookingId) {
-          await adminDb
+          const { error: bookingUpdateError } = await adminDb
             .from("bookings")
             .update({ status: "confirmed", expires_at: null })
             .eq("id", bookingId)
             .eq("status", "pending");
+
+          if (bookingUpdateError) {
+            console.error("Failed to update booking status:", bookingUpdateError);
+            throw bookingUpdateError;
+          }
         }
         break;
       }
@@ -70,10 +80,15 @@ export async function POST(request: Request) {
 
         if (!payment || payment.status === "succeeded") break;
 
-        await adminDb
+        const { error: failUpdateError } = await adminDb
           .from("payments")
           .update({ status: "failed" })
           .eq("id", payment.id);
+
+        if (failUpdateError) {
+          console.error("Failed to update payment failure status:", failUpdateError);
+          throw failUpdateError;
+        }
         break;
       }
 
@@ -83,20 +98,30 @@ export async function POST(request: Request) {
           account.charges_enabled === true &&
           account.payouts_enabled === true;
 
-        await adminDb
+        const { error: mentorUpdateError } = await adminDb
           .from("mentors")
           .update({ stripe_onboarding_completed: isCompleted })
           .eq("stripe_account_id", account.id);
+
+        if (mentorUpdateError) {
+          console.error("Failed to update mentor onboarding status:", mentorUpdateError);
+          throw mentorUpdateError;
+        }
         break;
       }
 
       case "payout.paid": {
         const payout = event.data.object as Stripe.Payout;
         if (payout.id) {
-          await adminDb
+          const { error: payoutUpdateError } = await adminDb
             .from("payouts")
             .update({ status: "paid" })
             .eq("stripe_payout_id", payout.id);
+
+          if (payoutUpdateError) {
+            console.error("Failed to update payout paid status:", payoutUpdateError);
+            throw payoutUpdateError;
+          }
         }
         break;
       }
@@ -104,10 +129,15 @@ export async function POST(request: Request) {
       case "payout.failed": {
         const payout = event.data.object as Stripe.Payout;
         if (payout.id) {
-          await adminDb
+          const { error: payoutFailError } = await adminDb
             .from("payouts")
             .update({ status: "failed" })
             .eq("stripe_payout_id", payout.id);
+
+          if (payoutFailError) {
+            console.error("Failed to update payout failure status:", payoutFailError);
+            throw payoutFailError;
+          }
         }
         break;
       }
