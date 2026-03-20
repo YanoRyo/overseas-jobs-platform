@@ -91,10 +91,17 @@ export async function POST(request: Request) {
     .single();
 
   if (existingPayment) {
-    // 既存PaymentIntentのclientSecretを返す
+    // 既存PaymentIntentの状態を確認
     const pi = await stripe.paymentIntents.retrieve(
       existingPayment.stripe_payment_intent_id
     );
+    // 決済済み or 処理中の場合は完了扱いにする
+    if (pi.status === "succeeded" || pi.status === "processing") {
+      return NextResponse.json({
+        alreadyPaid: true,
+        clientSecret: pi.client_secret,
+      });
+    }
     return NextResponse.json({ clientSecret: pi.client_secret, amount: existingPayment.amount });
   }
 
@@ -177,21 +184,26 @@ export async function POST(request: Request) {
       { idempotencyKey: `pi_${bookingId}` }
     );
 
-    // paymentsテーブルにレコード挿入
-    const { error: insertError } = await adminDb.from("payments").insert({
-      booking_id: booking.id,
-      user_id: user.id,
-      mentor_id: mentor.id,
-      stripe_payment_intent_id: paymentIntent.id,
-      amount,
-      currency: "usd",
-      status: "pending",
-    });
+    // paymentsテーブルにレコード挿入（既存レコードがある場合はUPDATE）
+    const { error: upsertError } = await adminDb
+      .from("payments")
+      .upsert(
+        {
+          booking_id: booking.id,
+          user_id: user.id,
+          mentor_id: mentor.id,
+          stripe_payment_intent_id: paymentIntent.id,
+          amount,
+          currency: "usd",
+          status: "pending",
+        },
+        { onConflict: "booking_id" }
+      );
 
-    if (insertError) {
+    if (upsertError) {
       console.error(
-        `CRITICAL: PaymentIntent created (${paymentIntent.id}) but payments INSERT failed for booking ${booking.id}:`,
-        insertError
+        `CRITICAL: PaymentIntent created (${paymentIntent.id}) but payments upsert failed for booking ${booking.id}:`,
+        upsertError
       );
       return NextResponse.json(
         { error: "決済情報のDB記録に失敗しました" },
