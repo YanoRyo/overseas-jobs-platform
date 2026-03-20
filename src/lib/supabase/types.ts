@@ -24,6 +24,8 @@ export type MentorRow = {
   degree: string | null;
   degree_type: string | null;
   specialization: string | null;
+  stripe_account_id: string | null;
+  stripe_onboarding_completed: boolean;
   rating_avg: number;
   review_count: number;
   lessons_count: number;
@@ -69,7 +71,7 @@ export type MentorReviewRow = {
 
 export type MentorInsert = Omit<
   MentorRow,
-  'id' | 'rating_avg' | 'review_count' | 'lessons_count' | 'created_at' | 'updated_at'
+  'id' | 'stripe_account_id' | 'stripe_onboarding_completed' | 'rating_avg' | 'review_count' | 'lessons_count' | 'created_at' | 'updated_at'
 >;
 
 export type MentorLanguageInsert = Omit<MentorLanguageRow, 'id'>;

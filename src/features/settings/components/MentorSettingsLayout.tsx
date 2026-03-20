@@ -12,6 +12,7 @@ import { DescriptionSection } from "./mentor-sections/DescriptionSection";
 import { VideoSection } from "./mentor-sections/VideoSection";
 import { AvailabilitySection } from "./mentor-sections/AvailabilitySection";
 import { PricingSection } from "./mentor-sections/PricingSection";
+import { PayoutSection } from "./mentor-sections/PayoutSection";
 import { PasswordChangeSection } from "./PasswordChangeSection";
 import { SettingsTopTabs } from "./SettingsTopTabs";
 import { isEmailProvider } from "@/features/auth/utils/authProvider";
@@ -24,6 +25,7 @@ const SECTION_TITLES: Record<MentorSettingsSection, string> = {
   video: "Video introduction",
   availability: "Availability",
   pricing: "Pricing",
+  payout: "Payout",
   password: "Password",
 };
 
@@ -188,6 +190,8 @@ export function MentorSettingsLayout() {
                 }}
                 onSave={savePricingSection}
               />
+            ) : activeSection === "payout" ? (
+              <PayoutSection />
             ) : activeSection === "password" ? (
               <PasswordChangeSection />
             ) : null}

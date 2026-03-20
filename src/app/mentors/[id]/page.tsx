@@ -34,15 +34,21 @@ export default function MentorDetailPage({
       const endTime = new Date(reservationDate);
       endTime.setMinutes(endTime.getMinutes() + DEFAULT_DURATION);
 
-      const { error } = await supabase.from("bookings").insert({
-        user_id: user.id,
-        mentor_id: mentor.id,
-        start_time: reservationDate.toISOString(),
-        end_time: endTime.toISOString(),
-        status: "pending",
-      });
+      const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+      const { data: booking, error } = await supabase
+        .from("bookings")
+        .insert({
+          user_id: user.id,
+          mentor_id: mentor.id,
+          start_time: reservationDate.toISOString(),
+          end_time: endTime.toISOString(),
+          status: "pending",
+          expires_at: expiresAt,
+        })
+        .select("id")
+        .single();
 
-      if (error) {
+      if (error || !booking) {
         alert("予約に失敗しました。もう一度お試しください。");
         return;
       }
@@ -50,10 +56,12 @@ export default function MentorDetailPage({
       localStorage.setItem(
         "pendingReservation",
         JSON.stringify({
+          bookingId: booking.id,
           mentorId: mentor.id,
           mentorName: mentor.name,
           mentorAvatarUrl: mentor.avatarUrl,
           mentorCountry: mentor.country,
+          hourlyRate: mentor.price,
           duration: DEFAULT_DURATION,
           date: reservationDate.toISOString(),
           time,

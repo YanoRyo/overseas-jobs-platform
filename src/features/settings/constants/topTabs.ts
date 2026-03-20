@@ -27,7 +27,8 @@ export const SETTINGS_TOP_TABS: SettingsTopTab[] = [
   {
     id: "my-lessons",
     label: "My lessons",
-    clickable: false,
+    href: "/settings?tab=my-lessons",
+    clickable: true,
     roles: ["mentor", "student"],
   },
   {
@@ -39,7 +40,8 @@ export const SETTINGS_TOP_TABS: SettingsTopTab[] = [
   {
     id: "settings",
     label: "Settings",
-    clickable: false,
+    href: "/settings",
+    clickable: true,
     roles: ["mentor", "student"],
   },
 ];

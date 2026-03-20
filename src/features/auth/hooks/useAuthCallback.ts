@@ -82,7 +82,7 @@ export const useAuthCallback = () => {
       }
 
       const pending = localStorage.getItem("pendingReservation");
-      router.push(pending ? "/checkout" : redirect);
+      router.push(pending && redirect === "/checkout" ? "/checkout" : redirect);
     };
 
     run();

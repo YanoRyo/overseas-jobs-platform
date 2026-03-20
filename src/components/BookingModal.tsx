@@ -50,24 +50,32 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
     const startTime = reservationDate;
     const endTime = new Date(startTime);
     endTime.setMinutes(endTime.getMinutes() + duration);
-    const { error } = await supabase.from("bookings").insert({
-      user_id: user.id,
-      mentor_id: mentor.id,
-      start_time: startTime.toISOString(),
-      end_time: endTime.toISOString(),
-      status: "pending",
-    });
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+    const { data: booking, error } = await supabase
+      .from("bookings")
+      .insert({
+        user_id: user.id,
+        mentor_id: mentor.id,
+        start_time: startTime.toISOString(),
+        end_time: endTime.toISOString(),
+        status: "pending",
+        expires_at: expiresAt,
+      })
+      .select("id")
+      .single();
 
-    if (error) {
+    if (error || !booking) {
       alert("予約に失敗しました。もう一度お試しください。");
       return;
     }
 
     const reservation = {
+      bookingId: booking.id,
       mentorId: mentor.id,
       mentorName: mentor.name,
       mentorAvatarUrl: mentor.avatarUrl,
       mentorCountry: mentor.country,
+      hourlyRate: mentor.price,
       duration,
       date: selectedDate.toISOString(),
       time: selectedTime,
