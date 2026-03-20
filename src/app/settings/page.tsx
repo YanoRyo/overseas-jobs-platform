@@ -1,16 +1,19 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { MentorSettingsLayout, SettingsLayout } from "@/features/settings";
+import { MyLessonsLayout } from "@/features/settings/components/my-lessons/MyLessonsLayout";
 import type { UserRole } from "@/features/auth/types";
 
 type ViewerRole = UserRole | null;
 
-export default function SettingsPage() {
+function SettingsPageContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const supabase = useSupabaseClient();
+  const topTab = searchParams.get("tab");
 
   const [loading, setLoading] = useState(true);
   const [viewerRole, setViewerRole] = useState<ViewerRole>(null);
@@ -99,9 +102,26 @@ export default function SettingsPage() {
     );
   }
 
+  // トップナビの「My lessons」タブが選択された場合
+  if (topTab === "my-lessons") {
+    return <MyLessonsLayout role={viewerRole} />;
+  }
+
   if (viewerRole === "mentor") {
     return <MentorSettingsLayout />;
   }
 
   return <SettingsLayout />;
+}
+
+export default function SettingsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="px-6 py-10 text-sm text-gray-400">Loading...</div>
+      }
+    >
+      <SettingsPageContent />
+    </Suspense>
+  );
 }

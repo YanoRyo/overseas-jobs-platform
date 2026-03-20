@@ -98,7 +98,7 @@ function CheckoutCompleteContent() {
           {isSuccess ? (
             <>
               <button
-                onClick={() => router.push("/dashboard")}
+                onClick={() => router.push("/settings?tab=my-lessons")}
                 className="h-11 w-full rounded-[10px] border-2 border-[#1d4ed8] bg-[#2563eb] text-lg font-semibold text-white hover:bg-[#1d4ed8]"
               >
                 マイレッスンへ
