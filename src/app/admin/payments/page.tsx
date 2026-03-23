@@ -80,7 +80,8 @@ export default function AdminPaymentsPage() {
   };
 
   const formatDate = (dateStr: string) => {
-    return new Date(dateStr).toLocaleString("ja-JP", {
+    // DBには timestamp without time zone だがUTC値が入っているため、Zを付与してUTCとして解釈
+    return new Date(dateStr + "Z").toLocaleString("ja-JP", {
       year: "numeric",
       month: "2-digit",
       day: "2-digit",
