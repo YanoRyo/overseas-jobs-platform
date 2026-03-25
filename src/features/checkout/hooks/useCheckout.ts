@@ -47,6 +47,8 @@ export const useCheckout = () => {
         });
         const data = await res.json();
         if (!res.ok) {
+          // 期限切れ等で無効な予約の場合、localStorageをクリーンアップ
+          localStorage.removeItem("pendingReservation");
           setPaymentError(data.error || "決済の初期化に失敗しました");
           return;
         }

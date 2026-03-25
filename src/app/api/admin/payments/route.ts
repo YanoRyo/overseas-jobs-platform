@@ -14,7 +14,7 @@ export async function GET() {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!isAdmin(user.id)) {
+  if (!(await isAdmin(user.id))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

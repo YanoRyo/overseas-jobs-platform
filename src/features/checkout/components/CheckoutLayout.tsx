@@ -18,7 +18,7 @@ export const CheckoutLayout = () => {
         <BackButton />
 
         <div className="bg-white rounded-xl shadow-lg p-6 grid grid-cols-1 md:grid-cols-2 gap-8">
-          <ReservationSummary reservation={reservation} />
+          <ReservationSummary reservation={reservation} amountCents={amountCents} />
 
           {loadingPayment ? (
             <div className="space-y-4">

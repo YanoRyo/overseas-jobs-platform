@@ -1,11 +1,11 @@
 "use client";
 
 import { use, useState, useEffect, useCallback } from "react";
-import { useRouter } from "next/navigation";
 import { useMentorDetail } from "@/features/mentors/hooks/useMentorDetail";
 import { MentorDetail } from "@/features/mentors/components/MentorDetail";
-import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
+import { useUser } from "@supabase/auth-helpers-react";
 import { AuthModal } from "@/features/auth/components/AuthModal";
+import { useCreateBooking } from "@/features/checkout/hooks/useCreateBooking";
 
 const PENDING_BOOKING_KEY = "pendingBookingMentorId";
 const PENDING_TIME_SLOT_KEY = "pendingTimeSlot";
@@ -18,8 +18,7 @@ export default function MentorDetailPage({
 }) {
   const { id } = use(params);
   const user = useUser();
-  const supabase = useSupabaseClient();
-  const router = useRouter();
+  const { createBookingAndCheckout } = useCreateBooking();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   const { mentor, loading, error, isBookingOpen, openBooking, closeBooking } =
@@ -30,47 +29,21 @@ export default function MentorDetailPage({
     async (dateKey: string, time: string) => {
       if (!user || !mentor) return;
 
-      const reservationDate = new Date(`${dateKey}T${time}:00`);
-      const endTime = new Date(reservationDate);
-      endTime.setMinutes(endTime.getMinutes() + DEFAULT_DURATION);
+      const startTime = new Date(`${dateKey}T${time}:00`);
 
-      const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
-      const { data: booking, error } = await supabase
-        .from("bookings")
-        .insert({
-          user_id: user.id,
-          mentor_id: mentor.id,
-          start_time: reservationDate.toISOString(),
-          end_time: endTime.toISOString(),
-          status: "pending",
-          expires_at: expiresAt,
-        })
-        .select("id")
-        .single();
-
-      if (error || !booking) {
-        alert("予約に失敗しました。もう一度お試しください。");
-        return;
-      }
-
-      localStorage.setItem(
-        "pendingReservation",
-        JSON.stringify({
-          bookingId: booking.id,
-          mentorId: mentor.id,
-          mentorName: mentor.name,
-          mentorAvatarUrl: mentor.avatarUrl,
-          mentorCountry: mentor.country,
-          hourlyRate: mentor.price,
-          duration: DEFAULT_DURATION,
-          date: reservationDate.toISOString(),
-          time,
-        })
-      );
-
-      router.push("/checkout");
+      await createBookingAndCheckout({
+        userId: user.id,
+        mentorId: mentor.id,
+        mentorName: mentor.name,
+        mentorAvatarUrl: mentor.avatarUrl,
+        mentorCountry: mentor.country,
+        hourlyRate: mentor.price,
+        duration: DEFAULT_DURATION,
+        startTime,
+        time,
+      });
     },
-    [user, mentor, supabase, router]
+    [user, mentor, createBookingAndCheckout]
   );
 
   // OAuth認証後、ページリロード時にBookingModalを自動で開く

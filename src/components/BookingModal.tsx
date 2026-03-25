@@ -4,8 +4,9 @@ import { Dialog } from "@headlessui/react";
 import { X, Sunrise, Sun, Sunset, Moon } from "lucide-react";
 import type { MentorDetailModel } from "@/features/mentors/types";
 import { useRouter } from "next/navigation";
-import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
+import { useUser } from "@supabase/auth-helpers-react";
 import { useBookedSlots } from "@/features/checkout/hooks/useBookedSlots";
+import { useCreateBooking } from "@/features/checkout/hooks/useCreateBooking";
 
 type Props = {
   mentor: MentorDetailModel;
@@ -14,8 +15,8 @@ type Props = {
 };
 
 export default function BookingModal({ isOpen, onClose, mentor }: Props) {
-  const supabase = useSupabaseClient(); // ← ここでSupabaseクライアントを取得
-  const user = useUser(); // ← 現在のログインユーザーを取得
+  const user = useUser();
+  const { createBookingAndCheckout } = useCreateBooking();
   const [duration, setDuration] = useState(25);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
@@ -40,49 +41,24 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
       return;
     }
 
-    // ISO形式の time_slot を生成
     const [hours, minutes] = selectedTime.split(":");
-    const reservationDate = new Date(selectedDate);
-    reservationDate.setHours(Number(hours));
-    reservationDate.setMinutes(Number(minutes));
-    reservationDate.setSeconds(0);
-    reservationDate.setMilliseconds(0);
-    const startTime = reservationDate;
-    const endTime = new Date(startTime);
-    endTime.setMinutes(endTime.getMinutes() + duration);
-    const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
-    const { data: booking, error } = await supabase
-      .from("bookings")
-      .insert({
-        user_id: user.id,
-        mentor_id: mentor.id,
-        start_time: startTime.toISOString(),
-        end_time: endTime.toISOString(),
-        status: "pending",
-        expires_at: expiresAt,
-      })
-      .select("id")
-      .single();
+    const startTime = new Date(selectedDate);
+    startTime.setHours(Number(hours));
+    startTime.setMinutes(Number(minutes));
+    startTime.setSeconds(0);
+    startTime.setMilliseconds(0);
 
-    if (error || !booking) {
-      alert("予約に失敗しました。もう一度お試しください。");
-      return;
-    }
-
-    const reservation = {
-      bookingId: booking.id,
+    await createBookingAndCheckout({
+      userId: user.id,
       mentorId: mentor.id,
       mentorName: mentor.name,
       mentorAvatarUrl: mentor.avatarUrl,
       mentorCountry: mentor.country,
       hourlyRate: mentor.price,
       duration,
-      date: selectedDate.toISOString(),
+      startTime,
       time: selectedTime,
-    };
-    localStorage.setItem("pendingReservation", JSON.stringify(reservation));
-
-    router.push("/checkout");
+    });
   };
 
   // 時間帯定義

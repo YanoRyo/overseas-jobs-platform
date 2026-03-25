@@ -17,7 +17,7 @@ export async function POST(request: Request) {
   }
 
   // 管理者認可チェック
-  if (!isAdmin(user.id)) {
+  if (!(await isAdmin(user.id))) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
