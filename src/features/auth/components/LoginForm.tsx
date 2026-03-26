@@ -1,6 +1,5 @@
 "use client";
 import Link from "next/link";
-import { useSearchParams } from "next/navigation";
 import { AUTH_INPUT_CLASS_NAME, AUTH_SUBMIT_BUTTON_CLASS_NAME } from "../constants/styles";
 import { useLogin } from "../hooks/useLogin";
 import { AuthShell } from "./AuthShell";
@@ -9,9 +8,11 @@ import { EmailVerificationAlert } from "./EmailVerificationAlert";
 import { RoleSelector } from "./RoleSelector";
 import { SocialAuthButtons } from "./SocialAuthButtons";
 
-export const LoginForm = () => {
-  const searchParams = useSearchParams();
-  const redirect = searchParams.get("redirect");
+type LoginFormProps = {
+  redirect?: string;
+};
+
+export const LoginForm = ({ redirect }: LoginFormProps) => {
   const signupHref = redirect
     ? `/auth/signup?redirect=${encodeURIComponent(redirect)}`
     : "/auth/signup";

@@ -1,11 +1,13 @@
-"use client";
-import { Suspense } from "react";
 import { LoginForm } from "@/features/auth/components/LoginForm";
 
-export default function LoginPage() {
-  return (
-    <Suspense fallback={<div className="min-h-screen" />}>
-      <LoginForm />
-    </Suspense>
-  );
+type LoginPageProps = {
+  searchParams?: Promise<{
+    redirect?: string;
+  }>;
+};
+
+export default async function LoginPage({ searchParams }: LoginPageProps) {
+  const params = await searchParams;
+
+  return <LoginForm redirect={params?.redirect} />;
 }
