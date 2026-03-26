@@ -12,6 +12,7 @@ export type MentorSettingsSection =
   | "video"
   | "availability"
   | "pricing"
+  | "payout"
   | "password";
 
 export type MentorSettingsLanguage = {

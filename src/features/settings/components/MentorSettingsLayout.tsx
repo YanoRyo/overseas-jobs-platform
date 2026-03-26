@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { useUser } from "@supabase/auth-helpers-react";
 import { MentorSettingsNav } from "./MentorSettingsNav";
 import type { MentorSettingsSection } from "../types/mentorSettings";
@@ -12,6 +13,7 @@ import { DescriptionSection } from "./mentor-sections/DescriptionSection";
 import { VideoSection } from "./mentor-sections/VideoSection";
 import { AvailabilitySection } from "./mentor-sections/AvailabilitySection";
 import { PricingSection } from "./mentor-sections/PricingSection";
+import { PayoutSection } from "./mentor-sections/PayoutSection";
 import { PasswordChangeSection } from "./PasswordChangeSection";
 import { SettingsTopTabs } from "./SettingsTopTabs";
 import { isEmailProvider } from "@/features/auth/utils/authProvider";
@@ -24,12 +26,19 @@ const SECTION_TITLES: Record<MentorSettingsSection, string> = {
   video: "Video introduction",
   availability: "Availability",
   pricing: "Pricing",
+  payout: "Payout",
   password: "Password",
 };
+
+const VALID_SECTIONS = new Set<MentorSettingsSection>([
+  "about", "photo", "education", "description",
+  "video", "availability", "pricing", "payout", "password",
+]);
 
 export function MentorSettingsLayout() {
   const user = useUser();
   const showPassword = isEmailProvider(user);
+  const searchParams = useSearchParams();
   const {
     loading,
     fetchError,
@@ -44,8 +53,14 @@ export function MentorSettingsLayout() {
     saveAvailability,
     savePricing,
   } = useMentorSettings();
+
+  const sectionParam = searchParams.get("section");
+  const initialSection: MentorSettingsSection =
+    sectionParam && VALID_SECTIONS.has(sectionParam as MentorSettingsSection)
+      ? (sectionParam as MentorSettingsSection)
+      : "about";
   const [activeSection, setActiveSection] =
-    useState<MentorSettingsSection>("about");
+    useState<MentorSettingsSection>(initialSection);
   const [sectionMessage, setSectionMessage] = useState<
     Partial<Record<MentorSettingsSection, string>>
   >({});
@@ -188,6 +203,8 @@ export function MentorSettingsLayout() {
                 }}
                 onSave={savePricingSection}
               />
+            ) : activeSection === "payout" ? (
+              <PayoutSection />
             ) : activeSection === "password" ? (
               <PasswordChangeSection />
             ) : null}

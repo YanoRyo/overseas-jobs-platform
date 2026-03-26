@@ -44,6 +44,7 @@ export const useOAuthSignIn = (options: UseOAuthSignInOptions) => {
       provider,
       options: {
         redirectTo: buildRedirectTo(selectedRole),
+        queryParams: { prompt: "select_account" },
       },
     });
   };
