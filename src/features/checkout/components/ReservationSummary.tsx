@@ -1,5 +1,5 @@
 import { ReservationData } from "../types/reservation";
-import { Globe, Star } from "lucide-react";
+import { Globe } from "lucide-react";
 import Flag from "react-world-flags";
 import { countryCodeMap } from "@/lib/countryCodeMap";
 
