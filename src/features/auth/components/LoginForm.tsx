@@ -31,7 +31,7 @@ export const LoginForm = () => {
     handleResendVerification,
     handleGoogleLogin,
     handleFacebookLogin,
-  } = useLogin();
+  } = useLogin({ redirect: redirect || "/" });
 
   return (
     <AuthShell

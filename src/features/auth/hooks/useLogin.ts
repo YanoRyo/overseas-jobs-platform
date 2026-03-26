@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useOAuthSignIn } from "./useOAuthSignIn";
 import type { UserRole } from "../types";
@@ -17,15 +17,11 @@ type UseLoginOptions = {
 
 export const useLogin = (options?: UseLoginOptions) => {
   const router = useRouter();
-  const searchParams = useSearchParams();
-  const redirectFromParams = searchParams.get("redirect") || "/";
   const redirectPath = options?.redirect
     ? options.redirect.startsWith("/")
       ? options.redirect
       : "/"
-    : redirectFromParams.startsWith("/")
-      ? redirectFromParams
-      : "/";
+    : "/";
   const supabase = useSupabaseClient();
 
   const [email, setEmail] = useState("");

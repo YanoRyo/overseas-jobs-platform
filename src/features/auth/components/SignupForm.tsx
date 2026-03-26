@@ -28,7 +28,7 @@ export const SignupForm = () => {
     handleEmailSignup,
     handleGoogleSignup,
     handleFacebookSignup,
-  } = useSignup();
+  } = useSignup({ redirect: redirect || "/" });
 
   const inputClassName =
     "w-full rounded-xl border border-border bg-white px-4 py-3 text-sm text-primary placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-blue-200";
