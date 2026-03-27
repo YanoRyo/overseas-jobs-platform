@@ -14,7 +14,7 @@ export function Header() {
       <div className="flex items-center justify-between h-16 px-6">
         {/* 左：ロゴ */}
         <Link href="/" className="font-bold text-xl">
-          Bridgee
+          Bridgeee
         </Link>
 
         {/* 右：メッセージ・通知・ユーザー*/}

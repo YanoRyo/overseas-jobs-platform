@@ -139,7 +139,7 @@ export default function AdminPaymentsPage() {
   return (
     <div className="min-h-screen bg-[#fafafb]">
       <header className="border-b border-[#e3e4ea] bg-white px-8 py-4">
-        <h1 className="text-lg font-semibold text-[#1f1f2d]">Bridgee Admin</h1>
+        <h1 className="text-lg font-semibold text-[#1f1f2d]">Bridgeee Admin</h1>
       </header>
 
       <main className="mx-auto max-w-[1200px] px-6 py-10">
