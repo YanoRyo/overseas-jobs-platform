@@ -7,9 +7,11 @@ import type { ConversationItem as ConversationItemType } from "../types/conversa
 export function ConversationItem({
   conversation,
   onClick,
+  selected = false,
 }: {
   conversation: ConversationItemType;
   onClick: () => void;
+  selected?: boolean;
 }) {
   const avatarUrl =
     conversation.partnerAvatarUrl && conversation.partnerAvatarUrl.trim() !== ""
@@ -50,7 +52,9 @@ export function ConversationItem({
         if (menuOpen) return;
         onClick();
       }}
-      className="flex gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer border-b"
+      className={`flex cursor-pointer gap-3 border-b px-4 py-4 transition ${
+        selected ? "bg-[#fff1f6]" : "hover:bg-gray-50"
+      }`}
     >
       <div className="relative w-10 h-10 rounded-lg overflow-hidden flex-shrink-0">
         <Image
@@ -65,7 +69,11 @@ export function ConversationItem({
       <div className="flex-1 min-w-0">
         {/* 上段：左=名前 / 右=日時 + ⋯ */}
         <div className="flex justify-between items-start">
-          <p className="text-sm font-medium truncate">
+          <p
+            className={`truncate text-sm ${
+              conversation.unread || selected ? "font-semibold" : "font-medium"
+            }`}
+          >
             {conversation.partnerName}
           </p>
 
@@ -73,7 +81,11 @@ export function ConversationItem({
             className="relative flex flex-col items-end gap-1 leading-none"
             ref={menuRef}
           >
-            <span className="text-xs text-gray-400">
+            <span
+              className={`text-xs ${
+                conversation.unread ? "font-medium text-[#1f1f2d]" : "text-gray-400"
+              }`}
+            >
               {conversation.updatedAt}
             </span>
           </div>
@@ -81,12 +93,16 @@ export function ConversationItem({
 
         {/* 下段 */}
         <div className="flex justify-between items-center gap-2 mt-1">
-          <p className="text-xs text-gray-500 truncate">
+          <p
+            className={`truncate text-xs ${
+              conversation.unread ? "text-[#1f1f2d]" : "text-gray-500"
+            }`}
+          >
             {conversation.lastMessage}
           </p>
 
           {conversation.unreadCount > 0 && (
-            <span className="min-w-[20px] h-5 px-1 text-xs text-white bg-red-500 rounded-full flex items-center justify-center">
+            <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#111827] px-1 text-xs text-white">
               {conversation.unreadCount}
             </span>
           )}

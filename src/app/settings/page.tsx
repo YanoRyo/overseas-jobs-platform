@@ -3,7 +3,11 @@
 import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
-import { MentorSettingsLayout, SettingsLayout } from "@/features/settings";
+import {
+  MentorSettingsLayout,
+  MessagesLayout,
+  SettingsLayout,
+} from "@/features/settings";
 import { MyLessonsLayout } from "@/features/settings/components/my-lessons/MyLessonsLayout";
 import type { UserRole } from "@/features/auth/types";
 
@@ -105,6 +109,10 @@ function SettingsPageContent() {
   // トップナビの「My lessons」タブが選択された場合
   if (topTab === "my-lessons") {
     return <MyLessonsLayout role={viewerRole} />;
+  }
+
+  if (topTab === "messages") {
+    return <MessagesLayout role={viewerRole} />;
   }
 
   if (viewerRole === "mentor") {

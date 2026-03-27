@@ -45,7 +45,7 @@ export function ConversationDetail({
   }, [supabase, conversation.id, currentUserId]);
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex h-full min-h-0 flex-col">
       {/* Sub header */}
       <div className="flex items-center gap-3 px-4 py-3 border-b">
         <button
@@ -71,7 +71,7 @@ export function ConversationDetail({
 
       {/* body */}
       {loading ? (
-        <div className="p-4 text-sm text-gray-400">Loading...</div>
+        <div className="flex-1 p-4 text-sm text-gray-400">Loading...</div>
       ) : (
         <MessageThread
           messages={messages}

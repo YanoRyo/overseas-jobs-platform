@@ -21,7 +21,8 @@ export const SETTINGS_TOP_TABS: SettingsTopTab[] = [
   {
     id: "messages",
     label: "Messages",
-    clickable: false,
+    href: "/settings?tab=messages",
+    clickable: true,
     roles: ["mentor", "student"],
   },
   {

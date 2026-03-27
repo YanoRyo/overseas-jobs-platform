@@ -22,7 +22,7 @@ export function MessagesPanel({ onClose }: { onClose: () => void }) {
         h-[80vh] max-h-[720px]
         bg-white border border-gray-200
         rounded-xl shadow-xl
-        flex flex-col
+        flex flex-col overflow-hidden
       "
     >
       {/* Header */}
@@ -87,7 +87,7 @@ function TabButton({
       onClick={onClick}
       className={`pb-2 transition-colors ${
         active
-          ? "font-semibold border-b-2 border-black text-black"
+          ? "font-semibold border-b-2 border-[#2563eb] text-black"
           : "text-gray-400 hover:text-gray-600"
       }`}
     >
