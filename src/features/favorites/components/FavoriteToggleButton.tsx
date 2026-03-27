@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { Heart } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { useUser } from "@supabase/auth-helpers-react";
+import { useSessionContext } from "@supabase/auth-helpers-react";
 
 import { useFavorites } from "../context/FavoritesContext";
 
@@ -24,7 +24,7 @@ export function FavoriteToggleButton({
   activeLabel = "Saved to Favorites",
   inactiveLabel = "Save to Favorites",
 }: Props) {
-  const user = useUser();
+  const { isLoading: authLoading } = useSessionContext();
   const router = useRouter();
   const pathname = usePathname();
   const { isFavorite, toggleFavorite } = useFavorites();
@@ -36,22 +36,25 @@ export function FavoriteToggleButton({
     event.preventDefault();
     event.stopPropagation();
 
-    if (!user) {
-      const redirectTo = encodeURIComponent(pathname || "/");
-      router.push(`/auth/login?redirect=${redirectTo}`);
+    if (authLoading) {
       return;
     }
 
     setSaving(true);
-    await toggleFavorite(mentorId);
+    const result = await toggleFavorite(mentorId);
     setSaving(false);
+
+    if (!result.ok && result.error === "Login required") {
+      const redirectTo = encodeURIComponent(pathname || "/");
+      router.push(`/auth/login?redirect=${redirectTo}`);
+    }
   };
 
   return (
     <button
       type="button"
       onClick={handleClick}
-      disabled={saving}
+      disabled={saving || authLoading}
       aria-pressed={favorite}
       aria-label={favorite ? activeLabel : inactiveLabel}
       className={`inline-flex items-center justify-center gap-2 transition disabled:opacity-60 ${className}`}

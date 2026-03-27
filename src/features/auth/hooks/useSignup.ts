@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import type { UserRole } from "../types";
 import { useOAuthSignIn } from "./useOAuthSignIn";
+import { syncUserProfile } from "../utils/syncUserProfile";
 
 type UseSignupOptions = {
   initialRole?: UserRole;
@@ -55,6 +56,18 @@ export const useSignup = (options?: UseSignupOptions) => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback?${new URLSearchParams(
+          {
+            redirect: redirectPath,
+            role: selectedRole,
+          }
+        ).toString()}`,
+        data: {
+          role: selectedRole,
+          username: email.split("@")[0],
+        },
+      },
     });
 
     setLoading(false);
@@ -64,12 +77,13 @@ export const useSignup = (options?: UseSignupOptions) => {
       return;
     }
 
-    if (data.user) {
-      await supabase.from("users").upsert({
-        id: data.user.id,
-        username: email.split("@")[0],
-        role: selectedRole,
-      });
+    if (data.session) {
+      const syncResult = await syncUserProfile(selectedRole);
+
+      if (!syncResult.ok) {
+        alert(syncResult.error ?? "Failed to prepare your profile.");
+        return;
+      }
     }
 
     setSuccessMessage(

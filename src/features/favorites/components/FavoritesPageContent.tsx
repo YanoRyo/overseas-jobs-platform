@@ -2,7 +2,7 @@
 
 import { Heart } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
-import { useUser } from "@supabase/auth-helpers-react";
+import { useSessionContext, useUser } from "@supabase/auth-helpers-react";
 
 import MentorCard from "@/components/MentorCard";
 
@@ -12,6 +12,7 @@ export function FavoritesPageContent() {
   const router = useRouter();
   const pathname = usePathname();
   const user = useUser();
+  const { isLoading: authLoading } = useSessionContext();
   const { favoriteMentors, loading } = useFavorites();
 
   return (
@@ -29,7 +30,7 @@ export function FavoritesPageContent() {
           </div>
         </div>
 
-        {loading ? (
+        {loading || authLoading ? (
           <div className="py-16 text-center text-sm text-gray-500">
             Loading favorites...
           </div>

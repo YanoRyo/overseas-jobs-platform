@@ -51,7 +51,7 @@ export const LoginForm = ({ redirect }: LoginFormProps) => {
         <RoleSelector
           value={role}
           onChange={setRole}
-          hint="Required for first-time social sign-in."
+          hint="Used for first-time social sign-in and account recovery."
         />
         <SocialAuthButtons
           onGoogle={handleGoogleLogin}

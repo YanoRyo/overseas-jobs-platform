@@ -9,6 +9,7 @@ import {
   shouldSuggestVerificationResend,
   toResendErrorMessage,
 } from "../utils/authError";
+import { syncUserProfile } from "../utils/syncUserProfile";
 
 type UseLoginOptions = {
   initialRole?: UserRole;
@@ -74,6 +75,15 @@ export const useLogin = (options?: UseLoginOptions) => {
         return;
       }
 
+      const syncResult = await syncUserProfile(role);
+      if (!syncResult.ok) {
+        setError(
+          syncResult.error ??
+            "Failed to prepare your user profile. Please try again."
+        );
+        return;
+      }
+
       router.push(redirectPath);
     } catch (caughtError) {
       console.error("signInWithPassword error", caughtError);
@@ -96,7 +106,12 @@ export const useLogin = (options?: UseLoginOptions) => {
         type: "signup",
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
+          emailRedirectTo: `${window.location.origin}/auth/callback?${new URLSearchParams(
+            {
+              redirect: redirectPath,
+              ...(role ? { role } : {}),
+            }
+          ).toString()}`,
         },
       });
 
