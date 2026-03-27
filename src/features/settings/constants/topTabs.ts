@@ -32,12 +32,6 @@ export const SETTINGS_TOP_TABS: SettingsTopTab[] = [
     roles: ["mentor", "student"],
   },
   {
-    id: "learn",
-    label: "Learn",
-    clickable: false,
-    roles: ["mentor", "student"],
-  },
-  {
     id: "settings",
     label: "Settings",
     href: "/settings",
