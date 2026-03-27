@@ -419,7 +419,7 @@ export const MentorDetail = ({
                   </div>
                   {/* Introduction: Simple text without box decoration */}
                   {mentor.intro && (
-                    <p className="text-secondary leading-relaxed">
+                    <p className="break-words text-secondary leading-relaxed">
                       {mentor.intro}
                     </p>
                   )}
@@ -440,7 +440,7 @@ export const MentorDetail = ({
             <section className="pb-8 border-b border-border last:border-b-0 last:pb-0">
               <h2 className="text-xl font-semibold text-primary">About Me</h2>
               <p
-                className={`mt-4 text-secondary whitespace-pre-wrap leading-relaxed ${
+                className={`mt-4 break-words text-secondary whitespace-pre-wrap leading-relaxed ${
                   bioExpanded ? "" : "line-clamp-6"
                 }`}
               >
