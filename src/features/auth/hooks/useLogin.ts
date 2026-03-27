@@ -38,6 +38,9 @@ export const useLogin = (options?: UseLoginOptions) => {
       requireRole: !options?.initialRole,
     });
 
+  const getNetworkErrorMessage = () =>
+    "Could not reach the authentication server. Please check your connection and try again.";
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -45,32 +48,38 @@ export const useLogin = (options?: UseLoginOptions) => {
     setNeedsEmailVerification(false);
     setResendMessage(null);
 
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
-    });
-    setLoading(false);
+    try {
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      setLoading(false);
 
-    if (error) {
-      if (isEmailNotConfirmedError(error)) {
-        setError("Please verify your email before logging in.");
-        setNeedsEmailVerification(true);
+      if (error) {
+        if (isEmailNotConfirmedError(error)) {
+          setError("Please verify your email before logging in.");
+          setNeedsEmailVerification(true);
+          return;
+        }
+
+        if (shouldSuggestVerificationResend(error)) {
+          setError(
+            "Invalid login credentials. If you recently signed up, try resending the verification email."
+          );
+          setNeedsEmailVerification(true);
+          return;
+        }
+
+        setError(error.message);
         return;
       }
 
-      if (shouldSuggestVerificationResend(error)) {
-        setError(
-          "Invalid login credentials. If you recently signed up, try resending the verification email."
-        );
-        setNeedsEmailVerification(true);
-        return;
-      }
-
-      setError(error.message);
-      return;
+      router.push(redirectPath);
+    } catch (caughtError) {
+      console.error("signInWithPassword error", caughtError);
+      setLoading(false);
+      setError(getNetworkErrorMessage());
     }
-
-    router.push(redirectPath);
   };
 
   const handleResendVerification = async () => {
@@ -82,24 +91,30 @@ export const useLogin = (options?: UseLoginOptions) => {
     setResendLoading(true);
     setResendMessage(null);
 
-    const { error } = await supabase.auth.resend({
-      type: "signup",
-      email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
-    });
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
 
-    if (error) {
-      setResendMessage(toResendErrorMessage(error));
+      if (error) {
+        setResendMessage(toResendErrorMessage(error));
+        setResendLoading(false);
+        return;
+      }
+
+      setResendMessage(
+        "If your account exists, a verification email has been sent."
+      );
       setResendLoading(false);
-      return;
+    } catch (caughtError) {
+      console.error("resend verification error", caughtError);
+      setResendMessage(getNetworkErrorMessage());
+      setResendLoading(false);
     }
-
-    setResendMessage(
-      "If your account exists, a verification email has been sent."
-    );
-    setResendLoading(false);
   };
 
   return {
