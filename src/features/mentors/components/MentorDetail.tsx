@@ -385,9 +385,9 @@ export const MentorDetail = ({
   return (
     <div className="bg-surface">
       <div className="mx-auto max-w-6xl px-6 py-10">
-        <div className="grid grid-cols-1 lg:grid-cols-[minmax(0,1fr)_320px] gap-8 items-start">
+        <div className="grid grid-cols-1 gap-8 items-start lg:grid-cols-[minmax(0,1fr)_320px]">
           {/* ================= Left Column ================= */}
-          <div className="space-y-8">
+          <div className="min-w-0 space-y-8">
             {/* Profile */}
             <section className="pb-8 border-b border-border last:border-b-0 last:pb-0">
               <div className="flex flex-col gap-6 sm:flex-row">
@@ -403,13 +403,13 @@ export const MentorDetail = ({
                   )}
                 </div>
 
-                <div className="flex-1 space-y-3">
+                <div className="min-w-0 flex-1 space-y-3">
                   <div>
                     <h1 className="text-3xl font-semibold text-primary">
                       {mentor.name}
                     </h1>
                     {/* Subtitle: "From {countryName}" */}
-                    <p className="mt-1 text-secondary flex items-center gap-2">
+                    <p className="mt-1 flex flex-wrap items-center gap-2 text-secondary">
                       From {countryName}
                       <Flag
                         code={mentor.country}
@@ -419,12 +419,12 @@ export const MentorDetail = ({
                   </div>
                   {/* Introduction: Simple text without box decoration */}
                   {mentor.intro && (
-                    <p className="break-words text-secondary leading-relaxed">
+                    <p className="break-all text-secondary leading-relaxed">
                       {mentor.intro}
                     </p>
                   )}
                   {/* Subjects: Inline format */}
-                  <p className="text-sm text-secondary">
+                  <p className="break-all text-sm text-secondary">
                     <span className="font-semibold text-primary">
                       Subjects:{" "}
                     </span>
@@ -440,7 +440,7 @@ export const MentorDetail = ({
             <section className="pb-8 border-b border-border last:border-b-0 last:pb-0">
               <h2 className="text-xl font-semibold text-primary">About Me</h2>
               <p
-                className={`mt-4 break-words text-secondary whitespace-pre-wrap leading-relaxed ${
+                className={`mt-4 break-all text-secondary whitespace-pre-wrap leading-relaxed ${
                   bioExpanded ? "" : "line-clamp-6"
                 }`}
               >
@@ -853,8 +853,8 @@ export const MentorDetail = ({
           </div>
 
           {/* ================= Right Column (Card) ================= */}
-          <aside className="sticky top-6 h-fit">
-            <div className="rounded-2xl border border-border bg-white shadow-md p-6 space-y-5">
+          <aside className="lg:sticky lg:top-24 lg:self-start">
+            <div className="space-y-5 rounded-2xl border border-border bg-white p-6 shadow-md lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto">
               {/* 3 columns: Rating, Lessons, Price */}
               <div className="flex items-baseline justify-between gap-2">
                 <div className="text-center">
