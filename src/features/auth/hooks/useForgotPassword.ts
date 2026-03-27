@@ -11,12 +11,12 @@ export const useForgotPassword = () => {
 
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  const [message, setMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setMessage(null);
+    setSuccessMessage(null);
 
     const normalizedEmail = email.trim();
 
@@ -31,15 +31,20 @@ export const useForgotPassword = () => {
       console.error("resetPasswordForEmail error", error);
     }
 
-    setMessage(RESET_REQUEST_MESSAGE);
+    setSuccessMessage(RESET_REQUEST_MESSAGE);
     setLoading(false);
+  };
+
+  const handleSuccessClose = () => {
+    setSuccessMessage(null);
   };
 
   return {
     email,
     loading,
-    message,
+    successMessage,
     setEmail,
     handleSubmit,
+    handleSuccessClose,
   };
 };

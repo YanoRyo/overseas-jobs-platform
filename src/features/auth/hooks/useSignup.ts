@@ -28,6 +28,7 @@ export const useSignup = (options?: UseSignupOptions) => {
   const [confirmPassword, setConfirmPassword] = useState("");
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const { role, setRole, signInWithGoogle, signInWithFacebook } =
     useOAuthSignIn({
       redirect: redirectPath,
@@ -71,13 +72,14 @@ export const useSignup = (options?: UseSignupOptions) => {
       });
     }
 
-    alert("We've sent you a confirmation email.");
-    const pendingReservation = localStorage.getItem("pendingReservation");
-    if (pendingReservation) {
-      router.push("/checkout");
-    } else {
-      router.push(redirectPath);
-    }
+    setSuccessMessage(
+      "We've sent a confirmation email. Please open the link in your inbox to finish creating your account."
+    );
+  };
+
+  const handleSuccessClose = () => {
+    setSuccessMessage(null);
+    router.push("/auth/login");
   };
 
   return {
@@ -87,12 +89,14 @@ export const useSignup = (options?: UseSignupOptions) => {
     role,
     rememberMe,
     loading,
+    successMessage,
     setEmail,
     setPassword,
     setConfirmPassword,
     setRole,
     setRememberMe,
     handleEmailSignup,
+    handleSuccessClose,
     handleGoogleSignup: signInWithGoogle,
     handleFacebookSignup: signInWithFacebook,
   };
