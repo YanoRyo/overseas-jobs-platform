@@ -46,17 +46,17 @@ export function SettingsLayout() {
     <div className="min-h-screen bg-[#fafafb]">
       <SettingsTopTabs role="student" activeTabId="settings" />
 
-      <main className="mx-auto flex max-w-[1200px] gap-16 px-6 py-10">
+      <main className="mx-auto flex max-w-[1200px] flex-col gap-8 px-4 py-6 sm:px-6 lg:flex-row lg:gap-16 lg:py-10">
         <SettingsNav
           active={active}
           onChange={setActive}
           showPassword={showPassword}
         />
-        <section className="w-full max-w-[760px]">
+        <section className="w-full min-w-0 max-w-[760px]">
           {active === "account" && <AccountSettings />}
           {active === "password" && (
             <>
-              <h1 className="text-3xl font-bold mb-6">Change Password</h1>
+              <h1 className="mb-6 text-3xl font-bold">Change Password</h1>
               <PasswordChangeSection />
             </>
           )}

@@ -101,12 +101,12 @@ export function AccountSettings() {
         }}
         onSave={onSaveAvatar}
       />
-      <h1 className="text-3xl font-bold mb-6">Account Settings</h1>
+      <h1 className="mb-6 text-3xl font-bold sm:text-4xl">Account Settings</h1>
 
-      <div className="flex items-start gap-10">
+      <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-10">
         {/* 左：プロフィール画像 */}
-        <div className="flex flex-col items-center gap-2">
-          <div className="relative w-28 h-28 rounded-lg overflow-hidden bg-gray-100">
+        <div className="flex flex-col items-center gap-2 lg:w-28 lg:flex-shrink-0">
+          <div className="relative h-28 w-28 overflow-hidden rounded-lg bg-gray-100">
             <Image
               src={avatarUrl}
               alt="profile"
@@ -118,8 +118,8 @@ export function AccountSettings() {
         </div>
 
         {/* 右：Upload + フォーム */}
-        <div className="flex-1 max-w-2xl">
-          <div className="flex items-center gap-4 mb-6">
+        <div className="w-full min-w-0 flex-1 max-w-2xl">
+          <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
             <label className="px-4 py-2 rounded-lg border hover:bg-gray-50 text-sm font-semibold cursor-pointer">
               Upload photo
               <input
@@ -164,11 +164,11 @@ export function AccountSettings() {
             Phone number
           </label>
 
-          <div className="flex gap-2 mb-4">
+          <div className="mb-4 flex flex-col gap-2 sm:flex-row">
             <select
               value={phoneCountryCode}
               onChange={(e) => setPhoneCountryCode(e.target.value)}
-              className="w-24 border border-gray-300 rounded-lg px-2 py-2 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-black"
+              className="w-full border border-gray-300 rounded-lg px-2 py-2 bg-white text-gray-900 focus:outline-none focus:ring-2 focus:ring-black sm:w-24"
               disabled={!canEdit}
             >
               {COUNTRIES.map((country) => (
@@ -183,7 +183,7 @@ export function AccountSettings() {
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
               placeholder="123-456-7890"
-              className="flex-1 border rounded-lg px-3 py-2 bg-white text-gray-900 placeholder:text-gray-400 border-gray-300 focus:outline-none focus:ring-2 focus:ring-black"
+              className="w-full flex-1 border rounded-lg px-3 py-2 bg-white text-gray-900 placeholder:text-gray-400 border-gray-300 focus:outline-none focus:ring-2 focus:ring-black"
               disabled={!canEdit}
             />
           </div>

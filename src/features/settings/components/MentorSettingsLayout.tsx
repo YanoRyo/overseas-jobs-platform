@@ -101,15 +101,15 @@ export function MentorSettingsLayout() {
     <div className="min-h-screen bg-[#fafafb]">
       <SettingsTopTabs role="mentor" activeTabId="settings" />
 
-      <main className="mx-auto flex max-w-[1200px] gap-16 px-6 py-10">
+      <main className="mx-auto flex max-w-[1200px] flex-col gap-8 px-4 py-6 sm:px-6 lg:flex-row lg:gap-16 lg:py-10">
         <MentorSettingsNav active={activeSection} onChange={setActiveSection} showPassword={showPassword} />
 
-        <section className="min-h-[520px] w-full max-w-[680px]">
-          <h1 className="mb-6 text-[48px] font-bold tracking-[-0.02em] text-[#1f1f2d]">
+        <section className="min-h-[520px] w-full min-w-0 max-w-[680px]">
+          <h1 className="mb-6 text-3xl font-bold tracking-[-0.02em] text-[#1f1f2d] sm:text-4xl lg:text-[48px]">
             {title}
           </h1>
 
-          <div className="rounded-xl border border-[#e3e4ea] bg-white p-6">
+          <div className="rounded-xl border border-[#e3e4ea] bg-white p-4 sm:p-6">
             {loading ? (
               <p className="text-sm text-[#606579]">Loading profile...</p>
             ) : fetchError ? (
