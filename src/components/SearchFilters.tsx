@@ -29,7 +29,7 @@ export default function SearchFilters({
     "border border-border hover:border-border-hover rounded px-2 py-1 text-sm bg-surface text-primary transition-colors";
 
   return (
-    <div className="flex flex-col gap-4 w-full max-w-screen-md mx-auto px-4 sm:px-6">
+    <div className="flex w-full flex-col gap-4">
       {/* 上段（PC） */}
       <div className="hidden md:grid grid-cols-1 md:grid-cols-2 gap-4">
         <select
