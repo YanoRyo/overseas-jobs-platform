@@ -4,6 +4,7 @@ import { useSignup } from "../hooks/useSignup";
 import { AuthNoticeDialog } from "./AuthNoticeDialog";
 import { AuthShell } from "./AuthShell";
 import { AuthDivider } from "./AuthDivider";
+import { PasswordField } from "./PasswordField";
 import { RoleSelector } from "./RoleSelector";
 import { SocialAuthButtons } from "./SocialAuthButtons";
 
@@ -76,31 +77,21 @@ export const SignupForm = ({ redirect }: SignupFormProps) => {
               />
             </div>
 
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-primary">
-                Password
-              </label>
-              <input
-                type="password"
-                placeholder="Create a password"
-                className={inputClassName}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-              />
-            </div>
+            <PasswordField
+              label="Password"
+              placeholder="Create a password"
+              value={password}
+              onChange={setPassword}
+              className={inputClassName}
+            />
 
-            <div className="space-y-2">
-              <label className="text-sm font-semibold text-primary">
-                Confirm password
-              </label>
-              <input
-                type="password"
-                placeholder="Confirm your password"
-                className={inputClassName}
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-              />
-            </div>
+            <PasswordField
+              label="Confirm password"
+              placeholder="Confirm your password"
+              value={confirmPassword}
+              onChange={setConfirmPassword}
+              className={inputClassName}
+            />
 
             <label className="flex items-center gap-2 text-xs text-secondary">
               <input

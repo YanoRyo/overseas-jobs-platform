@@ -4,6 +4,7 @@ import Link from "next/link";
 import { AUTH_INPUT_CLASS_NAME, AUTH_SUBMIT_BUTTON_CLASS_NAME } from "../constants/styles";
 import { useResetPassword } from "../hooks/useResetPassword";
 import { AuthShell } from "./AuthShell";
+import { PasswordField } from "./PasswordField";
 
 export const ResetPasswordForm = () => {
   const {
@@ -39,33 +40,23 @@ export const ResetPasswordForm = () => {
         <form onSubmit={handleSubmit} className="space-y-5">
           {error && <p className="text-sm text-error">{error}</p>}
 
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-primary">
-              New password
-            </label>
-            <input
-              type="password"
-              className={AUTH_INPUT_CLASS_NAME}
-              placeholder="Enter a new password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
+          <PasswordField
+            label="New password"
+            placeholder="Enter a new password"
+            value={password}
+            onChange={setPassword}
+            required
+            className={AUTH_INPUT_CLASS_NAME}
+          />
 
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-primary">
-              Confirm password
-            </label>
-            <input
-              type="password"
-              className={AUTH_INPUT_CLASS_NAME}
-              placeholder="Re-enter the new password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              required
-            />
-          </div>
+          <PasswordField
+            label="Confirm password"
+            placeholder="Re-enter the new password"
+            value={confirmPassword}
+            onChange={setConfirmPassword}
+            required
+            className={AUTH_INPUT_CLASS_NAME}
+          />
 
           <button
             type="submit"

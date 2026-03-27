@@ -5,6 +5,7 @@ import { useLogin } from "../hooks/useLogin";
 import { AuthShell } from "./AuthShell";
 import { AuthDivider } from "./AuthDivider";
 import { EmailVerificationAlert } from "./EmailVerificationAlert";
+import { PasswordField } from "./PasswordField";
 import { RoleSelector } from "./RoleSelector";
 import { SocialAuthButtons } from "./SocialAuthButtons";
 
@@ -81,19 +82,14 @@ export const LoginForm = ({ redirect }: LoginFormProps) => {
             />
           </div>
 
-          <div className="space-y-2">
-            <label className="text-sm font-semibold text-primary">
-              Password
-            </label>
-            <input
-              type="password"
-              className={AUTH_INPUT_CLASS_NAME}
-              placeholder="Your password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-          </div>
+          <PasswordField
+            label="Password"
+            placeholder="Your password"
+            value={password}
+            onChange={setPassword}
+            required
+            className={AUTH_INPUT_CLASS_NAME}
+          />
 
           <div className="text-right">
             <Link
