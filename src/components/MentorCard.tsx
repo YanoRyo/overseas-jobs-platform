@@ -39,7 +39,9 @@ export default function MentorCard({ mentor, onBook }: MentorCardProps) {
                 />
               </div>
             </h2>
-            <p className="text-base text-secondary">💼 {mentor.headline}</p>
+            <p className="break-words text-base text-secondary">
+              💼 {mentor.headline}
+            </p>
           </div>
 
           {/* introduction */}
