@@ -128,7 +128,11 @@ export function MentorList() {
         </div>
       )}
 
-      <div className={loading ? "opacity-50 pointer-events-none" : ""}>
+      <div
+        className={`flex flex-col gap-4 ${
+          loading ? "opacity-50 pointer-events-none" : ""
+        }`}
+      >
         {mentors.map((mentor) => (
           <MentorCard
             key={mentor.id}
