@@ -51,9 +51,9 @@ export default function MentorCard({ mentor, onBook }: MentorCardProps) {
           </div>
 
           {/* introduction */}
-          <div className="mt-3 text-primary text-base">
+          <div className="mt-3 min-w-0 text-base text-primary">
             <p
-              className={`${!expanded ? 'line-clamp-4' : ''}`}
+              className={`break-all ${!expanded ? 'line-clamp-4' : ''}`}
               style={{ whiteSpace: 'pre-wrap' }}
             >
               {mentor.introduction}
