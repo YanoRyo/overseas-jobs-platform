@@ -2,6 +2,7 @@ import { useState } from 'react';
 import Flag from 'react-world-flags';
 import Image from 'next/image';
 import Link from 'next/link';
+import { FavoriteToggleButton } from '@/features/favorites/components/FavoriteToggleButton';
 import type { MentorListItem } from '@/features/mentors/types';
 
 type MentorCardProps = {
@@ -14,7 +15,12 @@ export default function MentorCard({ mentor, onBook }: MentorCardProps) {
 
   return (
     <Link href={`/mentors/${mentor.id}`} className="block">
-      <div className="flex flex-col md:flex-row border-border rounded-xl shadow p-8 gap-8 items-stretch min-h-[220px] hover:bg-surface-hover cursor-pointer bg-surface transition-colors">
+      <div className="relative flex min-h-[220px] flex-col items-stretch gap-8 rounded-xl border-border bg-surface p-8 shadow transition-colors hover:bg-surface-hover md:flex-row">
+        <FavoriteToggleButton
+          mentorId={mentor.id}
+          className="absolute right-4 top-4 z-10 h-10 w-10 rounded-full bg-white/95 shadow-sm hover:bg-white"
+        />
+
         {/* アバター */}
         <div className="relative w-32 h-32 flex-shrink-0">
           {mentor.avatarUrl && (
@@ -68,9 +74,9 @@ export default function MentorCard({ mentor, onBook }: MentorCardProps) {
         </div>
 
         {/* PC時のみ詳細エリア */}
-        <div className="hidden md:flex flex-col justify-between text-right min-w-[160px]">
-          <div className="flex justify-between items-start gap-2">
-            <div className="flex flex-col items-start">
+        <div className="hidden min-w-[160px] flex-col items-stretch justify-end gap-5 pt-10 text-right md:flex">
+          <div className="flex items-end justify-between gap-4">
+            <div className="flex flex-col items-start justify-end">
               <div className="flex items-center text-base text-yellow-500 font-medium">
                 <svg
                   className="w-5 h-5 mr-1 fill-current"
@@ -83,7 +89,7 @@ export default function MentorCard({ mentor, onBook }: MentorCardProps) {
               </div>
               <p className="text-sm text-muted">{mentor.reviewCount}件の実績</p>
             </div>
-            <div className="text-right">
+            <div className="flex flex-col items-end justify-end text-right">
               <p className="text-lg font-bold text-primary">${mentor.hourlyRate}</p>
               <p className="text-sm text-muted">50分の料金</p>
             </div>
@@ -96,7 +102,7 @@ export default function MentorCard({ mentor, onBook }: MentorCardProps) {
               e.stopPropagation();
               onBook();
             }}
-            className="bg-accent hover:bg-accent-hover text-white px-4 py-2 rounded-lg text-base mt-auto transition-colors"
+            className="mt-0 rounded-lg bg-accent px-4 py-2 text-base text-white transition-colors hover:bg-accent-hover"
           >
             予約する
           </button>

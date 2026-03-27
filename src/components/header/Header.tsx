@@ -2,6 +2,7 @@
 import { usePathname } from "next/navigation";
 
 import Link from "next/link";
+import FavoritesBox from "./FavoritesBox";
 import MessageBox from "./MessageBox";
 import UserMenu from "./UserMenu";
 
@@ -21,6 +22,7 @@ export function Header() {
         {!hideRight && (
           <div className="flex items-center gap-4">
             <MessageBox />
+            <FavoritesBox />
             <UserMenu />
           </div>
         )}

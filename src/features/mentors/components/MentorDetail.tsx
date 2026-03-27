@@ -7,11 +7,13 @@ import {
   ChevronRight,
   ChevronDown,
   Info,
+  MessageCircle,
   Zap,
 } from "lucide-react";
 import { useUser } from "@supabase/auth-helpers-react";
 import BookingModal from "@/components/BookingModal";
 import { useBookedSlots } from "@/features/checkout/hooks/useBookedSlots";
+import { FavoriteToggleButton } from "@/features/favorites/components/FavoriteToggleButton";
 import { MentorDetailModel } from "../types";
 import { SendMessageModal } from "@/features/messages/components/SendMessageModal";
 import {
@@ -891,15 +893,18 @@ export const MentorDetail = ({
               </button>
 
               <button
-                className="w-full border border-border py-2.5 rounded-lg hover:bg-surface-hover transition"
+                className="w-full border border-border py-2.5 rounded-lg hover:bg-surface-hover transition flex items-center justify-center gap-2"
                 onClick={() => setIsMessageOpen(true)}
               >
+                <MessageCircle className="w-5 h-5" />
                 Send Message
               </button>
 
-              <button className="w-full border border-border py-2.5 rounded-lg hover:bg-surface-hover transition">
-                Save to Favorites
-              </button>
+              <FavoriteToggleButton
+                mentorId={mentor.id}
+                showLabel
+                className="w-full rounded-lg border border-border py-2.5 hover:bg-surface-hover"
+              />
             </div>
           </aside>
         </div>
