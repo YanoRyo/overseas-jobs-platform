@@ -50,7 +50,7 @@ export const useLogin = (options?: UseLoginOptions) => {
     setResendMessage(null);
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
@@ -75,7 +75,10 @@ export const useLogin = (options?: UseLoginOptions) => {
         return;
       }
 
-      const syncResult = await syncUserProfile(role);
+      const syncResult = await syncUserProfile(
+        role,
+        data.session?.access_token ?? null
+      );
       if (!syncResult.ok) {
         setError(
           syncResult.error ??

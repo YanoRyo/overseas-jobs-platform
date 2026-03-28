@@ -8,13 +8,17 @@ type SyncUserProfileResult = {
 };
 
 export async function syncUserProfile(
-  role?: UserRole | null
+  role?: UserRole | null,
+  accessToken?: string | null
 ): Promise<SyncUserProfileResult> {
   try {
     const response = await fetch("/api/auth/sync-user", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        ...(accessToken
+          ? { Authorization: `Bearer ${accessToken}` }
+          : {}),
       },
       body: JSON.stringify({ role }),
     });

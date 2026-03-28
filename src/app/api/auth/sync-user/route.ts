@@ -11,10 +11,18 @@ const isUserRole = (value: unknown): value is UserRole =>
 
 export async function POST(request: Request) {
   const supabase = await createSupabaseServerClient();
+  const authorization = request.headers.get("authorization");
+  const bearerToken = authorization?.startsWith("Bearer ")
+    ? authorization.slice("Bearer ".length)
+    : null;
+
+  const userResult = bearerToken
+    ? await supabase.auth.getUser(bearerToken)
+    : await supabase.auth.getUser();
   const {
     data: { user },
     error: userError,
-  } = await supabase.auth.getUser();
+  } = userResult;
 
   if (userError) {
     console.error("sync-user auth error", userError);

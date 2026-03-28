@@ -24,7 +24,13 @@ export const useAuthCallback = () => {
       const role = isUserRole(roleParam) ? roleParam : metadataRole;
 
       if (!user) return;
-      const syncResult = await syncUserProfile(role);
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+      const syncResult = await syncUserProfile(
+        role,
+        session?.access_token ?? null
+      );
       if (!syncResult.ok) {
         console.error("auth callback sync error", syncResult.error);
       }

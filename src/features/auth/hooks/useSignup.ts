@@ -78,7 +78,10 @@ export const useSignup = (options?: UseSignupOptions) => {
     }
 
     if (data.session) {
-      const syncResult = await syncUserProfile(selectedRole);
+      const syncResult = await syncUserProfile(
+        selectedRole,
+        data.session.access_token
+      );
 
       if (!syncResult.ok) {
         alert(syncResult.error ?? "Failed to prepare your profile.");
