@@ -1,6 +1,5 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useOAuthSignIn } from "./useOAuthSignIn";
 import type { UserRole } from "../types";
@@ -17,7 +16,6 @@ type UseLoginOptions = {
 };
 
 export const useLogin = (options?: UseLoginOptions) => {
-  const router = useRouter();
   const redirectPath = options?.redirect
     ? options.redirect.startsWith("/")
       ? options.redirect
@@ -87,7 +85,17 @@ export const useLogin = (options?: UseLoginOptions) => {
         return;
       }
 
-      router.push(redirectPath);
+      if (!data.session) {
+        setError("Login session could not be established. Please try again.");
+        return;
+      }
+
+      await supabase.auth.setSession({
+        access_token: data.session.access_token,
+        refresh_token: data.session.refresh_token,
+      });
+
+      window.location.assign(redirectPath);
     } catch (caughtError) {
       console.error("signInWithPassword error", caughtError);
       setLoading(false);
