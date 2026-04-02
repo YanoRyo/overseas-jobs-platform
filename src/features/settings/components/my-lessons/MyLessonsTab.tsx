@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useMyLessons } from "../../hooks/useMyLessons";
 import { LessonCard } from "./LessonCard";
 import type { LessonItem } from "../../types/myLessons";
+import type { UserRole } from "@/features/auth/types";
 
 function LessonSection({
   title,
@@ -26,8 +27,8 @@ function LessonSection({
   );
 }
 
-export function MyLessonsTab() {
-  const { lessons, loading, error } = useMyLessons();
+export function MyLessonsTab({ role }: { role: UserRole }) {
+  const { lessons, loading, error } = useMyLessons(role);
 
   if (loading) {
     return <p className="text-sm text-gray-400">Loading...</p>;
@@ -45,13 +46,19 @@ export function MyLessonsTab() {
   if (isEmpty) {
     return (
       <div className="rounded-xl border border-border bg-white p-8 text-center shadow-sm">
-        <p className="text-secondary">レッスンの予約はまだありません</p>
-        <Link
-          href="/"
-          className="mt-3 inline-block text-sm font-medium text-accent hover:underline"
-        >
-          メンターを探す
-        </Link>
+        <p className="text-secondary">
+          {role === "mentor"
+            ? "予約されたレッスンはまだありません"
+            : "レッスンの予約はまだありません"}
+        </p>
+        {role === "student" ? (
+          <Link
+            href="/"
+            className="mt-3 inline-block text-sm font-medium text-accent hover:underline"
+          >
+            メンターを探す
+          </Link>
+        ) : null}
       </div>
     );
   }

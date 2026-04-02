@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import Stripe from "stripe";
 import { stripe } from "@/lib/stripe/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/server";
+import { issueMeetingLinksForBooking } from "@/lib/meetings/server";
 
 export async function POST(request: Request) {
   const body = await request.text();
@@ -34,26 +35,26 @@ export async function POST(request: Request) {
     switch (event.type) {
       case "payment_intent.succeeded": {
         const pi = event.data.object as Stripe.PaymentIntent;
-        // 冪等性チェック
         const { data: payment } = await adminDb
           .from("payments")
           .select("id, status")
           .eq("stripe_payment_intent_id", pi.id)
           .single();
 
-        if (!payment || payment.status === "succeeded") break;
+        if (!payment) break;
 
-        const { error: updateError } = await adminDb
-          .from("payments")
-          .update({ status: "succeeded", paid_at: new Date().toISOString() })
-          .eq("id", payment.id);
+        if (payment.status !== "succeeded") {
+          const { error: updateError } = await adminDb
+            .from("payments")
+            .update({ status: "succeeded", paid_at: new Date().toISOString() })
+            .eq("id", payment.id);
 
-        if (updateError) {
-          console.error("Failed to update payment status:", updateError);
-          throw updateError;
+          if (updateError) {
+            console.error("Failed to update payment status:", updateError);
+            throw updateError;
+          }
         }
 
-        // booking確認
         const bookingId = pi.metadata.booking_id;
         if (bookingId) {
           const { error: bookingUpdateError } = await adminDb
@@ -66,6 +67,8 @@ export async function POST(request: Request) {
             console.error("Failed to update booking status:", bookingUpdateError);
             throw bookingUpdateError;
           }
+
+          await issueMeetingLinksForBooking(bookingId);
         }
         break;
       }

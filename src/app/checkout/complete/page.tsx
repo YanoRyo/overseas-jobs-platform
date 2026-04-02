@@ -89,7 +89,7 @@ function CheckoutCompleteContent() {
         {isSuccess && (
           <div className="mt-6 rounded-lg border border-success/20 bg-success/10 p-3">
             <p className="text-sm text-[#4b5563]">
-              レッスン完了後、講師への支払いが処理されます
+              決済完了後にミーティングリンクが発行され、My lessons から開けます
             </p>
           </div>
         )}

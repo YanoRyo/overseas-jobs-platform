@@ -42,6 +42,32 @@ Stripe-related variables are required when working on payments:
 - `STRIPE_WEBHOOK_SECRET`
 - `ADMIN_USER_IDS`
 
+Optional variables for auto-issued meeting links after payment:
+
+- `MEETING_PROVIDER`
+- `MEETING_URL_TEMPLATE`
+- `MEETING_HOST_URL_TEMPLATE`
+- `ZOOM_ACCOUNT_ID`
+- `ZOOM_CLIENT_ID`
+- `ZOOM_CLIENT_SECRET`
+- `ZOOM_HOST_EMAIL`
+
+## Meeting Links
+
+When a Stripe `payment_intent.succeeded` webhook is received, Bridgeee can now
+generate a per-booking meeting URL and store it on the related `bookings`
+record. The generated link is shown in `Settings > My lessons`.
+
+Supported providers in code:
+
+- `template`: generates a deterministic external URL from environment-driven
+  templates. A simple setup is `https://meet.jit.si/bridgeee-{bookingId}`.
+- `zoom`: creates a scheduled Zoom meeting and stores separate host/join URLs.
+
+The database change for this feature lives in:
+
+- `supabase/migrations/20260402120000_add_meeting_links_to_bookings.sql`
+
 ## Staging And Schema Workflow
 
 We no longer edit production tables directly from the Supabase dashboard.
