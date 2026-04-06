@@ -6,12 +6,14 @@ export type LessonItem = {
   startTime: Date;
   endTime: Date;
   status: BookingStatus;
-  mentorName: string;
-  mentorAvatarUrl: string | null;
-  mentorCountry: string;
+  participantName: string;
+  participantAvatarUrl: string | null;
+  participantLabel: "Mentor" | "Student";
   amount: number | null;
   currency: string;
   paymentStatus: PaymentStatus | null;
+  meetingUrl: string | null;
+  meetingProvider: string | null;
 };
 
 /** ステータスごとにグループ化されたレッスン */

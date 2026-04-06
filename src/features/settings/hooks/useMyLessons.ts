@@ -1,30 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
 import type { LessonItem, GroupedLessons } from "../types/myLessons";
+import type { UserRole } from "@/features/auth/types";
 
-type BookingRow = {
+type ApiLessonItem = {
   id: string;
-  start_time: string;
-  end_time: string;
-  status: string;
-  mentor_id: string;
-};
-
-type MentorRow = {
-  id: string;
-  first_name: string;
-  last_name: string;
-  avatar_url: string | null;
-  country_code: string;
-};
-
-type PaymentRow = {
-  booking_id: string;
-  amount: number;
+  startTime: string;
+  endTime: string;
+  status: LessonItem["status"];
+  participantName: string;
+  participantAvatarUrl: string | null;
+  participantLabel: LessonItem["participantLabel"];
+  amount: number | null;
   currency: string;
-  status: string;
+  paymentStatus: LessonItem["paymentStatus"];
+  meetingUrl: string | null;
+  meetingProvider: string | null;
 };
 
 function groupLessons(items: LessonItem[]): GroupedLessons {
@@ -46,20 +38,18 @@ function groupLessons(items: LessonItem[]): GroupedLessons {
     }
   }
 
-  // upcoming: 日時の昇順（近い順）
   upcoming.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
-  // pending: 日時の昇順
   pending.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
-  // completed: 日時の降順（最近のものが上）
   completed.sort((a, b) => b.startTime.getTime() - a.startTime.getTime());
 
   return { upcoming, pending, completed };
 }
 
-export function useMyLessons() {
-  const supabase = useSupabaseClient();
-  const user = useUser();
+function parseUtcTimestamp(value: string) {
+  return new Date(value.endsWith("Z") ? value : `${value}Z`);
+}
 
+export function useMyLessons(role: UserRole) {
   const [lessons, setLessons] = useState<GroupedLessons>({
     upcoming: [],
     pending: [],
@@ -69,87 +59,60 @@ export function useMyLessons() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!user?.id) return;
+    let cancelled = false;
 
     const fetchLessons = async () => {
       setLoading(true);
       setError(null);
 
-      // 1. bookings取得
-      const { data: bookings, error: bookingsError } = await supabase
-        .from("bookings")
-        .select("id, start_time, end_time, status, mentor_id")
-        .eq("user_id", user.id)
-        .in("status", ["confirmed", "pending", "completed"]);
+      try {
+        const response = await fetch(`/api/settings/my-lessons?role=${role}`, {
+          method: "GET",
+          cache: "no-store",
+        });
 
-      if (bookingsError) {
-        console.error("=== Failed to fetch bookings:", bookingsError.message);
-        setError("レッスン情報の取得に失敗しました");
-        setLoading(false);
-        return;
+        if (!response.ok) {
+          throw new Error(`Failed to fetch lessons: ${response.status}`);
+        }
+
+        const data = (await response.json()) as { lessons?: ApiLessonItem[] };
+        const items: LessonItem[] = (data.lessons ?? []).map((lesson) => ({
+          id: lesson.id,
+          startTime: parseUtcTimestamp(lesson.startTime),
+          endTime: parseUtcTimestamp(lesson.endTime),
+          status: lesson.status,
+          participantName: lesson.participantName,
+          participantAvatarUrl: lesson.participantAvatarUrl,
+          participantLabel: lesson.participantLabel,
+          amount: lesson.amount,
+          currency: lesson.currency,
+          paymentStatus: lesson.paymentStatus,
+          meetingUrl: lesson.meetingUrl,
+          meetingProvider: lesson.meetingProvider,
+        }));
+
+        if (!cancelled) {
+          setLessons(groupLessons(items));
+        }
+      } catch (fetchError) {
+        console.error("Failed to load lessons:", fetchError);
+        if (!cancelled) {
+          setLessons({ upcoming: [], pending: [], completed: [] });
+          setError("レッスン情報の取得に失敗しました");
+        }
+      } finally {
+        if (!cancelled) {
+          setLoading(false);
+        }
       }
-
-      if (!bookings || bookings.length === 0) {
-        setLessons({ upcoming: [], pending: [], completed: [] });
-        setLoading(false);
-        return;
-      }
-
-      // 2. 関連するmentor情報を取得
-      const mentorIds = [...new Set(bookings.map((b) => b.mentor_id))];
-      const { data: mentors } = await supabase
-        .from("mentors")
-        .select("id, first_name, last_name, avatar_url, country_code")
-        .in("id", mentorIds);
-
-      const mentorMap = new Map<string, MentorRow>();
-      for (const m of mentors ?? []) {
-        mentorMap.set(m.id, m as MentorRow);
-      }
-
-      // 3. 関連するpayment情報を取得
-      const bookingIds = bookings.map((b) => b.id);
-      const { data: payments } = await supabase
-        .from("payments")
-        .select("booking_id, amount, currency, status")
-        .in("booking_id", bookingIds);
-
-      const paymentMap = new Map<string, PaymentRow>();
-      for (const p of payments ?? []) {
-        paymentMap.set(p.booking_id, p as PaymentRow);
-      }
-
-      // 4. データを結合
-      const items: LessonItem[] = bookings.map((b) => {
-        const booking = b as BookingRow;
-        const mentor = mentorMap.get(booking.mentor_id);
-        const payment = paymentMap.get(booking.id);
-
-        return {
-          id: booking.id,
-          // DBには timestamp without time zone だがUTC値が入っているため、Zを付与してUTCとして解釈
-          startTime: new Date(booking.start_time + "Z"),
-          endTime: new Date(booking.end_time + "Z"),
-          status: booking.status as LessonItem["status"],
-          mentorName: mentor
-            ? `${mentor.first_name} ${mentor.last_name}`
-            : "Unknown",
-          mentorAvatarUrl: mentor?.avatar_url ?? null,
-          mentorCountry: mentor?.country_code ?? "",
-          amount: payment?.amount ?? null,
-          currency: payment?.currency ?? "usd",
-          paymentStatus: payment
-            ? (payment.status as LessonItem["paymentStatus"])
-            : null,
-        };
-      });
-
-      setLessons(groupLessons(items));
-      setLoading(false);
     };
 
-    fetchLessons();
-  }, [user?.id, supabase]);
+    void fetchLessons();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [role]);
 
   return { lessons, loading, error };
 }
