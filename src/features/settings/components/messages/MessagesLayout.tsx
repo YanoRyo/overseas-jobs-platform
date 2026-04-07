@@ -11,13 +11,68 @@ import { useUnreadCount } from "@/features/messages/hooks/useUnreadCount";
 import type { MessageTab } from "@/features/messages/types/messageTab";
 import type { ConversationItem } from "@/features/messages/types/conversationItem";
 
+import { MentorRegistrationCallout } from "../MentorRegistrationCallout";
 import { SettingsTopTabs } from "../SettingsTopTabs";
 
 type Props = {
   role: "student" | "mentor";
+  showMentorRegistrationCallout?: boolean;
 };
 
-export function MessagesLayout({ role }: Props) {
+function buildTabs(role: Props["role"]) {
+  return [
+    ...(role === "student"
+      ? [{ id: "home", label: "Home", href: "/", clickable: true, roles: [role] }]
+      : []),
+    {
+      id: "messages",
+      label: "Messages",
+      href: "/settings?tab=messages",
+      clickable: true,
+      roles: [role],
+    },
+    {
+      id: "my-lessons",
+      label: "My lessons",
+      href: "/settings?tab=my-lessons",
+      clickable: true,
+      roles: [role],
+    },
+    {
+      id: "settings",
+      label: "Settings",
+      href: "/settings",
+      clickable: true,
+      roles: [role],
+    },
+  ];
+}
+
+export function MessagesLayout({ role, showMentorRegistrationCallout = false }: Props) {
+  const tabs = buildTabs(role);
+
+  if (showMentorRegistrationCallout) {
+    return (
+      <div className="min-h-screen bg-white">
+        <SettingsTopTabs role={role} activeTabId="messages" tabs={tabs} />
+
+        <main className="mx-auto max-w-[1200px] px-6 py-10">
+          <MentorRegistrationCallout />
+        </main>
+      </div>
+    );
+  }
+
+  return <MessagesContent role={role} tabs={tabs} />;
+}
+
+function MessagesContent({
+  role,
+  tabs,
+}: {
+  role: Props["role"];
+  tabs: ReturnType<typeof buildTabs>;
+}) {
   const [activeTab, setActiveTab] = useState<MessageTab>("all");
   const [activeConversation, setActiveConversation] =
     useState<ConversationItem | null>(null);
@@ -29,36 +84,6 @@ export function MessagesLayout({ role }: Props) {
   const redirectParam = useMemo(
     () => encodeURIComponent(pathname || "/settings?tab=messages"),
     [pathname]
-  );
-
-  const tabs = useMemo(
-    () => [
-      ...(role === "student"
-        ? [{ id: "home", label: "Home", href: "/", clickable: true, roles: [role] }]
-        : []),
-      {
-        id: "messages",
-        label: "Messages",
-        href: "/settings?tab=messages",
-        clickable: true,
-        roles: [role],
-      },
-      {
-        id: "my-lessons",
-        label: "My lessons",
-        href: "/settings?tab=my-lessons",
-        clickable: true,
-        roles: [role],
-      },
-      {
-        id: "settings",
-        label: "Settings",
-        href: "/settings",
-        clickable: true,
-        roles: [role],
-      },
-    ],
-    [role]
   );
 
   const conversations = useMemo(
@@ -109,7 +134,7 @@ export function MessagesLayout({ role }: Props) {
           </div>
         </div>
 
-        <div className="grid min-h-[calc(100vh-114px)] grid-cols-1 lg:grid-cols-[420px_minmax(0,1fr)]">
+        <div className="grid grid-cols-1 lg:grid-cols-[420px_minmax(0,1fr)]">
           <aside className="border-r border-[#e6e7eb] bg-white">
             <div className="h-full overflow-y-auto">
               {emptyReason === "not_logged_in" ? (
@@ -168,7 +193,7 @@ export function MessagesLayout({ role }: Props) {
                 onBack={() => setActiveConversation(null)}
               />
             ) : (
-              <div className="flex h-full min-h-[calc(100vh-114px)] flex-col items-center justify-center px-8 text-center">
+              <div className="flex min-h-[calc(100vh-114px)] flex-col items-center justify-center px-8 text-center">
                 <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#eef2ff]">
                   <MessageSquare className="h-8 w-8 text-[#2563eb]" />
                 </div>

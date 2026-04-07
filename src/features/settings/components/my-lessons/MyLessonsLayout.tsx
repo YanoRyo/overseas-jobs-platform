@@ -1,14 +1,31 @@
 "use client";
 
+import { MentorRegistrationCallout } from "../MentorRegistrationCallout";
 import { SettingsTopTabs } from "../SettingsTopTabs";
 import { MyLessonsTab } from "./MyLessonsTab";
 import type { UserRole } from "@/features/auth/types";
 
 type Props = {
   role: UserRole;
+  showMentorRegistrationCallout?: boolean;
 };
 
-export function MyLessonsLayout({ role }: Props) {
+export function MyLessonsLayout({
+  role,
+  showMentorRegistrationCallout = false,
+}: Props) {
+  if (showMentorRegistrationCallout) {
+    return (
+      <div className="min-h-screen bg-[#fafafb]">
+        <SettingsTopTabs role={role} activeTabId="my-lessons" />
+
+        <main className="mx-auto max-w-[1200px] px-6 py-10">
+          <MentorRegistrationCallout />
+        </main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#fafafb]">
       <SettingsTopTabs role={role} activeTabId="my-lessons" />

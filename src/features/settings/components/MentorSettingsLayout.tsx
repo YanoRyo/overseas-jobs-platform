@@ -15,6 +15,7 @@ import { AvailabilitySection } from "./mentor-sections/AvailabilitySection";
 import { PricingSection } from "./mentor-sections/PricingSection";
 import { PayoutSection } from "./mentor-sections/PayoutSection";
 import { PasswordChangeSection } from "./PasswordChangeSection";
+import { MentorRegistrationCallout } from "./MentorRegistrationCallout";
 import { SettingsTopTabs } from "./SettingsTopTabs";
 import { isEmailProvider } from "@/features/auth/utils/authProvider";
 
@@ -35,7 +36,29 @@ const VALID_SECTIONS = new Set<MentorSettingsSection>([
   "video", "availability", "pricing", "payout", "password",
 ]);
 
-export function MentorSettingsLayout() {
+type Props = {
+  showMentorRegistrationCallout?: boolean;
+};
+
+export function MentorSettingsLayout({
+  showMentorRegistrationCallout = false,
+}: Props) {
+  if (showMentorRegistrationCallout) {
+    return (
+      <div className="min-h-screen bg-[#fafafb]">
+        <SettingsTopTabs role="mentor" activeTabId="settings" />
+
+        <main className="mx-auto max-w-[1200px] px-4 py-6 sm:px-6 lg:py-10">
+          <MentorRegistrationCallout />
+        </main>
+      </div>
+    );
+  }
+
+  return <MentorSettingsContent />;
+}
+
+function MentorSettingsContent() {
   const user = useUser();
   const showPassword = isEmailProvider(user);
   const searchParams = useSearchParams();

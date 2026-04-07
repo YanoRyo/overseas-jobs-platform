@@ -22,6 +22,7 @@ function SettingsPageContent() {
   const [loading, setLoading] = useState(true);
   const [viewerRole, setViewerRole] = useState<ViewerRole>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [needsMentorRegistration, setNeedsMentorRegistration] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -30,6 +31,7 @@ function SettingsPageContent() {
       if (!cancelled) {
         setLoading(true);
         setLoadError(null);
+        setNeedsMentorRegistration(false);
       }
 
       try {
@@ -63,14 +65,18 @@ function SettingsPageContent() {
 
         const isMentor =
           userResult.data?.role === "mentor" || !!mentorResult.data;
+        const mentorProfileMissing =
+          userResult.data?.role === "mentor" && !mentorResult.data;
 
         if (!cancelled) {
           setViewerRole(isMentor ? "mentor" : "student");
+          setNeedsMentorRegistration(mentorProfileMissing);
         }
       } catch (error) {
         console.error("resolveRole error", error);
         if (!cancelled) {
           setViewerRole("student");
+          setNeedsMentorRegistration(false);
           setLoadError("Failed to resolve user role. Showing fallback settings.");
         }
       } finally {
@@ -102,15 +108,29 @@ function SettingsPageContent() {
 
   // トップナビの「My lessons」タブが選択された場合
   if (topTab === "my-lessons") {
-    return <MyLessonsLayout role={viewerRole} />;
+    return (
+      <MyLessonsLayout
+        role={viewerRole}
+        showMentorRegistrationCallout={needsMentorRegistration}
+      />
+    );
   }
 
   if (topTab === "messages") {
-    return <MessagesLayout role={viewerRole} />;
+    return (
+      <MessagesLayout
+        role={viewerRole}
+        showMentorRegistrationCallout={needsMentorRegistration}
+      />
+    );
   }
 
   if (viewerRole === "mentor") {
-    return <MentorSettingsLayout />;
+    return (
+      <MentorSettingsLayout
+        showMentorRegistrationCallout={needsMentorRegistration}
+      />
+    );
   }
 
   return <SettingsLayout />;
