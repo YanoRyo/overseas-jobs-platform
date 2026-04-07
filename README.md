@@ -42,6 +42,11 @@ Stripe-related variables are required when working on payments:
 - `STRIPE_WEBHOOK_SECRET`
 - `ADMIN_USER_IDS`
 
+Optional variables for booking confirmation emails:
+
+- `RESEND_API_KEY`
+- `EMAIL_FROM`
+
 Optional variables for auto-issued meeting links after payment:
 
 - `MEETING_PROVIDER`

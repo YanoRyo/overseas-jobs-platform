@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
+import { sendBookingNotificationEmails } from "@/lib/email/bookingNotifications";
 import { stripe } from "@/lib/stripe/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/server";
 import { issueMeetingLinksForBooking } from "@/lib/meetings/server";
@@ -37,7 +38,7 @@ export async function POST(request: Request) {
         const pi = event.data.object as Stripe.PaymentIntent;
         const { data: payment } = await adminDb
           .from("payments")
-          .select("id, status")
+          .select("id, booking_id, status")
           .eq("stripe_payment_intent_id", pi.id)
           .single();
 
@@ -55,7 +56,7 @@ export async function POST(request: Request) {
           }
         }
 
-        const bookingId = pi.metadata.booking_id;
+        const bookingId = pi.metadata.booking_id || payment.booking_id;
         if (bookingId) {
           const { error: bookingUpdateError } = await adminDb
             .from("bookings")
@@ -70,6 +71,8 @@ export async function POST(request: Request) {
 
           await issueMeetingLinksForBooking(bookingId);
         }
+
+        await sendBookingNotificationEmails(pi.id);
         break;
       }
 
