@@ -63,12 +63,6 @@ function SettingsPageContent() {
 
         const isMentor =
           userResult.data?.role === "mentor" || !!mentorResult.data;
-        if (userResult.data?.role === "mentor" && !mentorResult.data) {
-          if (!cancelled) {
-            router.replace("/mentor/register");
-          }
-          return;
-        }
 
         if (!cancelled) {
           setViewerRole(isMentor ? "mentor" : "student");
