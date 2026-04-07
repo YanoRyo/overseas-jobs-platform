@@ -33,7 +33,9 @@ export function MessagesLayout({ role }: Props) {
 
   const tabs = useMemo(
     () => [
-      { id: "home", label: "Home", href: "/", clickable: true, roles: [role] },
+      ...(role === "student"
+        ? [{ id: "home", label: "Home", href: "/", clickable: true, roles: [role] }]
+        : []),
       {
         id: "messages",
         label: "Messages",
