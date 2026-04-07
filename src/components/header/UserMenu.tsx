@@ -114,7 +114,7 @@ export default function UserMenu() {
             </div>
           </div>
 
-          {/* Settings を追加 */}
+          {/* Mypage への導線 */}
           <div className="py-1">
             <button
               type="button"
@@ -124,7 +124,7 @@ export default function UserMenu() {
               }}
               className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
             >
-              Settings
+              Mypage
             </button>
           </div>
 
