@@ -3,6 +3,11 @@
 import { useCallback, useEffect, useState } from "react";
 import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
 
+type ConversationUnreadRow = {
+  id: string;
+  unread_by: string[] | null;
+};
+
 /**
  * conversation.unread_by(uuid[]) に 自分のuser.id が含まれる会話数を返す
  */
@@ -22,17 +27,21 @@ export const useUnreadCount = () => {
 
     setLoading(true);
 
-    // unread_by が user.id を含む conversation の件数だけ欲しい
-    const { count: c, error } = await supabase
+    // staging 環境では uuid[] contains が不安定なことがあるため、
+    // 自分が参加している会話を取得してから未読件数を数える
+    const { data, error } = await supabase
       .from("conversation")
-      .select("id", { count: "exact", head: true })
-      .contains("unread_by", [user.id]); // ← uuid[] contains
+      .select("id, unread_by")
+      .or(`mentor_id.eq.${user.id},student_id.eq.${user.id}`);
 
     if (error) {
       console.error("useUnreadCount fetch error", error);
       setCount(0);
     } else {
-      setCount(c ?? 0);
+      const unreadCount = ((data ?? []) as ConversationUnreadRow[]).filter(
+        (conversation) => conversation.unread_by?.includes(user.id)
+      ).length;
+      setCount(unreadCount);
     }
 
     setLoading(false);
