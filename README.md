@@ -45,7 +45,7 @@ Stripe-related variables are required when working on payments:
 Optional variables for booking confirmation emails:
 
 - `RESEND_API_KEY`
-- `EMAIL_FROM`
+- `EMAIL_FROM` in `email@example.com` or `Name <email@example.com>` format
 
 Optional variables for auto-issued meeting links after payment:
 

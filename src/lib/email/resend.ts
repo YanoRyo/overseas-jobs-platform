@@ -23,9 +23,59 @@ type ResendSendResponse = {
 };
 
 let hasWarnedForMissingEmailConfig = false;
+let hasWarnedForInvalidEmailFrom = false;
+
+function isValidEmailAddress(value: string) {
+  return /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(value);
+}
+
+function isValidEmailFrom(value?: string | null) {
+  const trimmed = value?.trim();
+  if (!trimmed) {
+    return false;
+  }
+
+  if (isValidEmailAddress(trimmed)) {
+    return true;
+  }
+
+  const namedSenderMatch = trimmed.match(/^(.*?)<([^<>]+)>$/);
+  if (!namedSenderMatch) {
+    return false;
+  }
+
+  const displayName = namedSenderMatch[1]?.trim();
+  const emailAddress = namedSenderMatch[2]?.trim();
+
+  return Boolean(displayName && emailAddress && isValidEmailAddress(emailAddress));
+}
+
+function warnForInvalidEmailFrom(value?: string | null) {
+  if (hasWarnedForInvalidEmailFrom) {
+    return;
+  }
+
+  hasWarnedForInvalidEmailFrom = true;
+  console.warn(
+    "Transactional email is disabled because EMAIL_FROM is invalid. Use `email@example.com` or `Name <email@example.com>`.",
+    value ? { emailFromPreview: value } : undefined
+  );
+}
 
 export function isTransactionalEmailConfigured() {
-  return Boolean(process.env.RESEND_API_KEY && process.env.EMAIL_FROM);
+  const apiKey = process.env.RESEND_API_KEY;
+  const from = process.env.EMAIL_FROM;
+
+  if (!apiKey || !from) {
+    return false;
+  }
+
+  if (!isValidEmailFrom(from)) {
+    warnForInvalidEmailFrom(from);
+    return false;
+  }
+
+  return true;
 }
 
 export async function sendTransactionalEmail(
@@ -41,6 +91,11 @@ export async function sendTransactionalEmail(
       );
       hasWarnedForMissingEmailConfig = true;
     }
+    return null;
+  }
+
+  if (!isValidEmailFrom(from)) {
+    warnForInvalidEmailFrom(from);
     return null;
   }
 
