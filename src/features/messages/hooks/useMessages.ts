@@ -3,16 +3,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
 import type { Message } from "../types/message";
+import { sendMessageRequest } from "../lib/sendMessageRequest";
 
 const createClientId = () =>
   typeof crypto !== "undefined" && "randomUUID" in crypto
     ? crypto.randomUUID()
     : `tmp_${Date.now()}_${Math.random().toString(16).slice(2)}`;
 
-export const useMessages = (
-  conversationId: string | null,
-  receiverId?: string | null
-) => {
+export const useMessages = (conversationId: string | null) => {
   const supabase = useSupabaseClient();
   const user = useUser();
 
@@ -127,47 +125,20 @@ export const useMessages = (
       setSending(true);
       setError(null);
 
-      const { data, error: insertError } = await supabase
-        .from("message")
-        .insert({
-          conversation_id: conversationId,
-          sender_id: user.id,
-          body,
-          category: category ?? null,
-        })
-        .select("id, conversation_id, sender_id, body, category, created_at")
-        .single();
-
-      if (insertError) throw insertError;
+      const { message: sentMessage } = await sendMessageRequest({
+        conversationId,
+        category: category ?? null,
+        message: body,
+      });
 
       // pending → sent に置換
       setMessages((prev) =>
         prev.map((m) =>
           m.client_id === clientId
-            ? { ...(data as Message), status: "sent" }
+            ? { ...sentMessage, status: "sent" }
             : m
         )
       );
-
-      if (receiverId) {
-        const { error: unreadError } = await supabase.rpc(
-          "mark_conversation_as_unread",
-          {
-            p_conversation_id: conversationId,
-            p_receiver_id: receiverId,
-          }
-        );
-        if (unreadError) console.error("mark unread error", unreadError);
-      } else {
-        // receiverIdが無い時も last_message_at だけ更新（保険）
-        const { error: updateError } = await supabase
-          .from("conversation")
-          .update({ last_message_at: new Date().toISOString() })
-          .eq("id", conversationId);
-
-        if (updateError)
-          console.error("last_message_at update error", updateError);
-      }
 
       return true;
     } catch (e) {

@@ -24,7 +24,7 @@ export function ConversationDetail({
       : null;
 
   const { messages, loading, sending, error, send, currentUserId, retry } =
-    useMessages(conversation.id, conversation.partnerId);
+    useMessages(conversation.id);
 
   /**
    * 開いた瞬間に「自分を unread_by から外す」

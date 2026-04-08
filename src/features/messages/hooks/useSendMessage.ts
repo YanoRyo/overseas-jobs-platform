@@ -1,11 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
+import { useUser } from "@supabase/auth-helpers-react";
 import type { SendMessageInput } from "../types/sendMessageInput";
+import { sendMessageRequest } from "../lib/sendMessageRequest";
 
 export const useSendMessage = () => {
-  const supabase = useSupabaseClient();
   const user = useUser();
 
   const [loading, setLoading] = useState(false);
@@ -25,56 +25,11 @@ export const useSendMessage = () => {
       setLoading(true);
       setError(null);
 
-      const userId = user.id;
-
-      // ① 既存 conversation を探す
-      const mentorUserId = mentorId; // mentor の auth.user.id を渡す前提
-      const studentUserId = user.id;
-
-      const { data: existingConversation, error: findError } = await supabase
-        .from("conversation")
-        .select("id")
-        .eq("mentor_id", mentorUserId)
-        .eq("student_id", studentUserId)
-        .maybeSingle();
-
-      if (findError) throw findError;
-
-      let conversationId = existingConversation?.id;
-
-      // ② なければ作る
-      if (!conversationId) {
-        const { data: newConversation, error: createError } = await supabase
-          .from("conversation")
-          .insert({
-            mentor_id: mentorUserId,
-            student_id: studentUserId,
-            last_message_at: new Date().toISOString(),
-          })
-          .select("id")
-          .single();
-
-        if (createError) throw createError;
-        conversationId = newConversation.id;
-      }
-
-      // ③ message に insert
-      const { error: messageError } = await supabase.from("message").insert({
-        conversation_id: conversationId,
-        sender_id: userId,
-        body: message,
+      await sendMessageRequest({
+        mentorId,
         category,
+        message,
       });
-
-      if (messageError) throw messageError;
-
-      // ④ conversation.last_message_at 更新
-      const { error: updateError } = await supabase
-        .from("conversation")
-        .update({ last_message_at: new Date().toISOString() })
-        .eq("id", conversationId);
-
-      if (updateError) throw updateError;
 
       return true;
     } catch (err: unknown) {
