@@ -17,9 +17,24 @@ type SendTransactionalEmailInput = {
 type ResendSendResponse = {
   id?: string;
   message?: string;
+  name?: string;
   error?: {
     message?: string;
   };
+};
+
+type ResendPayload = {
+  from: string;
+  to: string[];
+  subject: string;
+  html: string;
+  text?: string;
+  tags?: EmailTag[];
+};
+
+type ResendAttemptResult = {
+  body: ResendSendResponse | null;
+  response: Response;
 };
 
 let hasWarnedForMissingEmailConfig = false;
@@ -102,6 +117,60 @@ export function isTransactionalEmailConfigured() {
   return true;
 }
 
+function buildResendPayload(
+  input: SendTransactionalEmailInput,
+  from: string,
+  options?: {
+    includeTags?: boolean;
+    includeText?: boolean;
+  }
+): ResendPayload {
+  const includeTags = options?.includeTags ?? true;
+  const includeText = options?.includeText ?? true;
+
+  return {
+    from,
+    to: (Array.isArray(input.to) ? input.to : [input.to]).map((value) =>
+      stripWrappingQuotes(value.trim())
+    ),
+    subject: input.subject,
+    html: input.html,
+    text: includeText ? input.text : undefined,
+    tags: includeTags ? input.tags : undefined,
+  };
+}
+
+async function sendResendRequest(
+  apiKey: string,
+  input: SendTransactionalEmailInput,
+  payload: ResendPayload
+): Promise<ResendAttemptResult> {
+  const response = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      "Content-Type": "application/json",
+      "Idempotency-Key": input.idempotencyKey,
+      "User-Agent": "bridgeee/1.0",
+    },
+    body: JSON.stringify(payload),
+  });
+
+  const body = (await response
+    .json()
+    .catch(() => null)) as ResendSendResponse | null;
+
+  return { response, body };
+}
+
+function formatResendErrorMessage(
+  status: number,
+  body: ResendSendResponse | null
+) {
+  const detail = body?.message ?? body?.error?.message ?? "Unknown Resend error";
+  return `Resend send failed: ${status} ${detail}`;
+}
+
 export async function sendTransactionalEmail(
   input: SendTransactionalEmailInput
 ) {
@@ -124,32 +193,31 @@ export async function sendTransactionalEmail(
     return null;
   }
 
-  const response = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${apiKey}`,
-      "Content-Type": "application/json",
-      "Idempotency-Key": input.idempotencyKey,
-      "User-Agent": "bridgeee/1.0",
-    },
-    body: JSON.stringify({
-      from: normalizedFrom,
-      to: Array.isArray(input.to) ? input.to : [input.to],
-      subject: input.subject,
-      html: input.html,
-      text: input.text,
-      tags: input.tags,
-    }),
-  });
+  const fullPayload = buildResendPayload(input, normalizedFrom);
+  let { response, body } = await sendResendRequest(apiKey, input, fullPayload);
 
-  const body = (await response
-    .json()
-    .catch(() => null)) as ResendSendResponse | null;
+  if (!response.ok && response.status === 422) {
+    const fallbackPayload = buildResendPayload(input, normalizedFrom, {
+      includeTags: false,
+      includeText: false,
+    });
+
+    console.warn(
+      "Retrying transactional email with a minimal Resend payload after a 422 validation error.",
+      {
+        initialError: body?.message ?? body?.error?.message ?? null,
+        from: fullPayload.from,
+        recipientCount: fullPayload.to.length,
+        tagNames: fullPayload.tags?.map((tag) => tag.name) ?? [],
+        hadTextBody: Boolean(fullPayload.text),
+      }
+    );
+
+    ({ response, body } = await sendResendRequest(apiKey, input, fallbackPayload));
+  }
 
   if (!response.ok) {
-    const detail =
-      body?.message ?? body?.error?.message ?? "Unknown Resend error";
-    throw new Error(`Resend send failed: ${response.status} ${detail}`);
+    throw new Error(formatResendErrorMessage(response.status, body));
   }
 
   if (!body?.id) {
