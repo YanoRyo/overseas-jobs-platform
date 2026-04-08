@@ -29,25 +29,49 @@ function isValidEmailAddress(value: string) {
   return /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(value);
 }
 
-function isValidEmailFrom(value?: string | null) {
+function stripWrappingQuotes(value: string) {
+  const trimmed = value.trim();
+  const quotePairs: Array<[string, string]> = [
+    ['"', '"'],
+    ["'", "'"],
+    ["“", "”"],
+    ["‘", "’"],
+  ];
+
+  for (const [start, end] of quotePairs) {
+    if (trimmed.startsWith(start) && trimmed.endsWith(end)) {
+      return trimmed.slice(start.length, trimmed.length - end.length).trim();
+    }
+  }
+
+  return trimmed;
+}
+
+function normalizeEmailFrom(value?: string | null) {
   const trimmed = value?.trim();
   if (!trimmed) {
-    return false;
+    return null;
   }
 
-  if (isValidEmailAddress(trimmed)) {
-    return true;
+  const normalized = stripWrappingQuotes(trimmed);
+
+  if (isValidEmailAddress(normalized)) {
+    return normalized;
   }
 
-  const namedSenderMatch = trimmed.match(/^(.*?)<([^<>]+)>$/);
+  const namedSenderMatch = normalized.match(/^(.*?)<([^<>]+)>$/);
   if (!namedSenderMatch) {
-    return false;
+    return null;
   }
 
-  const displayName = namedSenderMatch[1]?.trim();
+  const displayName = stripWrappingQuotes(namedSenderMatch[1] ?? "");
   const emailAddress = namedSenderMatch[2]?.trim();
 
-  return Boolean(displayName && emailAddress && isValidEmailAddress(emailAddress));
+  if (!displayName || !emailAddress || !isValidEmailAddress(emailAddress)) {
+    return null;
+  }
+
+  return `${displayName} <${emailAddress}>`;
 }
 
 function warnForInvalidEmailFrom(value?: string | null) {
@@ -64,14 +88,14 @@ function warnForInvalidEmailFrom(value?: string | null) {
 
 export function isTransactionalEmailConfigured() {
   const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.EMAIL_FROM;
+  const normalizedFrom = normalizeEmailFrom(process.env.EMAIL_FROM);
 
-  if (!apiKey || !from) {
+  if (!apiKey || !process.env.EMAIL_FROM) {
     return false;
   }
 
-  if (!isValidEmailFrom(from)) {
-    warnForInvalidEmailFrom(from);
+  if (!normalizedFrom) {
+    warnForInvalidEmailFrom(process.env.EMAIL_FROM);
     return false;
   }
 
@@ -82,9 +106,10 @@ export async function sendTransactionalEmail(
   input: SendTransactionalEmailInput
 ) {
   const apiKey = process.env.RESEND_API_KEY;
-  const from = process.env.EMAIL_FROM;
+  const rawFrom = process.env.EMAIL_FROM;
+  const normalizedFrom = normalizeEmailFrom(rawFrom);
 
-  if (!apiKey || !from) {
+  if (!apiKey || !rawFrom) {
     if (!hasWarnedForMissingEmailConfig) {
       console.warn(
         "Transactional email is disabled because RESEND_API_KEY or EMAIL_FROM is missing."
@@ -94,8 +119,8 @@ export async function sendTransactionalEmail(
     return null;
   }
 
-  if (!isValidEmailFrom(from)) {
-    warnForInvalidEmailFrom(from);
+  if (!normalizedFrom) {
+    warnForInvalidEmailFrom(rawFrom);
     return null;
   }
 
@@ -108,7 +133,7 @@ export async function sendTransactionalEmail(
       "User-Agent": "bridgeee/1.0",
     },
     body: JSON.stringify({
-      from,
+      from: normalizedFrom,
       to: Array.isArray(input.to) ? input.to : [input.to],
       subject: input.subject,
       html: input.html,
