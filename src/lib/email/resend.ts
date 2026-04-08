@@ -9,7 +9,7 @@ type SendTransactionalEmailInput = {
   to: string | string[];
   subject: string;
   html: string;
-  text: string;
+  text?: string;
   idempotencyKey: string;
   tags?: EmailTag[];
 };
@@ -35,6 +35,12 @@ type ResendPayload = {
 type ResendAttemptResult = {
   body: ResendSendResponse | null;
   response: Response;
+};
+
+type ResendRetryVariant = {
+  includeTags: boolean;
+  includeText: boolean;
+  label: string;
 };
 
 let hasWarnedForMissingEmailConfig = false;
@@ -135,7 +141,8 @@ function buildResendPayload(
     ),
     subject: input.subject,
     html: input.html,
-    text: includeText ? input.text : undefined,
+    text:
+      includeText && typeof input.text === "string" ? input.text : undefined,
     tags: includeTags ? input.tags : undefined,
   };
 }
@@ -171,6 +178,24 @@ function formatResendErrorMessage(
   return `Resend send failed: ${status} ${detail}`;
 }
 
+function logResendValidationRetry(
+  variant: ResendRetryVariant,
+  body: ResendSendResponse | null,
+  payload: ResendPayload
+) {
+  console.warn(
+    "Retrying transactional email after a Resend 422 validation error.",
+    {
+      retryVariant: variant.label,
+      initialError: body?.message ?? body?.error?.message ?? null,
+      from: payload.from,
+      recipientCount: payload.to.length,
+      tagNames: payload.tags?.map((tag) => tag.name) ?? [],
+      hadTextBody: typeof payload.text === "string",
+    }
+  );
+}
+
 export async function sendTransactionalEmail(
   input: SendTransactionalEmailInput
 ) {
@@ -197,23 +222,43 @@ export async function sendTransactionalEmail(
   let { response, body } = await sendResendRequest(apiKey, input, fullPayload);
 
   if (!response.ok && response.status === 422) {
-    const fallbackPayload = buildResendPayload(input, normalizedFrom, {
+    const retryVariants: ResendRetryVariant[] = [];
+
+    if (typeof fullPayload.text === "string") {
+      retryVariants.push({
+        includeTags: true,
+        includeText: false,
+        label: "without_text",
+      });
+    }
+
+    if ((fullPayload.tags?.length ?? 0) > 0) {
+      retryVariants.push({
+        includeTags: false,
+        includeText: typeof fullPayload.text === "string",
+        label: "without_tags",
+      });
+    }
+
+    retryVariants.push({
       includeTags: false,
       includeText: false,
+      label: "minimal_payload",
     });
 
-    console.warn(
-      "Retrying transactional email with a minimal Resend payload after a 422 validation error.",
-      {
-        initialError: body?.message ?? body?.error?.message ?? null,
-        from: fullPayload.from,
-        recipientCount: fullPayload.to.length,
-        tagNames: fullPayload.tags?.map((tag) => tag.name) ?? [],
-        hadTextBody: Boolean(fullPayload.text),
-      }
-    );
+    for (const variant of retryVariants) {
+      logResendValidationRetry(variant, body, fullPayload);
+      const retryPayload = buildResendPayload(input, normalizedFrom, variant);
+      ({ response, body } = await sendResendRequest(apiKey, input, retryPayload));
 
-    ({ response, body } = await sendResendRequest(apiKey, input, fallbackPayload));
+      if (response.ok) {
+        break;
+      }
+
+      if (response.status !== 422) {
+        break;
+      }
+    }
   }
 
   if (!response.ok) {

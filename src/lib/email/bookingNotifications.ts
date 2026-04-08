@@ -488,7 +488,6 @@ export async function sendBookingNotificationEmails(
       to: studentEmail,
       subject: "Your Bridgeee lesson is confirmed",
       html: studentEmailContent.html,
-      text: studentEmailContent.text,
       idempotencyKey: `student-booking-confirmation-${paymentRow.stripe_payment_intent_id}`,
       tags: [
         { name: "category", value: "student_booking_confirmation" },
@@ -531,7 +530,6 @@ export async function sendBookingNotificationEmails(
       to: mentorEmail,
       subject: "You have a new booking on Bridgeee",
       html: mentorEmailContent.html,
-      text: mentorEmailContent.text,
       idempotencyKey: `mentor-booking-notification-${paymentRow.stripe_payment_intent_id}`,
       tags: [
         { name: "category", value: "mentor_booking_notification" },
