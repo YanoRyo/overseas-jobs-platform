@@ -489,10 +489,6 @@ export async function sendBookingNotificationEmails(
       subject: "Your Bridgeee lesson is confirmed",
       html: studentEmailContent.html,
       idempotencyKey: `student-booking-confirmation-${paymentRow.stripe_payment_intent_id}`,
-      tags: [
-        { name: "category", value: "student_booking_confirmation" },
-        { name: "booking_id", value: paymentRow.booking_id },
-      ],
     });
 
     if (sent?.id) {
@@ -531,10 +527,6 @@ export async function sendBookingNotificationEmails(
       subject: "You have a new booking on Bridgeee",
       html: mentorEmailContent.html,
       idempotencyKey: `mentor-booking-notification-${paymentRow.stripe_payment_intent_id}`,
-      tags: [
-        { name: "category", value: "mentor_booking_notification" },
-        { name: "booking_id", value: paymentRow.booking_id },
-      ],
     });
 
     if (sent?.id) {
