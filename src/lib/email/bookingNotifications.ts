@@ -46,6 +46,20 @@ type LessonDateTime = {
   timeZone: string;
 };
 
+type PostgrestLikeError = {
+  code?: string | null;
+  message?: string | null;
+};
+
+const BOOKING_EMAIL_TRACKING_COLUMNS = [
+  "student_confirmation_email_sent_at",
+  "student_confirmation_email_id",
+  "mentor_booking_email_sent_at",
+  "mentor_booking_email_id",
+] as const;
+
+let hasWarnedForMissingBookingEmailTrackingColumns = false;
+
 function escapeHtml(value: string) {
   return value
     .replaceAll("&", "&amp;")
@@ -67,6 +81,30 @@ function normalizeName(
 function normalizeEmail(value?: string | null) {
   const trimmed = value?.trim();
   return trimmed ? trimmed : null;
+}
+
+function isMissingBookingEmailTrackingColumnError(error?: PostgrestLikeError | null) {
+  if (error?.code !== "42703") {
+    return false;
+  }
+
+  const message = error.message ?? "";
+  return BOOKING_EMAIL_TRACKING_COLUMNS.some(
+    (columnName) =>
+      message.includes(columnName) || message.includes(`payments.${columnName}`)
+  );
+}
+
+function warnForMissingBookingEmailTrackingColumns(error?: PostgrestLikeError | null) {
+  if (hasWarnedForMissingBookingEmailTrackingColumns) {
+    return;
+  }
+
+  hasWarnedForMissingBookingEmailTrackingColumns = true;
+  console.warn(
+    "Booking email tracking columns are unavailable; falling back to provider idempotency until the payments migration is applied.",
+    error
+  );
 }
 
 function parseStoredTimestamp(value: string) {
@@ -212,8 +250,13 @@ function buildEmail({
 
 async function markStudentEmailSent(
   paymentId: string,
-  emailId: string
+  emailId: string,
+  trackingColumnsAvailable: boolean
 ) {
+  if (!trackingColumnsAvailable) {
+    return;
+  }
+
   const adminDb = createSupabaseServiceClient();
   const { error } = await adminDb
     .from("payments")
@@ -225,6 +268,11 @@ async function markStudentEmailSent(
     .is("student_confirmation_email_sent_at", null);
 
   if (error) {
+    if (isMissingBookingEmailTrackingColumnError(error)) {
+      warnForMissingBookingEmailTrackingColumns(error);
+      return;
+    }
+
     console.error("Failed to persist student confirmation email state:", error);
     throw error;
   }
@@ -232,8 +280,13 @@ async function markStudentEmailSent(
 
 async function markMentorEmailSent(
   paymentId: string,
-  emailId: string
+  emailId: string,
+  trackingColumnsAvailable: boolean
 ) {
+  if (!trackingColumnsAvailable) {
+    return;
+  }
+
   const adminDb = createSupabaseServiceClient();
   const { error } = await adminDb
     .from("payments")
@@ -245,9 +298,67 @@ async function markMentorEmailSent(
     .is("mentor_booking_email_sent_at", null);
 
   if (error) {
+    if (isMissingBookingEmailTrackingColumnError(error)) {
+      warnForMissingBookingEmailTrackingColumns(error);
+      return;
+    }
+
     console.error("Failed to persist mentor booking email state:", error);
     throw error;
   }
+}
+
+async function fetchPaymentForBookingEmails(paymentIntentId: string) {
+  const adminDb = createSupabaseServiceClient();
+  const trackedPaymentSelect =
+    "id, booking_id, user_id, mentor_id, amount, currency, stripe_payment_intent_id, student_confirmation_email_sent_at, mentor_booking_email_sent_at";
+
+  const trackedPaymentResult = await adminDb
+    .from("payments")
+    .select(trackedPaymentSelect)
+    .eq("stripe_payment_intent_id", paymentIntentId)
+    .single();
+
+  if (!trackedPaymentResult.error) {
+    return {
+      paymentRow: trackedPaymentResult.data as PaymentEmailRow | null,
+      trackingColumnsAvailable: true,
+    };
+  }
+
+  if (!isMissingBookingEmailTrackingColumnError(trackedPaymentResult.error)) {
+    console.error(
+      "Failed to fetch payment for booking emails:",
+      trackedPaymentResult.error
+    );
+    throw trackedPaymentResult.error;
+  }
+
+  warnForMissingBookingEmailTrackingColumns(trackedPaymentResult.error);
+
+  const { data: payment, error: paymentError } = await adminDb
+    .from("payments")
+    .select(
+      "id, booking_id, user_id, mentor_id, amount, currency, stripe_payment_intent_id"
+    )
+    .eq("stripe_payment_intent_id", paymentIntentId)
+    .single();
+
+  if (paymentError) {
+    console.error("Failed to fetch payment for booking emails:", paymentError);
+    throw paymentError;
+  }
+
+  return {
+    paymentRow: payment
+      ? ({
+          ...payment,
+          student_confirmation_email_sent_at: null,
+          mentor_booking_email_sent_at: null,
+        } as PaymentEmailRow)
+      : null,
+    trackingColumnsAvailable: false,
+  };
 }
 
 export async function sendBookingNotificationEmails(
@@ -258,21 +369,9 @@ export async function sendBookingNotificationEmails(
   }
 
   const adminDb = createSupabaseServiceClient();
+  const { paymentRow, trackingColumnsAvailable } =
+    await fetchPaymentForBookingEmails(paymentIntentId);
 
-  const { data: payment, error: paymentError } = await adminDb
-    .from("payments")
-    .select(
-      "id, booking_id, user_id, mentor_id, amount, currency, stripe_payment_intent_id, student_confirmation_email_sent_at, mentor_booking_email_sent_at"
-    )
-    .eq("stripe_payment_intent_id", paymentIntentId)
-    .single();
-
-  if (paymentError) {
-    console.error("Failed to fetch payment for booking emails:", paymentError);
-    throw paymentError;
-  }
-
-  const paymentRow = payment as PaymentEmailRow | null;
   if (!paymentRow) {
     return;
   }
@@ -398,7 +497,11 @@ export async function sendBookingNotificationEmails(
     });
 
     if (sent?.id) {
-      await markStudentEmailSent(paymentRow.id, sent.id);
+      await markStudentEmailSent(
+        paymentRow.id,
+        sent.id,
+        trackingColumnsAvailable
+      );
     }
   } else if (!studentEmail) {
     console.warn(
@@ -437,7 +540,11 @@ export async function sendBookingNotificationEmails(
     });
 
     if (sent?.id) {
-      await markMentorEmailSent(paymentRow.id, sent.id);
+      await markMentorEmailSent(
+        paymentRow.id,
+        sent.id,
+        trackingColumnsAvailable
+      );
     }
   } else if (!mentorEmail) {
     console.warn(

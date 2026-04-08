@@ -72,7 +72,11 @@ export async function POST(request: Request) {
           await issueMeetingLinksForBooking(bookingId);
         }
 
-        await sendBookingNotificationEmails(pi.id);
+        try {
+          await sendBookingNotificationEmails(pi.id);
+        } catch (error) {
+          console.error("Booking notification email processing failed:", error);
+        }
         break;
       }
 
