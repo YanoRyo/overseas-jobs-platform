@@ -413,10 +413,12 @@ export const MentorDetail = ({
                     {/* Subtitle: "From {countryName}" */}
                     <p className="mt-1 flex flex-wrap items-center gap-2 text-secondary">
                       From {countryName}
-                      <Flag
-                        code={mentor.country}
-                        className="w-6 h-4 rounded-sm"
-                      />
+                      <span className="inline-flex items-center rounded border border-border bg-white px-0.5 py-0.5">
+                        <Flag
+                          code={mentor.country}
+                          className="h-4 w-6 rounded-sm"
+                        />
+                      </span>
                     </p>
                   </div>
                   {/* Introduction: Simple text without box decoration */}
