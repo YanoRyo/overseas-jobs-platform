@@ -37,14 +37,14 @@ export const PaymentSection = ({
 
     // confirmPaymentはリダイレクトするので、ここに到達するのはエラー時のみ
     if (confirmError) {
-      setError(confirmError.message ?? "決済に失敗しました");
+      setError(confirmError.message ?? "Payment failed.");
       setProcessing(false);
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <h2 className="text-xl font-semibold border-b pb-2">お支払い方法</h2>
+      <h2 className="text-xl font-semibold border-b pb-2">Payment method</h2>
 
       <div className="rounded-[10px] border border-[#cfd3e1] bg-white p-4">
         <PaymentElement />
@@ -53,11 +53,9 @@ export const PaymentSection = ({
       <div className="flex items-start gap-3 rounded-lg border border-[#2563eb]/20 bg-[#2563eb]/5 p-3">
         <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#2563eb]" />
         <div>
-          <p className="text-sm font-medium text-[#1f1f2d]">
-            安心のエスクロー決済
-          </p>
+          <p className="text-sm font-medium text-[#1f1f2d]">Secure escrow payment</p>
           <p className="text-xs text-[#606579]">
-            レッスン完了まで代金は安全に保管されます
+            Your payment will be held safely until the lesson is completed.
           </p>
         </div>
       </div>
@@ -69,7 +67,7 @@ export const PaymentSection = ({
         disabled={!stripe || processing}
         className="h-11 w-full rounded-[10px] border-2 border-[#1d4ed8] bg-[#2563eb] text-lg font-semibold text-white hover:bg-[#1d4ed8] disabled:opacity-60"
       >
-        {processing ? "処理中..." : `$${displayAmount} を支払う`}
+        {processing ? "Processing..." : `Pay $${displayAmount}`}
       </button>
     </form>
   );

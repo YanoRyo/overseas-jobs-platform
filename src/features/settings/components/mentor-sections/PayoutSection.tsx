@@ -23,7 +23,7 @@ export function PayoutSection() {
       const data = await res.json();
       setStatus(data);
     } catch {
-      setError("ステータスの取得に失敗しました");
+      setError("Failed to load payout status.");
     } finally {
       setLoading(false);
     }
@@ -41,11 +41,13 @@ export function PayoutSection() {
         method: "POST",
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "アカウントの作成に失敗しました");
-      if (!data.url) throw new Error("リダイレクトURLを取得できませんでした");
+      if (!res.ok) throw new Error(data.error || "Failed to create the payout account.");
+      if (!data.url) throw new Error("Failed to retrieve the redirect URL.");
       window.location.href = data.url;
     } catch (err) {
-      setError(err instanceof Error ? err.message : "アカウントの作成に失敗しました");
+      setError(
+        err instanceof Error ? err.message : "Failed to create the payout account."
+      );
       setActionLoading(false);
     }
   };
@@ -58,11 +60,13 @@ export function PayoutSection() {
         method: "POST",
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "ダッシュボードリンクの取得に失敗しました");
-      if (!data.url) throw new Error("ダッシュボードURLを取得できませんでした");
+      if (!res.ok) throw new Error(data.error || "Failed to retrieve the dashboard link.");
+      if (!data.url) throw new Error("Failed to retrieve the dashboard URL.");
       window.open(data.url, "_blank");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "ダッシュボードリンクの取得に失敗しました");
+      setError(
+        err instanceof Error ? err.message : "Failed to retrieve the dashboard link."
+      );
     } finally {
       setActionLoading(false);
     }
@@ -82,10 +86,10 @@ export function PayoutSection() {
             <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-success" />
             <div>
               <p className="font-medium text-[#1f1f2d]">
-                口座情報が登録済みです
+                Your payout account is set up
               </p>
               <p className="mt-1 text-sm text-[#606579]">
-                Stripe Express で管理中
+                Managed with Stripe Express
               </p>
             </div>
           </div>
@@ -95,19 +99,19 @@ export function PayoutSection() {
             disabled={actionLoading}
             className="h-11 w-full rounded-[10px] border-2 border-[#1d4ed8] bg-[#2563eb] text-lg font-semibold text-white hover:bg-[#1d4ed8] disabled:opacity-60"
           >
-            {actionLoading ? "読み込み中..." : "口座管理ダッシュボード"}
+            {actionLoading ? "Loading..." : "Open payout dashboard"}
           </button>
         </>
       ) : (
         <>
           <p className="text-sm text-[#4b5563]">
-            レッスン料金を受け取るには、受取口座の設定が必要です。
+            Set up a payout account to receive lesson payments.
           </p>
 
           {status?.hasAccount && status?.detailsSubmitted && (
             <div className="rounded-lg border border-warning/20 bg-warning/10 p-3">
               <p className="text-sm text-[#4b5563]">
-                口座登録は完了していますが、Stripeの審査待ちです。しばらくお待ちください。
+                Your account details have been submitted and are awaiting Stripe review.
               </p>
             </div>
           )}
@@ -117,7 +121,7 @@ export function PayoutSection() {
             disabled={actionLoading}
             className="h-11 w-full rounded-[10px] border-2 border-[#1d4ed8] bg-[#2563eb] text-lg font-semibold text-white hover:bg-[#1d4ed8] disabled:opacity-60"
           >
-            {actionLoading ? "読み込み中..." : "受取口座を設定する"}
+            {actionLoading ? "Loading..." : "Set up payout account"}
           </button>
         </>
       )}

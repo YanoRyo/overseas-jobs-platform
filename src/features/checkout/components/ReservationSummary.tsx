@@ -30,7 +30,7 @@ export const ReservationSummary = ({
         )}
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">
-            <h2 className="text-lg font-semibold">{mentorName} さん</h2>
+            <h2 className="text-lg font-semibold">{mentorName}</h2>
             {mentorCountry && countryCodeMap[mentorCountry] ? (
               <div className="border border-gray-300 rounded px-0.5 py-0.5 inline-flex items-center">
                 <Flag
@@ -48,33 +48,37 @@ export const ReservationSummary = ({
       <div className="border-t pt-4 space-y-4">
         <div className="flex items-start gap-6">
           <div className="flex flex-col gap-1">
-            <span className="text-sm text-gray-500">レッスン</span>
-            <span className="text-base font-medium">{duration}分</span>
+            <span className="text-sm text-gray-500">Lesson</span>
+            <span className="text-base font-medium">{duration} min</span>
           </div>
           <div className="border-l h-12 border-gray-300"></div>
           <div className="flex flex-col gap-1">
-            <span className="text-sm text-gray-500">日付</span>
+            <span className="text-sm text-gray-500">Date</span>
             <span className="text-base font-medium">
-              {new Date(date).toLocaleDateString("ja-JP")}
+              {new Date(date).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+              })}
             </span>
           </div>
           <div className="border-l h-12 border-gray-300"></div>
           <div className="flex flex-col gap-1">
-            <span className="text-sm text-gray-500">時間</span>
-            <span className="text-base font-medium">{time}〜</span>
-            <span className="text-xs text-gray-400">JST（GMT+9）</span>
+            <span className="text-sm text-gray-500">Time</span>
+            <span className="text-base font-medium">{time} -</span>
+            <span className="text-xs text-gray-400">JST (GMT+9)</span>
           </div>
         </div>
       </div>
 
       <div className="border-t pt-4 space-y-3">
-        <h3 className="text-lg font-semibold">ご注文</h3>
+        <h3 className="text-lg font-semibold">Order summary</h3>
         <div className="flex justify-between text-base">
-          <span>レッスン料金（{duration}分）</span>
+          <span>Lesson fee ({duration} min)</span>
           <span>{formatUsd(lessonFeeCents)}</span>
         </div>
         <div className="flex justify-between text-lg font-semibold border-t pt-2">
-          <span>合計金額</span>
+          <span>Total</span>
           <span>{amountCents != null ? formatUsd(amountCents) : formatUsd(lessonFeeCents)}</span>
         </div>
       </div>

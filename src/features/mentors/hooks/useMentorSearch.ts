@@ -24,7 +24,7 @@ export const useMentorSearch = () => {
     });
 
     if (queryError) {
-      setError("検索に失敗しました");
+      setError("Failed to search mentors.");
       setMentors([]);
     } else {
       const mapped = (data || []).map((row) => mapMentorList(row));

@@ -37,7 +37,7 @@ export default function SearchFilters({
           value={filters.country}
           onChange={(e) => onFilterChange("country", e.target.value)}
         >
-          <option value="">国で絞り込む</option>
+          <option value="">Filter by country</option>
           {COUNTRIES.map((country) => (
             <option key={country.code} value={country.code}>
               {country.name}
@@ -50,7 +50,7 @@ export default function SearchFilters({
           value={filters.language}
           onChange={(e) => onFilterChange("language", e.target.value)}
         >
-          <option value="">話せる言語で絞り込む</option>
+          <option value="">Filter by language</option>
           {LANGUAGES.map((lang) => (
             <option key={lang.code} value={lang.name}>
               {lang.name}
@@ -67,7 +67,7 @@ export default function SearchFilters({
           value={filters.country}
           onChange={(e) => onFilterChange("country", e.target.value)}
         >
-          <option value="">国で絞り込む</option>
+          <option value="">Filter by country</option>
           {COUNTRIES.map((country) => (
             <option key={country.code} value={country.code}>
               {country.name}
@@ -86,7 +86,7 @@ export default function SearchFilters({
               value={filters.language}
               onChange={(e) => onFilterChange("language", e.target.value)}
             >
-              <option value="">言語で絞り込む</option>
+              <option value="">Filter by language</option>
               {LANGUAGES.map((lang) => (
                 <option key={lang.code} value={lang.name}>
                   {lang.name}
@@ -113,7 +113,7 @@ export default function SearchFilters({
 
             <input
               type="text"
-              placeholder="キーワード検索"
+              placeholder="Search by keyword"
               className={selectSmallClass}
               value={filters.keyword}
               onChange={(e) => onFilterChange("keyword", e.target.value)}
@@ -136,7 +136,7 @@ export default function SearchFilters({
       {/* 下段（件数 + PCのみの評価順・キーワード検索） */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
         <div className="text-lg sm:text-xl font-bold text-primary whitespace-nowrap">
-          {hitCount}件ヒット
+          {hitCount} mentors found
         </div>
 
         {/* 評価順 + キーワード検索 + 検索ボタン（PC表示） */}
@@ -160,7 +160,7 @@ export default function SearchFilters({
 
           <input
             type="text"
-            placeholder="キーワードで検索（例：ビザ、IT、英語）"
+            placeholder="Search keywords (e.g. visa, IT, English)"
             className="border border-border hover:border-border-hover rounded-lg px-3 py-2 text-base w-60 bg-surface text-primary transition-colors"
             value={filters.keyword}
             onChange={(e) => onFilterChange("keyword", e.target.value)}

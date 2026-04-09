@@ -68,7 +68,7 @@ export async function POST(request: Request) {
 
   if (existingPayout) {
     return NextResponse.json(
-      { error: "この決済に対する入金は既に処理済みです" },
+      { error: "A payout for this payment has already been processed." },
       { status: 409 }
     );
   }
@@ -111,7 +111,7 @@ export async function POST(request: Request) {
         insertError
       );
       return NextResponse.json(
-        { error: "入金処理のDB記録に失敗しました。管理者に連絡してください。" },
+        { error: "Failed to save the payout record. Please contact an administrator." },
         { status: 500 }
       );
     }
@@ -129,7 +129,7 @@ export async function POST(request: Request) {
   } catch (err) {
     console.error("Payout creation error:", err);
     return NextResponse.json(
-      { error: "入金処理に失敗しました" },
+      { error: "Failed to release the payout." },
       { status: 500 }
     );
   }

@@ -3,7 +3,7 @@ export { COUNTRIES, LANGUAGES } from "@/features/shared/constants/options";
 
 // ソートオプション
 export const SORT_OPTIONS = [
-  { value: "", label: "評価順" },
-  { value: "high", label: "★ 高い順" },
-  { value: "low", label: "★ 低い順" },
+  { value: "", label: "Sort by rating" },
+  { value: "high", label: "Highest rated" },
+  { value: "low", label: "Lowest rated" },
 ] as const;

@@ -14,7 +14,7 @@ export const useCheckout = () => {
   useEffect(() => {
     const stored = localStorage.getItem("pendingReservation");
     if (!stored) {
-      alert("予約情報が見つかりませんでした。");
+      alert("Booking information was not found.");
       router.push("/");
       return;
     }
@@ -23,13 +23,13 @@ export const useCheckout = () => {
       parsed = JSON.parse(stored) as ReservationData;
     } catch {
       localStorage.removeItem("pendingReservation");
-      alert("予約情報が破損しています。もう一度予約してください。");
+      alert("Booking information is corrupted. Please book again.");
       router.push("/");
       return;
     }
     if (!parsed.bookingId || !parsed.mentorId) {
       localStorage.removeItem("pendingReservation");
-      alert("予約情報が不正です。もう一度予約してください。");
+      alert("Booking information is invalid. Please book again.");
       router.push("/");
       return;
     }
@@ -49,7 +49,7 @@ export const useCheckout = () => {
         if (!res.ok) {
           // 期限切れ等で無効な予約の場合、localStorageをクリーンアップ
           localStorage.removeItem("pendingReservation");
-          setPaymentError(data.error || "決済の初期化に失敗しました");
+          setPaymentError(data.error || "Failed to initialize payment.");
           return;
         }
         // 既に決済済みの場合は完了ページへリダイレクト
@@ -63,7 +63,7 @@ export const useCheckout = () => {
         setClientSecret(data.clientSecret);
         setAmountCents(data.amount);
       } catch {
-        setPaymentError("決済の初期化に失敗しました");
+        setPaymentError("Failed to initialize payment.");
       } finally {
         setLoadingPayment(false);
       }

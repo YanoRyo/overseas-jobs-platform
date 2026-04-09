@@ -48,15 +48,15 @@ export function MyLessonsTab({ role }: { role: UserRole }) {
       <div className="rounded-xl border border-border bg-white p-8 text-center shadow-sm">
         <p className="text-secondary">
           {role === "mentor"
-            ? "予約されたレッスンはまだありません"
-            : "レッスンの予約はまだありません"}
+            ? "No lessons have been booked yet."
+            : "You do not have any lessons yet."}
         </p>
         {role === "student" ? (
           <Link
             href="/"
             className="mt-3 inline-block text-sm font-medium text-accent hover:underline"
           >
-            メンターを探す
+            Find a mentor
           </Link>
         ) : null}
       </div>

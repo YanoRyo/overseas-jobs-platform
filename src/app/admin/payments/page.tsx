@@ -42,7 +42,7 @@ export default function AdminPaymentsPage() {
       const data = await res.json();
       setPayments(data.payments);
     } catch {
-      setError("決済データの取得に失敗しました");
+      setError("Failed to load payment data.");
     } finally {
       setLoading(false);
     }
@@ -63,13 +63,13 @@ export default function AdminPaymentsPage() {
       });
       if (!res.ok) {
         const data = await res.json();
-        alert(data.error || "入金処理に失敗しました");
+        alert(data.error || "Failed to release the payout.");
         return;
       }
       setConfirmTarget(null);
       fetchPayments();
     } catch {
-      alert("入金処理に失敗しました");
+      alert("Failed to release the payout.");
     } finally {
       setReleasing(false);
     }
@@ -81,10 +81,10 @@ export default function AdminPaymentsPage() {
 
   const formatDate = (dateStr: string) => {
     // DBには timestamp without time zone だがUTC値が入っているため、Zを付与してUTCとして解釈
-    return new Date(dateStr + "Z").toLocaleString("ja-JP", {
+    return new Date(dateStr + "Z").toLocaleString("en-US", {
       year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
+      month: "short",
+      day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
     });
@@ -95,19 +95,19 @@ export default function AdminPaymentsPage() {
       case "confirmed":
         return (
           <span className="rounded-full bg-warning/10 px-2.5 py-0.5 text-xs font-medium text-warning">
-            レッスン完了待ち
+            Waiting for completion
           </span>
         );
       case "completed":
         return (
           <span className="rounded-full bg-success/10 px-2.5 py-0.5 text-xs font-medium text-success">
-            入金済み
+            Paid out
           </span>
         );
       default:
         return (
           <span className="rounded-full bg-[#6b7280]/10 px-2.5 py-0.5 text-xs font-medium text-[#6b7280]">
-            {bookingStatus ?? "不明"}
+            {bookingStatus ?? "Unknown"}
           </span>
         );
     }
@@ -123,7 +123,7 @@ export default function AdminPaymentsPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#fafafb] p-8">
-        <p className="text-sm text-[#606579]">読み込み中...</p>
+        <p className="text-sm text-[#606579]">Loading...</p>
       </div>
     );
   }
@@ -144,12 +144,11 @@ export default function AdminPaymentsPage() {
 
       <main className="mx-auto max-w-[1200px] px-6 py-10">
         <h2 className="mb-6 text-[32px] font-bold text-[#1f1f2d]">
-          入金承認管理
+          Payout approvals
         </h2>
 
         <p className="mb-6 text-sm text-[#606579]">
-          合計: {payments.length}件 / 承認待ち: {confirmedPayments.length}件 /
-          入金済み: {completedPayments.length}件
+          Total: {payments.length} / Awaiting approval: {confirmedPayments.length} / Paid out: {completedPayments.length}
         </p>
 
         {/* Desktop: テーブル */}
@@ -158,11 +157,11 @@ export default function AdminPaymentsPage() {
             <table className="w-full">
               <thead>
                 <tr className="border-b border-[#e3e4ea] text-left text-sm text-[#606579]">
-                  <th className="px-4 py-3 font-medium">メンター</th>
-                  <th className="px-4 py-3 font-medium">金額</th>
-                  <th className="px-4 py-3 font-medium">レッスン日時</th>
-                  <th className="px-4 py-3 font-medium">状態</th>
-                  <th className="px-4 py-3 font-medium">操作</th>
+                  <th className="px-4 py-3 font-medium">Mentor</th>
+                  <th className="px-4 py-3 font-medium">Amount</th>
+                  <th className="px-4 py-3 font-medium">Lesson time</th>
+                  <th className="px-4 py-3 font-medium">Status</th>
+                  <th className="px-4 py-3 font-medium">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -190,7 +189,7 @@ export default function AdminPaymentsPage() {
                             onClick={() => setConfirmTarget(p)}
                             className="rounded-lg bg-[#2563eb] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#1d4ed8]"
                           >
-                            承認
+                            Approve
                           </button>
                         )}
                     </td>
@@ -224,7 +223,7 @@ export default function AdminPaymentsPage() {
                     onClick={() => setConfirmTarget(p)}
                     className="mt-3 h-9 w-full rounded-lg bg-[#2563eb] text-sm font-medium text-white hover:bg-[#1d4ed8]"
                   >
-                    承認する
+                    Approve
                   </button>
                 )}
             </div>
@@ -233,7 +232,7 @@ export default function AdminPaymentsPage() {
 
         {payments.length === 0 && (
           <p className="text-center text-sm text-[#606579]">
-            決済データがありません
+            No payment data found.
           </p>
         )}
       </main>
@@ -246,13 +245,11 @@ export default function AdminPaymentsPage() {
       >
         <Dialog.Panel className="w-full max-w-sm rounded-xl bg-white p-6">
           <Dialog.Title className="text-lg font-semibold text-[#1f1f2d]">
-            入金を承認しますか？
+            Approve payout?
           </Dialog.Title>
           {confirmTarget && (
             <p className="mt-2 text-sm text-[#4b5563]">
-              {confirmTarget.mentorName}さんへ
-              {formatAmount(confirmTarget.amount)}
-              の入金を実行します。この操作は取り消せません。
+              This will send {formatAmount(confirmTarget.amount)} to {confirmTarget.mentorName}. This action cannot be undone.
             </p>
           )}
           <div className="mt-6 flex gap-3">
@@ -261,7 +258,7 @@ export default function AdminPaymentsPage() {
               disabled={releasing}
               className="flex-1 rounded-lg border border-[#cfd3e1] bg-white px-4 py-2 text-sm font-medium text-[#4b5563] hover:bg-gray-50 disabled:opacity-60"
             >
-              キャンセル
+              Cancel
             </button>
             <button
               onClick={() =>
@@ -270,7 +267,7 @@ export default function AdminPaymentsPage() {
               disabled={releasing}
               className="flex-1 rounded-lg bg-[#2563eb] px-4 py-2 text-sm font-medium text-white hover:bg-[#1d4ed8] disabled:opacity-60"
             >
-              {releasing ? "処理中..." : "承認する"}
+              {releasing ? "Processing..." : "Approve"}
             </button>
           </div>
         </Dialog.Panel>

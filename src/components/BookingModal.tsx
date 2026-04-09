@@ -31,12 +31,12 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
   // 続けるボタン押下時の処理
   const handleContinue = async () => {
     if (!selectedTime) {
-      alert("時間を選択してください");
+      alert("Please select a time.");
       return;
     }
 
     if (!user || !user.id) {
-      alert("ログイン情報を取得できませんでした。再ログインしてください。");
+      alert("We couldn't verify your login. Please log in again.");
       router.push("/auth/login?redirect=/checkout");
       return;
     }
@@ -63,10 +63,10 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
 
   // 時間帯定義
   const TIME_PERIODS = [
-    { name: "朝", icon: Sunrise, start: "06:00", end: "12:00" },
-    { name: "昼", icon: Sun, start: "12:00", end: "17:00" },
-    { name: "夕方", icon: Sunset, start: "17:00", end: "21:00" },
-    { name: "夜", icon: Moon, start: "21:00", end: "24:00" },
+    { name: "Morning", icon: Sunrise, start: "06:00", end: "12:00" },
+    { name: "Afternoon", icon: Sun, start: "12:00", end: "17:00" },
+    { name: "Evening", icon: Sunset, start: "17:00", end: "21:00" },
+    { name: "Night", icon: Moon, start: "21:00", end: "24:00" },
   ] as const;
 
   // duration変更時の処理（選択済み時間が無効or予約済みならリセット）
@@ -156,6 +156,26 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
     return `GMT ${sign}${hours}:${minutes.toString().padStart(2, "0")}`;
   };
 
+  const formatWeekRange = (date: Date): string => {
+    const startOfWeek = new Date(date);
+    startOfWeek.setDate(date.getDate() - date.getDay());
+
+    const endOfWeek = new Date(startOfWeek);
+    endOfWeek.setDate(startOfWeek.getDate() + 6);
+
+    const startLabel = new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+    }).format(startOfWeek);
+    const endLabel = new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    }).format(endOfWeek);
+
+    return `${startLabel} - ${endLabel}`;
+  };
+
   return (
     <Dialog
       open={isOpen}
@@ -175,10 +195,10 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
             )}
             <div>
               <h2 className="text-xl font-semibold">
-                体験レッスンを予約する
+                Book a lesson
               </h2>
               <p className="text-sm text-secondary mt-1">
-                あなたのレベルと学習プランについて講師と話し合います
+                Talk with your mentor about your level and learning plan.
               </p>
             </div>
           </div>
@@ -197,7 +217,7 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
                 : "bg-white text-primary hover:bg-gray-50"
             }`}
           >
-            25分
+            25 min
           </button>
           <div className="w-px bg-gray-300" />
           <button
@@ -208,7 +228,7 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
                 : "bg-white text-primary hover:bg-gray-50"
             }`}
           >
-            50分
+            50 min
           </button>
         </div>
 
@@ -235,7 +255,7 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
                 return selectedWeekStart <= thisWeekStart ? true : false;
               })()}
               className="p-2 rounded-lg border border-border text-secondary hover:bg-surface-hover disabled:text-muted disabled:cursor-not-allowed transition-colors"
-              aria-label="先週へ"
+              aria-label="Previous week"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -253,28 +273,7 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
               </svg>
             </button>
 
-            <p className="text-base font-semibold">
-              {(() => {
-                const startOfWeek = new Date(selectedDate);
-                startOfWeek.setDate(
-                  selectedDate.getDate() - selectedDate.getDay()
-                );
-                const endOfWeek = new Date(startOfWeek);
-                endOfWeek.setDate(startOfWeek.getDate() + 6);
-
-                const startMonth = startOfWeek.getMonth() + 1;
-                const startDate = startOfWeek.getDate();
-                const endDate = endOfWeek.getDate();
-                const year = startOfWeek.getFullYear();
-
-                if (startOfWeek.getMonth() === endOfWeek.getMonth()) {
-                  return `${year}年${startMonth}月${startDate}日〜${endDate}日`;
-                } else {
-                  const endMonth = endOfWeek.getMonth() + 1;
-                  return `${year}年${startMonth}月${startDate}日〜${endMonth}月${endDate}日`;
-                }
-              })()}
-            </p>
+            <p className="text-base font-semibold">{formatWeekRange(selectedDate)}</p>
 
             {/* 来週ボタン（右矢印） */}
             <button
@@ -284,7 +283,7 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
                 handleDateChange(newDate);
               }}
               className="p-2 rounded-lg border border-border text-secondary hover:bg-surface-hover transition-colors"
-              aria-label="来週へ"
+              aria-label="Next week"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -313,7 +312,7 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
               const day = new Date(startOfWeek);
               day.setDate(startOfWeek.getDate() + i);
 
-              const weekday = day.toLocaleDateString("ja-JP", {
+              const weekday = day.toLocaleDateString("en-US", {
                 weekday: "short",
               });
               const dateNum = day.getDate();
@@ -351,7 +350,7 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
 
         {/* タイムゾーン表示 */}
         <p className="text-sm text-secondary">
-          あなたのタイムゾーン、
+          Your timezone:{" "}
           {Intl.DateTimeFormat().resolvedOptions().timeZone} ({getGmtOffset()})
         </p>
 
@@ -363,7 +362,7 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
             if (availableSlots.length === 0) {
               return (
                 <p className="text-secondary text-sm text-center py-4">
-                  この日は予約可能な時間がありません
+                  No available times on this day.
                 </p>
               );
             }
@@ -415,7 +414,7 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
               : "bg-gray-200 text-gray-400 cursor-not-allowed"
           }`}
         >
-          続ける
+          Continue
         </button>
       </Dialog.Panel>
     </Dialog>

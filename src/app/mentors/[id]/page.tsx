@@ -99,9 +99,9 @@ export default function MentorDetailPage({
     }
   };
 
-  if (loading) return <div className="p-6">読み込み中...</div>;
+  if (loading) return <div className="p-6">Loading...</div>;
   if (error || !mentor)
-    return <div className="p-6">メンターが見つかりませんでした。</div>;
+    return <div className="p-6">Mentor not found.</div>;
 
   return (
     <>
@@ -117,8 +117,8 @@ export default function MentorDetailPage({
         onClose={() => setIsAuthModalOpen(false)}
         defaultMode="login"
         initialRole="student"
-        title="ログインして予約を続ける"
-        description="体験レッスンを予約するにはログインが必要です"
+        title="Log in to continue booking"
+        description="You need to log in to book a lesson."
         redirectOnClose=""
         redirectAfterAuth={`/mentors/${id}`}
       />

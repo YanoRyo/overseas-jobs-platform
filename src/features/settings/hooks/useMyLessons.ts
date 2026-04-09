@@ -98,7 +98,7 @@ export function useMyLessons(role: UserRole) {
         console.error("Failed to load lessons:", fetchError);
         if (!cancelled) {
           setLessons({ upcoming: [], pending: [], completed: [] });
-          setError("レッスン情報の取得に失敗しました");
+          setError("Failed to load lesson information.");
         }
       } finally {
         if (!cancelled) {

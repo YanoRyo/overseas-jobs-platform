@@ -22,16 +22,12 @@ export const CheckoutLayout = () => {
 
           {loadingPayment ? (
             <div className="space-y-4">
-              <h2 className="text-xl font-semibold border-b pb-2">
-                お支払い方法
-              </h2>
+              <h2 className="text-xl font-semibold border-b pb-2">Payment method</h2>
               <div className="h-[200px] animate-pulse rounded-[10px] bg-gray-100" />
             </div>
           ) : paymentError ? (
             <div className="space-y-4">
-              <h2 className="text-xl font-semibold border-b pb-2">
-                お支払い方法
-              </h2>
+              <h2 className="text-xl font-semibold border-b pb-2">Payment method</h2>
               <p className="text-sm text-[#c32a68]">{paymentError}</p>
             </div>
           ) : clientSecret ? (

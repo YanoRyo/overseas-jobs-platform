@@ -77,7 +77,7 @@ export async function POST(request: Request) {
   // 有効期限チェック
   if (booking.expires_at && new Date(booking.expires_at) < new Date()) {
     return NextResponse.json(
-      { error: "予約の有効期限が切れました" },
+      { error: "This booking has expired." },
       { status: 400 }
     );
   }
@@ -114,7 +114,7 @@ export async function POST(request: Request) {
 
   if (mentorError || !mentor || !mentor.stripe_account_id) {
     return NextResponse.json(
-      { error: "このメンターは現在決済を受け付けていません" },
+      { error: "This mentor is not accepting payments right now." },
       { status: 400 }
     );
   }
@@ -129,14 +129,14 @@ export async function POST(request: Request) {
         .update({ stripe_onboarding_completed: false })
         .eq("id", mentor.id);
       return NextResponse.json(
-        { error: "このメンターは現在決済を受け付けていません" },
+        { error: "This mentor is not accepting payments right now." },
         { status: 400 }
       );
     }
   } catch (err) {
     console.error("Stripe account retrieve error:", err);
     return NextResponse.json(
-      { error: "決済情報の確認に失敗しました" },
+      { error: "Failed to verify payment information." },
       { status: 500 }
     );
   }
@@ -150,7 +150,7 @@ export async function POST(request: Request) {
   // 不正な時間データのバリデーション
   if (durationMinutes <= 0) {
     return NextResponse.json(
-      { error: "予約の時間データが不正です" },
+      { error: "The booking time data is invalid." },
       { status: 400 }
     );
   }
@@ -162,7 +162,7 @@ export async function POST(request: Request) {
   // Stripeの最小金額チェック（USD: $0.50 = 50セント）
   if (amount < 50) {
     return NextResponse.json(
-      { error: "決済金額が最低金額を下回っています" },
+      { error: "The payment amount is below the minimum allowed amount." },
       { status: 400 }
     );
   }
@@ -206,7 +206,7 @@ export async function POST(request: Request) {
         upsertError
       );
       return NextResponse.json(
-        { error: "決済情報のDB記録に失敗しました" },
+        { error: "Failed to save the payment record." },
         { status: 500 }
       );
     }
@@ -215,7 +215,7 @@ export async function POST(request: Request) {
   } catch (err) {
     console.error("PaymentIntent creation error:", err);
     return NextResponse.json(
-      { error: "決済の初期化に失敗しました" },
+      { error: "Failed to initialize payment." },
       { status: 500 }
     );
   }

@@ -26,10 +26,10 @@ export const mapMentorDetail = (
   subjects: expertise.map((e) => e.expertise),
   ratingsDetail: {
     // TODO: カテゴリ別評価機能追加時に対応
-    教え方: 4.8,
-    分かりやすさ: 4.7,
-    対応力: 4.9,
-    満足度: 4.8,
+    Teaching: 4.8,
+    Clarity: 4.7,
+    Responsiveness: 4.9,
+    Satisfaction: 4.8,
   },
   timezone: mentor.timezone,
   availability: availability.map((slot) => ({

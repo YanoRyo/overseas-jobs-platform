@@ -17,7 +17,7 @@ export const useSendMessage = () => {
     message,
   }: SendMessageInput): Promise<boolean> => {
     if (!user) {
-      setError("ログインしてください");
+      setError("Please log in.");
       return false;
     }
 
@@ -48,7 +48,7 @@ export const useSendMessage = () => {
       } else {
         console.error("Send error (non-object):", err);
       }
-      setError("送信に失敗しました");
+      setError("Failed to send the message.");
       return false;
     } finally {
       setLoading(false);

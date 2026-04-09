@@ -44,7 +44,7 @@ export function useCreateBooking() {
         .single();
 
       if (error || !booking) {
-        alert("予約に失敗しました。もう一度お試しください。");
+        alert("Failed to create the booking. Please try again.");
         return false;
       }
 

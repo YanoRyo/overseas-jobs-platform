@@ -34,7 +34,7 @@ export async function sendMessageRequest(
     | null;
 
   if (!response.ok || !data?.conversationId || !data.message) {
-    throw new Error(data?.error ?? "送信に失敗しました");
+    throw new Error(data?.error ?? "Failed to send the message.");
   }
 
   return {

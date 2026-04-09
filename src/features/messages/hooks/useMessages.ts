@@ -40,7 +40,7 @@ export const useMessages = (conversationId: string | null) => {
 
       if (error) {
         console.error(error);
-        setError("メッセージの取得に失敗しました");
+        setError("Failed to load messages.");
         setMessages([]);
       } else {
         setMessages((data ?? []) as Message[]);
@@ -99,7 +99,7 @@ export const useMessages = (conversationId: string | null) => {
   // ③ 送信（楽観的UI）
   const send = async (body: string, category?: string) => {
     if (!user) {
-      setError("ログインしてください");
+      setError("Please log in.");
       return false;
     }
     if (!conversationId) return false;
@@ -150,7 +150,7 @@ export const useMessages = (conversationId: string | null) => {
         )
       );
 
-      setError("送信に失敗しました");
+      setError("Failed to send the message.");
       return false;
     } finally {
       setSending(false);

@@ -60,7 +60,7 @@ export async function POST() {
           updateError
         );
         return NextResponse.json(
-          { error: "アカウント情報の保存に失敗しました" },
+          { error: "Failed to save the payout account information." },
           { status: 500 }
         );
       }

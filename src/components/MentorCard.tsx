@@ -102,7 +102,7 @@ export default function MentorCard({ mentor, onBook }: MentorCardProps) {
                 }}
                 className="text-accent hover:underline mt-1 text-base font-medium"
               >
-                {expanded ? '閉じる' : '続きを読む'}
+                {expanded ? 'Show less' : 'Read more'}
               </button>
             )}
           </div>
@@ -122,11 +122,11 @@ export default function MentorCard({ mentor, onBook }: MentorCardProps) {
                 </svg>
                 {mentor.rating}
               </div>
-              <p className="text-sm text-muted">{mentor.reviewCount}件の実績</p>
+              <p className="text-sm text-muted">{mentor.reviewCount} reviews</p>
             </div>
             <div className="flex flex-col items-end justify-end text-right">
               <p className="text-lg font-bold text-primary">${mentor.hourlyRate}</p>
-              <p className="text-sm text-muted">50分の料金</p>
+              <p className="text-sm text-muted">50-minute lesson</p>
             </div>
           </div>
 
@@ -139,7 +139,7 @@ export default function MentorCard({ mentor, onBook }: MentorCardProps) {
             }}
             className="mt-0 rounded-lg bg-accent px-4 py-2 text-base text-white transition-colors hover:bg-accent-hover"
           >
-            予約する
+            Book Lesson
           </button>
         </div>
 
@@ -152,7 +152,7 @@ export default function MentorCard({ mentor, onBook }: MentorCardProps) {
           }}
           className="md:hidden bg-accent hover:bg-accent-hover text-white px-4 py-2 rounded-lg text-base mt-4 w-full transition-colors"
         >
-          予約する
+          Book Lesson
         </button>
       </div>
     </Link>

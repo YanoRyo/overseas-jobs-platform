@@ -67,7 +67,7 @@ export function MentorList() {
       );
       setSelectedMentor(detailModel);
     } catch {
-      setBookingError("メンター情報の取得に失敗しました");
+      setBookingError("Failed to retrieve mentor information.");
     } finally {
       setBookingLoading(false);
     }
@@ -144,7 +144,7 @@ export function MentorList() {
 
       {!loading && hasSearched && mentors.length === 0 && (
         <p className="text-secondary text-center py-8">
-          条件に一致するメンターが見つかりませんでした
+          No mentors matched your filters.
         </p>
       )}
 
@@ -153,11 +153,11 @@ export function MentorList() {
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
           role="status"
           aria-live="polite"
-          aria-label="メンター情報を読み込み中"
+          aria-label="Loading mentor information"
         >
           <div className="flex flex-col items-center gap-4">
             <div className="h-10 w-10 animate-spin rounded-full border-4 border-white/40 border-t-white" />
-            <p className="text-white">読み込み中...</p>
+            <p className="text-white">Loading...</p>
           </div>
         </div>
       )}
@@ -178,8 +178,8 @@ export function MentorList() {
         }}
         defaultMode="login"
         initialRole="student"
-        title="ログインして予約を続ける"
-        description="体験レッスンを予約するにはログインが必要です"
+        title="Log in to continue booking"
+        description="You need to log in to book a lesson."
         redirectOnClose=""
         redirectAfterAuth="/"
       />

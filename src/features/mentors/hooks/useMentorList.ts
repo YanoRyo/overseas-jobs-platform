@@ -12,7 +12,7 @@ export const useMentorList = () => {
   useEffect(() => {
     const load = async () => {
       const { data, error } = await fetchMentors();
-      if (error) setError("メンター取得失敗");
+      if (error) setError("Failed to load mentors.");
       else setMentors((data || []).map(mapMentorList));
       setLoading(false);
     };

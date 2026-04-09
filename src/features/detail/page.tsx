@@ -90,7 +90,7 @@ export default function MentorDetail({ mentor, onBook }: MentorDetailProps) {
         <div className="text-right min-w-[160px] flex flex-col justify-between">
           <div>
             <div className="text-xl font-bold">{mentor.price}</div>
-            <div className="text-xs text-gray-500 mt-1">25分の料金</div>
+            <div className="text-xs text-gray-500 mt-1">25-minute lesson</div>
           </div>
 
           <div className="mt-6">
@@ -104,14 +104,14 @@ export default function MentorDetail({ mentor, onBook }: MentorDetailProps) {
               </svg>
               {mentor.rating}
             </div>
-            <p className="text-sm text-gray-600">{mentor.reviews}件の実績</p>
+            <p className="text-sm text-gray-600">{mentor.reviews} reviews</p>
           </div>
         </div>
       </div>
 
       {/* 自己紹介 */}
       <section className="mt-8">
-        <h2 className="text-xl font-semibold mb-2">自己紹介</h2>
+        <h2 className="text-xl font-semibold mb-2">About</h2>
         <p
           className={`text-gray-700 whitespace-pre-wrap ${
             !bioExpanded ? "line-clamp-6" : ""
@@ -124,14 +124,14 @@ export default function MentorDetail({ mentor, onBook }: MentorDetailProps) {
             onClick={() => setBioExpanded(!bioExpanded)}
             className="mt-2 text-blue-600 hover:underline"
           >
-            {bioExpanded ? "閉じる" : "続きを読む"}
+            {bioExpanded ? "Show less" : "Read more"}
           </button>
         )}
       </section>
 
       {/* 詳細レビュー */}
       <section className="mt-8">
-        <h2 className="text-xl font-semibold mb-4">レビュー</h2>
+        <h2 className="text-xl font-semibold mb-4">Reviews</h2>
         <ul className="space-y-4 max-h-64 overflow-y-auto">
           {mentor.detailedReviews.map((review) => (
             <li key={review.id} className="border rounded-lg p-4 shadow-sm">
@@ -160,7 +160,7 @@ export default function MentorDetail({ mentor, onBook }: MentorDetailProps) {
 
       {/* 料金プラン */}
       <section className="mt-8">
-        <h2 className="text-xl font-semibold mb-4">料金プラン</h2>
+        <h2 className="text-xl font-semibold mb-4">Pricing</h2>
         <ul className="space-y-3">
           {mentor.pricingPlans.map((plan, i) => (
             <li
@@ -183,10 +183,10 @@ export default function MentorDetail({ mentor, onBook }: MentorDetailProps) {
 
       {/* 予約可能日時（簡易版） */}
       <section className="mt-8">
-        <h2 className="text-xl font-semibold mb-4">予約可能日時</h2>
+        <h2 className="text-xl font-semibold mb-4">Available times</h2>
         <div className="grid grid-cols-3 gap-2 max-w-sm">
           {mentor.availableSlots.length === 0 && (
-            <p className="text-gray-500">現在予約可能な日時はありません</p>
+            <p className="text-gray-500">No available times right now.</p>
           )}
           {mentor.availableSlots.map((slot) => (
             <button
@@ -206,7 +206,7 @@ export default function MentorDetail({ mentor, onBook }: MentorDetailProps) {
 
       {/* SNSリンク */}
       <section className="mt-8">
-        <h2 className="text-xl font-semibold mb-4">SNS・連絡先</h2>
+        <h2 className="text-xl font-semibold mb-4">Social links</h2>
         <div className="flex gap-4">
           {mentor.snsLinks.map(({ label, url, icon }) => (
             <a
@@ -225,7 +225,7 @@ export default function MentorDetail({ mentor, onBook }: MentorDetailProps) {
 
       {/* FAQ */}
       <section className="mt-8">
-        <h2 className="text-xl font-semibold mb-4">よくある質問</h2>
+        <h2 className="text-xl font-semibold mb-4">FAQ</h2>
         <div className="space-y-2">
           {mentor.faqs.map((faq, i) => (
             <div key={i} className="border rounded-lg overflow-hidden">
@@ -252,8 +252,8 @@ export default function MentorDetail({ mentor, onBook }: MentorDetailProps) {
           className={`bg-blue-600 text-white px-6 py-3 rounded-lg text-lg font-semibold disabled:bg-gray-300 disabled:cursor-not-allowed`}
         >
           {selectedSlot
-            ? `予約する (${selectedSlot})`
-            : "日時を選択してください"}
+            ? `Book Lesson (${selectedSlot})`
+            : "Select a time"}
         </button>
       </div>
     </div>
