@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import Flag from 'react-world-flags';
 import Image from 'next/image';
 import Link from 'next/link';
@@ -12,6 +12,40 @@ type MentorCardProps = {
 
 export default function MentorCard({ mentor, onBook }: MentorCardProps) {
   const [expanded, setExpanded] = useState(false);
+  const [canExpand, setCanExpand] = useState(false);
+  const introductionRef = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    const introduction = introductionRef.current;
+
+    if (!introduction || !mentor.introduction?.trim()) {
+      setCanExpand(false);
+      return;
+    }
+
+    const measureOverflow = () => {
+      const hadLineClamp = introduction.classList.contains('line-clamp-4');
+
+      if (!hadLineClamp) {
+        introduction.classList.add('line-clamp-4');
+      }
+
+      setCanExpand(introduction.scrollHeight > introduction.clientHeight + 1);
+
+      if (!hadLineClamp) {
+        introduction.classList.remove('line-clamp-4');
+      }
+    };
+
+    measureOverflow();
+
+    const resizeObserver = new ResizeObserver(measureOverflow);
+    resizeObserver.observe(introduction);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [mentor.introduction]);
 
   return (
     <Link href={`/mentors/${mentor.id}`} className="block">
@@ -34,7 +68,7 @@ export default function MentorCard({ mentor, onBook }: MentorCardProps) {
         </div>
 
         {/* テキスト情報 */}
-        <div className="flex flex-col justify-between flex-1 min-w-0">
+        <div className="flex flex-1 min-w-0 flex-col">
           <div>
             <h2 className="text-2xl font-semibold flex items-center gap-2">
               <div className="hover:underline text-accent">{mentor.name}</div>
@@ -53,12 +87,13 @@ export default function MentorCard({ mentor, onBook }: MentorCardProps) {
           {/* introduction */}
           <div className="mt-3 min-w-0 text-base text-primary">
             <p
+              ref={introductionRef}
               className={`break-all ${!expanded ? 'line-clamp-4' : ''}`}
               style={{ whiteSpace: 'pre-wrap' }}
             >
               {mentor.introduction}
             </p>
-            {mentor.introduction?.split('\n').join(' ').length > 100 && (
+            {canExpand && (
               <button
                 onClick={(e) => {
                   e.preventDefault();
