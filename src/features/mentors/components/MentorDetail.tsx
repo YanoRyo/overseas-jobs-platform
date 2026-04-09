@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Flag from "react-world-flags";
 import {
   ChevronLeft,
@@ -318,6 +318,7 @@ export const MentorDetail = ({
 }: Props) => {
   const user = useUser();
   const [bioExpanded, setBioExpanded] = useState(false);
+  const [canExpandBio, setCanExpandBio] = useState(false);
   const [reviewExpanded, setReviewExpanded] = useState(false);
   const [scheduleOpen, setScheduleOpen] = useState(true);
   const [openSpecialtyIndex, setOpenSpecialtyIndex] = useState<number | null>(
@@ -332,6 +333,39 @@ export const MentorDetail = ({
   );
   const [weekOffset, setWeekOffset] = useState(0);
   const isPrevWeekDisabled = weekOffset <= 0;
+  const bioRef = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    const bio = bioRef.current;
+
+    if (!bio || !mentor.bio?.trim()) {
+      setCanExpandBio(false);
+      return;
+    }
+
+    const measureOverflow = () => {
+      const hadLineClamp = bio.classList.contains("line-clamp-6");
+
+      if (!hadLineClamp) {
+        bio.classList.add("line-clamp-6");
+      }
+
+      setCanExpandBio(bio.scrollHeight > bio.clientHeight + 1);
+
+      if (!hadLineClamp) {
+        bio.classList.remove("line-clamp-6");
+      }
+    };
+
+    measureOverflow();
+
+    const resizeObserver = new ResizeObserver(measureOverflow);
+    resizeObserver.observe(bio);
+
+    return () => {
+      resizeObserver.disconnect();
+    };
+  }, [mentor.bio]);
 
   // Schedule表示中の週に対応するDateを生成（useBookedSlotsの週範囲算出用）
   const scheduleWeekDate = useMemo(() => {
@@ -444,13 +478,14 @@ export const MentorDetail = ({
             <section className="pb-8 border-b border-border last:border-b-0 last:pb-0">
               <h2 className="text-xl font-semibold text-primary">About Me</h2>
               <p
+                ref={bioRef}
                 className={`mt-4 break-all text-secondary whitespace-pre-wrap leading-relaxed ${
                   bioExpanded ? "" : "line-clamp-6"
                 }`}
               >
                 {mentor.bio}
               </p>
-              {mentor.bio.length > 200 && (
+              {canExpandBio && (
                 <button
                   type="button"
                   onClick={() => setBioExpanded((prev) => !prev)}
