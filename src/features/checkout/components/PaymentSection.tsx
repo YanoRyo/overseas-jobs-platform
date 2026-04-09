@@ -7,7 +7,6 @@ import {
   useElements,
 } from "@stripe/react-stripe-js";
 import { ShieldCheck } from "lucide-react";
-import ReviewCarousel from "@/components/ReviewCarousel";
 
 export const PaymentSection = ({
   amountCents,
@@ -72,8 +71,6 @@ export const PaymentSection = ({
       >
         {processing ? "処理中..." : `$${displayAmount} を支払う`}
       </button>
-
-      <ReviewCarousel />
     </form>
   );
 };
