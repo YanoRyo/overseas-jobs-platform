@@ -27,7 +27,6 @@ export const useSignup = (options?: UseSignupOptions) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const { role, setRole, signInWithGoogle, signInWithFacebook } =
@@ -104,14 +103,12 @@ export const useSignup = (options?: UseSignupOptions) => {
     password,
     confirmPassword,
     role,
-    rememberMe,
     loading,
     successMessage,
     setEmail,
     setPassword,
     setConfirmPassword,
     setRole,
-    setRememberMe,
     handleEmailSignup,
     handleSuccessClose,
     handleGoogleSignup: signInWithGoogle,

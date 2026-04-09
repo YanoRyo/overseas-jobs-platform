@@ -21,14 +21,12 @@ export const SignupForm = ({ redirect }: SignupFormProps) => {
     password,
     confirmPassword,
     role,
-    rememberMe,
     loading,
     successMessage,
     setEmail,
     setPassword,
     setConfirmPassword,
     setRole,
-    setRememberMe,
     handleEmailSignup,
     handleSuccessClose,
     handleGoogleSignup,
@@ -92,16 +90,6 @@ export const SignupForm = ({ redirect }: SignupFormProps) => {
               onChange={setConfirmPassword}
               className={inputClassName}
             />
-
-            <label className="flex items-center gap-2 text-xs text-secondary">
-              <input
-                type="checkbox"
-                checked={rememberMe}
-                onChange={() => setRememberMe(!rememberMe)}
-                className="h-4 w-4 rounded border-border text-accent focus:ring-accent"
-              />
-              Remember me
-            </label>
 
             <button
               disabled={loading || !role}
