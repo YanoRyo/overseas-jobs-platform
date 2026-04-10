@@ -35,28 +35,29 @@ export const useAuthCallback = () => {
         console.error("auth callback sync error", syncResult.error);
       }
 
-      if (role === "mentor") {
-        // mentors.user_id に自分がいるかチェック
-        const { data: mentorRow, error } = await supabase
-          .from("mentors")
-          .select("id")
-          .eq("user_id", user.id)
-          .maybeSingle();
+      let isMentor = role === "mentor";
 
-        if (error) {
-          console.error(error);
-          router.push("/auth/login?role=mentor");
-          return;
+      try {
+        const [userResult, mentorResult] = await Promise.all([
+          supabase.from("users").select("role").eq("id", user.id).maybeSingle(),
+          supabase.from("mentors").select("id").eq("user_id", user.id).maybeSingle(),
+        ]);
+
+        if (userResult.error) {
+          throw userResult.error;
+        }
+        if (mentorResult.error) {
+          throw mentorResult.error;
         }
 
-        if (!mentorRow) {
-          // mentor登録がない → 登録ページへ
-          router.push("/mentor/register");
-          return;
-        }
+        isMentor =
+          userResult.data?.role === "mentor" || !!mentorResult.data;
+      } catch (error) {
+        console.error("auth callback role resolve error", error);
+      }
 
-        // TODO: /mentor/dashboard ページを作成後に変更
-        router.push("/");
+      if (isMentor) {
+        router.replace("/settings");
         return;
       }
 
@@ -64,12 +65,14 @@ export const useAuthCallback = () => {
       // pendingBookingMentorId がある場合は redirect を優先（BookingModal を開くため）
       const pendingBooking = localStorage.getItem("pendingBookingMentorId");
       if (pendingBooking) {
-        router.push(redirect);
+        router.replace(redirect);
         return;
       }
 
       const pending = localStorage.getItem("pendingReservation");
-      router.push(pending && redirect === "/checkout" ? "/checkout" : redirect);
+      router.replace(
+        pending && redirect === "/checkout" ? "/checkout" : redirect
+      );
     };
 
     run();

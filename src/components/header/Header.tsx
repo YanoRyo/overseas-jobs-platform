@@ -25,6 +25,7 @@ export function Header() {
   const hideRight =
     pathname?.startsWith("/auth") || pathname?.startsWith("/mentor/register");
   const hideHeaderActions = !!user && viewerRole !== "student";
+  const homeHref = viewerRole === "mentor" ? "/settings" : "/";
 
   useEffect(() => {
     let cancelled = false;
@@ -79,7 +80,7 @@ export function Header() {
     <header className="sticky top-0 z-50 bg-white border-b">
       <div className="flex items-center justify-between h-16 px-6">
         {/* 左：ロゴ */}
-        <Link href="/" className="font-bold text-xl">
+        <Link href={homeHref} className="font-bold text-xl">
           Bridgeee
         </Link>
 
