@@ -117,8 +117,8 @@ function MessagesContent({
     <div className="min-h-screen bg-white">
       <SettingsTopTabs role={role} activeTabId="messages" tabs={tabs} />
 
-      <main className="min-h-[calc(100vh-57px)]">
-        <div className="border-b border-[#e6e7eb] px-6">
+      <main className="flex h-[calc(100dvh-7.5rem)] min-h-0 flex-col">
+        <div className="shrink-0 border-b border-[#e6e7eb] px-6">
           <div className="flex gap-8 text-[17px] font-medium">
             <MessagesFilterTab
               label="All"
@@ -134,8 +134,8 @@ function MessagesContent({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-[420px_minmax(0,1fr)]">
-          <aside className="border-r border-[#e6e7eb] bg-white">
+        <div className="min-h-0 flex-1 grid grid-cols-1 lg:grid-cols-[420px_minmax(0,1fr)]">
+          <aside className="min-h-0 border-r border-[#e6e7eb] bg-white">
             <div className="h-full overflow-y-auto">
               {emptyReason === "not_logged_in" ? (
                 <div className="px-5 py-6">
@@ -186,14 +186,14 @@ function MessagesContent({
             </div>
           </aside>
 
-          <section className="min-w-0 bg-white">
+          <section className="min-h-0 min-w-0 bg-white">
             {activeConversation && emptyReason !== "not_logged_in" ? (
               <ConversationDetail
                 conversation={activeConversation}
                 onBack={() => setActiveConversation(null)}
               />
             ) : (
-              <div className="flex min-h-[calc(100vh-114px)] flex-col items-center justify-center px-8 text-center">
+              <div className="flex h-full min-h-0 flex-col items-center justify-center px-8 text-center">
                 <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#eef2ff]">
                   <MessageSquare className="h-8 w-8 text-[#2563eb]" />
                 </div>

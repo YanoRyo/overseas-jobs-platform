@@ -45,9 +45,8 @@ export function ConversationDetail({
   }, [supabase, conversation.id, currentUserId]);
 
   return (
-    <div className="flex h-full min-h-0 flex-col">
-      {/* Sub header */}
-      <div className="flex items-center gap-3 px-4 py-3 border-b">
+    <div className="flex h-full min-h-0 flex-col overflow-hidden">
+      <div className="shrink-0 flex items-center gap-3 border-b px-4 py-3">
         <button
           onClick={onBack}
           className="text-sm text-gray-600 hover:text-gray-900"
@@ -69,21 +68,24 @@ export function ConversationDetail({
         </div>
       </div>
 
-      {/* body */}
-      {loading ? (
-        <div className="flex-1 p-4 text-sm text-gray-400">Loading...</div>
-      ) : (
-        <MessageThread
-          messages={messages}
-          currentUserId={currentUserId}
-          onRetry={(clientId) => retry(clientId)}
-        />
-      )}
+      <div className="min-h-0 flex-1 overflow-hidden">
+        {loading ? (
+          <div className="flex h-full items-center px-4 text-sm text-gray-400">
+            Loading...
+          </div>
+        ) : (
+          <MessageThread
+            messages={messages}
+            currentUserId={currentUserId}
+            onRetry={(clientId) => retry(clientId)}
+          />
+        )}
+      </div>
 
-      {error && <div className="px-4 pb-2 text-xs text-red-500">{error}</div>}
-
-      {/* input */}
-      <MessageInput onSend={(t) => send(t)} sending={sending} />
+      <div className="shrink-0 border-t bg-white">
+        {error && <div className="px-4 pt-3 text-xs text-red-500">{error}</div>}
+        <MessageInput onSend={(t) => send(t)} sending={sending} />
+      </div>
     </div>
   );
 }

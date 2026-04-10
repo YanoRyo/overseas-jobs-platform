@@ -17,7 +17,7 @@ export function MessageInput({
   };
 
   return (
-    <div className="border-t p-3">
+    <div className="p-3">
       <div className="flex min-w-0 items-end gap-2">
         <textarea
           value={text}
