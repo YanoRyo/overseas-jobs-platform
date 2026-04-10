@@ -21,11 +21,12 @@ export function Header() {
   const metadataRole = isUserRole(user?.user_metadata?.role)
     ? user.user_metadata.role
     : null;
+  const effectiveViewerRole = viewerRole ?? metadataRole;
 
   const hideRight =
     pathname?.startsWith("/auth") || pathname?.startsWith("/mentor/register");
-  const hideHeaderActions = !!user && viewerRole !== "student";
-  const homeHref = viewerRole === "mentor" ? "/settings" : "/";
+  const hideHeaderActions = !!user && effectiveViewerRole !== "student";
+  const homeHref = effectiveViewerRole === "mentor" ? "/settings" : "/";
 
   useEffect(() => {
     let cancelled = false;
@@ -93,7 +94,7 @@ export function Header() {
                 <FavoritesBox />
               </>
             )}
-            <UserMenu />
+            <UserMenu viewerRole={effectiveViewerRole} />
           </div>
         )}
       </div>

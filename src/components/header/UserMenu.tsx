@@ -1,165 +1,327 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useRouter } from "next/navigation";
+import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
 
+import type { UserRole } from "@/features/auth/types";
+import { getSettingsTopTabs } from "@/features/settings/constants/topTabs";
+
 type Profile = {
+  role: UserRole | null;
   username: string | null;
+  first_name: string | null;
+  last_name: string | null;
+  avatar_url: string | null;
+  avatar_updated_at: string | null;
+};
+
+type MenuItem = {
+  id: string;
+  label: string;
+  href: string;
+};
+
+type Props = {
+  viewerRole?: UserRole | null;
 };
 
 function getInitials(name?: string | null) {
-  const s = (name ?? "").trim();
-  if (!s) return "U";
-  const parts = s.split(/\s+/).filter(Boolean);
-  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
-  return s.slice(0, 2).toUpperCase();
+  const trimmed = (name ?? "").trim();
+  if (!trimmed) return "GU";
+
+  const parts = trimmed.split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) {
+    return (parts[0][0] + parts[1][0]).toUpperCase();
+  }
+
+  return trimmed.slice(0, 2).toUpperCase();
 }
 
-export default function UserMenu() {
+function getDisplayName(profile: Profile | null, email?: string | null) {
+  const fullName = [profile?.first_name, profile?.last_name]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+
+  if (fullName) return fullName;
+  if (profile?.username) return profile.username;
+  if (email) return email.split("@")[0];
+  return "Guest";
+}
+
+function getMenuItems(role: UserRole): MenuItem[] {
+  const tabItems = getSettingsTopTabs(role)
+    .filter((tab) => tab.href && tab.clickable)
+    .map((tab) => ({
+      id: tab.id,
+      label: tab.label,
+      href: tab.href as string,
+    }));
+
+  if (role === "student") {
+    return [
+      ...tabItems,
+      { id: "saved-tutors", label: "Saved tutors", href: "/favorites" },
+    ];
+  }
+
+  return tabItems;
+}
+
+export default function UserMenu({ viewerRole = null }: Props) {
   const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const supabase = useSupabaseClient();
   const user = useUser();
 
   const [open, setOpen] = useState(false);
-  const [username, setUsername] = useState<string | null>(null);
+  const [profile, setProfile] = useState<Profile | null>(null);
 
   const ref = useRef<HTMLDivElement | null>(null);
+  const searchKey = searchParams.toString();
+  const metadataRole =
+    user?.user_metadata?.role === "mentor" || user?.user_metadata?.role === "student"
+      ? (user.user_metadata.role as UserRole)
+      : null;
+  const menuRole = user
+    ? viewerRole ?? metadataRole ?? profile?.role ?? null
+    : null;
 
-  // users テーブルから username を読む（ログイン時のみ）
   useEffect(() => {
     if (!user) {
-      setUsername(null);
+      setProfile(null);
       return;
     }
 
-    const run = async () => {
+    const fetchProfile = async () => {
       const { data, error } = await supabase
         .from("users")
-        .select("username")
+        .select(
+          "role, username, first_name, last_name, avatar_url, avatar_updated_at"
+        )
         .eq("id", user.id)
         .maybeSingle();
 
       if (error) {
-        console.error("fetch username error:", error);
-        setUsername(null);
+        console.error("fetch profile error:", error);
+        setProfile(null);
         return;
       }
-      setUsername((data as Profile | null)?.username ?? null);
+
+      setProfile((data as Profile | null) ?? null);
     };
 
-    run();
+    void fetchProfile();
   }, [supabase, user]);
 
-  const label = useMemo(() => {
-    if (!user) return "Guest";
-
-    return username ?? user.email?.split("@")[0] ?? user.id.slice(0, 8);
-  }, [username, user]);
-
-  const initials = useMemo(() => getInitials(label), [label]);
-
-  // 外側クリックで閉じる
   useEffect(() => {
-    const onDocClick = (e: MouseEvent) => {
+    setOpen(false);
+  }, [pathname, searchKey]);
+
+  useEffect(() => {
+    const onDocClick = (event: MouseEvent) => {
       if (!ref.current) return;
-      if (!ref.current.contains(e.target as Node)) setOpen(false);
+      if (!ref.current.contains(event.target as Node)) {
+        setOpen(false);
+      }
     };
+
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setOpen(false);
+      }
+    };
+
     document.addEventListener("mousedown", onDocClick);
-    return () => document.removeEventListener("mousedown", onDocClick);
+    document.addEventListener("keydown", onEscape);
+
+    return () => {
+      document.removeEventListener("mousedown", onDocClick);
+      document.removeEventListener("keydown", onEscape);
+    };
   }, []);
 
-  const goStudentLogin = () => {
-    setOpen(false);
-    router.push("/auth/login?role=student");
+  const label = useMemo(
+    () => getDisplayName(profile, user?.email),
+    [profile, user?.email]
+  );
+  const initials = useMemo(() => getInitials(label), [label]);
+  const avatarSrc = useMemo(() => {
+    if (!profile?.avatar_url) return null;
+    if (!profile.avatar_updated_at) return profile.avatar_url;
+
+    const separator = profile.avatar_url.includes("?") ? "&" : "?";
+    return `${profile.avatar_url}${separator}v=${encodeURIComponent(
+      profile.avatar_updated_at
+    )}`;
+  }, [profile]);
+  const statusLabel = user
+    ? menuRole === "mentor"
+      ? "Mentor account"
+      : menuRole === "student"
+        ? "Student account"
+        : "Account"
+    : "Not logged in";
+  const menuItems = useMemo(
+    () => (menuRole ? getMenuItems(menuRole) : []),
+    [menuRole]
+  );
+  const currentHref = useMemo(
+    () => `${pathname || "/"}${searchKey ? `?${searchKey}` : ""}`,
+    [pathname, searchKey]
+  );
+
+  const isActiveItem = (href: string) => {
+    if (href === "/") {
+      return pathname === "/";
+    }
+
+    if (href === "/settings") {
+      return (
+        pathname === "/settings"
+        && searchParams.get("tab") !== "messages"
+        && searchParams.get("tab") !== "my-lessons"
+      );
+    }
+
+    if (href.startsWith("/settings?tab=")) {
+      const tab = href.split("tab=")[1];
+      return pathname === "/settings" && searchParams.get("tab") === tab;
+    }
+
+    return pathname === href;
   };
 
-  const goMentorLogin = () => {
+  const navigate = (href: string) => {
     setOpen(false);
-    router.push("/auth/login?role=mentor");
+    router.push(href);
+  };
+
+  const goLogin = () => {
+    setOpen(false);
+    router.push(`/auth/login?redirect=${encodeURIComponent(currentHref)}`);
   };
 
   const logout = async () => {
     setOpen(false);
-    setUsername(null);
+    setProfile(null);
+
     const { error } = await supabase.auth.signOut();
     if (error) {
       console.error("signOut error:", error);
     }
+
     router.replace("/");
     router.refresh();
   };
 
+  const renderAvatar = (sizeClassName: string, textClassName: string) => (
+    <div
+      className={`relative overflow-hidden rounded-2xl bg-[#d9dee8] ${sizeClassName}`}
+    >
+      {avatarSrc ? (
+        <Image
+          src={avatarSrc}
+          alt={`${label} avatar`}
+          fill
+          sizes="48px"
+          className="object-cover"
+        />
+      ) : (
+        <div
+          className={`flex h-full w-full items-center justify-center font-semibold text-[#455065] ${textClassName}`}
+        >
+          {initials}
+        </div>
+      )}
+    </div>
+  );
+
   return (
     <div className="relative" ref={ref}>
-      {/* アバターボタン */}
       <button
         type="button"
-        onClick={() => setOpen((v) => !v)}
-        className="w-9 h-9 rounded-lg bg-gray-200 text-gray-700 flex items-center justify-center font-semibold text-sm hover:bg-gray-300"
+        onClick={() => setOpen((value) => !value)}
+        className="flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl bg-[#d9dee8] text-sm font-semibold text-[#455065] transition-colors hover:bg-[#cfd6e1]"
         aria-label="user menu"
         title={label}
       >
-        {initials}
+        {avatarSrc ? (
+          <Image
+            src={avatarSrc}
+            alt={`${label} avatar`}
+            width={40}
+            height={40}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          initials
+        )}
       </button>
 
-      {/* ドロップダウン */}
       {open && (
-        <div className="absolute right-0 mt-2 w-56 rounded-xl border bg-white shadow-lg overflow-hidden z-50">
-          {/* 上部：ユーザー表示 */}
-          <div className="px-4 py-3 border-b">
-            <div className="text-sm font-semibold truncate">{label}</div>
-            <div className="text-xs text-gray-500 truncate">
-              {user ? "Logged in" : "Not logged in"}
+        <div className="absolute right-0 z-50 mt-3 w-72 overflow-hidden rounded-[28px] border border-[#e4e7ee] bg-white shadow-[0_24px_60px_rgba(15,23,42,0.16)]">
+          <div className="flex items-center gap-3 px-5 py-5">
+            {renderAvatar("h-12 w-12", "text-base")}
+            <div className="min-w-0">
+              <div className="truncate text-xl font-semibold text-[#1f1f2d]">
+                {label}
+              </div>
+              <div className="mt-1 truncate text-sm text-[#7a8094]">
+                {statusLabel}
+              </div>
             </div>
           </div>
 
-          {/* Mypage への導線 */}
-          <div className="py-1">
-            <button
-              type="button"
-              onClick={() => {
-                setOpen(false);
-                router.push("/settings");
-              }}
-              className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
-            >
-              Mypage
-            </button>
+          <div className="mx-5 border-t border-[#e6e8ef]" />
+
+          <div className="px-3 py-3">
+            {user ? (
+              menuItems.map((item) => {
+                const active = isActiveItem(item.href);
+
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => navigate(item.href)}
+                    className={`w-full rounded-2xl px-4 py-3 text-left text-[17px] transition-colors ${
+                      active
+                        ? "bg-[#f4f6fb] font-semibold text-[#1f1f2d]"
+                        : "text-[#1f1f2d] hover:bg-[#f7f8fc]"
+                    }`}
+                  >
+                    {item.label}
+                  </button>
+                );
+              })
+            ) : (
+              <button
+                type="button"
+                onClick={goLogin}
+                className="w-full rounded-2xl px-4 py-3 text-left text-[17px] text-[#1f1f2d] transition-colors hover:bg-[#f7f8fc]"
+              >
+                Log in
+              </button>
+            )}
           </div>
 
-          {/* 未ログイン時だけログイン導線を表示 */}
-          {!user && (
-            <div className="py-1">
-              <button
-                type="button"
-                onClick={goStudentLogin}
-                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
-              >
-                Log in as Student
-              </button>
-
-              <button
-                type="button"
-                onClick={goMentorLogin}
-                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
-              >
-                Log in as Mentor
-              </button>
-            </div>
-          )}
-
-          {/* ログイン中だけログアウトを表示 */}
           {user && (
-            <div className="border-t py-1">
-              <button
-                type="button"
-                onClick={logout}
-                className="w-full text-left px-4 py-2 text-sm hover:bg-gray-50"
-              >
-                Log Out
-              </button>
-            </div>
+            <>
+              <div className="mx-5 border-t border-[#e6e8ef]" />
+              <div className="px-3 py-3">
+                <button
+                  type="button"
+                  onClick={logout}
+                  className="w-full rounded-2xl px-4 py-3 text-left text-[17px] text-[#1f1f2d] transition-colors hover:bg-[#f7f8fc]"
+                >
+                  Log out
+                </button>
+              </div>
+            </>
           )}
         </div>
       )}
