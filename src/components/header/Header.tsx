@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
 
@@ -94,7 +94,16 @@ export function Header() {
                 <FavoritesBox />
               </>
             )}
-            <UserMenu viewerRole={effectiveViewerRole} />
+            <Suspense
+              fallback={
+                <div
+                  className="h-10 w-10 rounded-xl bg-[#d9dee8]"
+                  aria-hidden="true"
+                />
+              }
+            >
+              <UserMenu viewerRole={effectiveViewerRole} />
+            </Suspense>
           </div>
         )}
       </div>
