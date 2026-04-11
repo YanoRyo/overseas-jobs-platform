@@ -47,6 +47,7 @@ export default function LocaleSelector() {
 
   const handleLanguageChange = (newLocale: Locale) => {
     router.replace(pathname, { locale: newLocale });
+    setOpen(false);
   };
 
   const handleCurrencyChange = (code: CurrencyCode) => {

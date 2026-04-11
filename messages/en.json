@@ -408,6 +408,10 @@
     "loginRequired": "Please sign up or log in to view your messages.",
     "loginButton": "Log In",
     "signUpButton": "Sign Up",
+    "noUnreadMessages": "You have no unread messages.",
+    "noConversations": "No conversations yet.",
+    "selectConversation": "Select a conversation",
+    "selectConversationDescription": "Open a message thread from the list to read the latest conversation and reply from here.",
     "sendModal": {
       "title": "Contact {mentorName}",
       "instruction": "Please select a message topic and send your message.",

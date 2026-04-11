@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useSearchParams } from "next/navigation";
 import { useUser } from "@supabase/auth-helpers-react";
 import { MentorSettingsNav } from "./MentorSettingsNav";
@@ -19,16 +20,16 @@ import { MentorRegistrationCallout } from "./MentorRegistrationCallout";
 import { SettingsTopTabs } from "./SettingsTopTabs";
 import { isEmailProvider } from "@/features/auth/utils/authProvider";
 
-const SECTION_TITLES: Record<MentorSettingsSection, string> = {
-  about: "About",
-  photo: "Photo",
-  education: "Education",
-  description: "Profile description",
-  video: "Video introduction",
-  availability: "Availability",
-  pricing: "Pricing",
-  payout: "Payout",
-  password: "Password",
+const SECTION_TITLE_KEYS: Record<MentorSettingsSection, string> = {
+  about: "about",
+  photo: "photo",
+  education: "education",
+  description: "description",
+  video: "video",
+  availability: "availability",
+  pricing: "pricing",
+  payout: "payout",
+  password: "password",
 };
 
 const VALID_SECTIONS = new Set<MentorSettingsSection>([
@@ -60,6 +61,7 @@ export function MentorSettingsLayout({
 
 function MentorSettingsContent() {
   const user = useUser();
+  const t = useTranslations("settings.mentorNav");
   const showPassword = isEmailProvider(user);
   const searchParams = useSearchParams();
   const {
@@ -88,7 +90,7 @@ function MentorSettingsContent() {
     Partial<Record<MentorSettingsSection, string>>
   >({});
 
-  const title = SECTION_TITLES[activeSection];
+  const title = t(SECTION_TITLE_KEYS[activeSection]);
 
   const saveAboutSection = async () => {
     const result = await saveAbout();
@@ -134,7 +136,7 @@ function MentorSettingsContent() {
 
           <div className="rounded-xl border border-[#e3e4ea] bg-white p-4 sm:p-6">
             {loading ? (
-              <p className="text-sm text-[#606579]">Loading profile...</p>
+              <p className="text-sm text-[#606579]">{t("loadingProfile")}</p>
             ) : fetchError ? (
               <p className="text-sm text-[#c32a68]">{fetchError}</p>
             ) : activeSection === "about" ? (

@@ -316,7 +316,7 @@
       "education": "学歴",
       "description": "プロフィール説明",
       "video": "ビデオ紹介",
-      "availability": "空き時間",
+      "availability": "予約可能日時",
       "pricing": "料金設定",
       "payout": "報酬受取",
       "password": "パスワード",
@@ -408,6 +408,10 @@
     "loginRequired": "メッセージを見るにはログインまたは登録が必要です。",
     "loginButton": "ログイン",
     "signUpButton": "登録",
+    "noUnreadMessages": "未読メッセージはありません。",
+    "noConversations": "会話はまだありません。",
+    "selectConversation": "会話を選択",
+    "selectConversationDescription": "メッセージ一覧からスレッドを開いて、最新の会話を読んだりここから返信したりできます。",
     "sendModal": {
       "title": "{mentorName}に連絡",
       "instruction": "メッセージのトピックを選択して、メッセージを送信してください。",
@@ -440,7 +444,7 @@
       "education": "学歴",
       "description": "説明",
       "video": "動画",
-      "availability": "空き時間",
+      "availability": "予約可能日時",
       "pricing": "料金"
     },
     "about": {

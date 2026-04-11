@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { CheckCircle2 } from "lucide-react";
 
 type ConnectStatus = {
@@ -11,6 +12,8 @@ type ConnectStatus = {
 };
 
 export function PayoutSection() {
+  const t = useTranslations("settings.payout");
+  const tc = useTranslations("common");
   const [status, setStatus] = useState<ConnectStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [actionLoading, setActionLoading] = useState(false);
@@ -19,15 +22,15 @@ export function PayoutSection() {
   const fetchStatus = useCallback(async () => {
     try {
       const res = await fetch("/api/stripe/connect/status");
-      if (!res.ok) throw new Error("Failed to fetch status");
+      if (!res.ok) throw new Error(t("failedToLoad"));
       const data = await res.json();
       setStatus(data);
     } catch {
-      setError("Failed to load payout status.");
+      setError(t("failedToLoad"));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     fetchStatus();
@@ -41,12 +44,12 @@ export function PayoutSection() {
         method: "POST",
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to create the payout account.");
-      if (!data.url) throw new Error("Failed to retrieve the redirect URL.");
+      if (!res.ok) throw new Error(data.error || t("failedToCreate"));
+      if (!data.url) throw new Error(t("failedRedirectUrl"));
       window.location.href = data.url;
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to create the payout account."
+        err instanceof Error ? err.message : t("failedToCreate")
       );
       setActionLoading(false);
     }
@@ -60,12 +63,12 @@ export function PayoutSection() {
         method: "POST",
       });
       const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Failed to retrieve the dashboard link.");
-      if (!data.url) throw new Error("Failed to retrieve the dashboard URL.");
+      if (!res.ok) throw new Error(data.error || t("failedDashboardLink"));
+      if (!data.url) throw new Error(t("failedDashboardUrl"));
       window.open(data.url, "_blank");
     } catch (err) {
       setError(
-        err instanceof Error ? err.message : "Failed to retrieve the dashboard link."
+        err instanceof Error ? err.message : t("failedDashboardLink")
       );
     } finally {
       setActionLoading(false);
@@ -73,7 +76,7 @@ export function PayoutSection() {
   };
 
   if (loading) {
-    return <p className="text-sm text-[#606579]">Loading...</p>;
+    return <p className="text-sm text-[#606579]">{tc("loading")}</p>;
   }
 
   const isOnboarded = status?.chargesEnabled && status?.payoutsEnabled;
@@ -86,10 +89,10 @@ export function PayoutSection() {
             <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-success" />
             <div>
               <p className="font-medium text-[#1f1f2d]">
-                Your payout account is set up
+                {t("accountSetUp")}
               </p>
               <p className="mt-1 text-sm text-[#606579]">
-                Managed with Stripe Express
+                {t("managedByStripe")}
               </p>
             </div>
           </div>
@@ -99,19 +102,19 @@ export function PayoutSection() {
             disabled={actionLoading}
             className="h-11 w-full rounded-[10px] border-2 border-[#1d4ed8] bg-[#2563eb] text-lg font-semibold text-white hover:bg-[#1d4ed8] disabled:opacity-60"
           >
-            {actionLoading ? "Loading..." : "Open payout dashboard"}
+            {actionLoading ? tc("loading") : t("openDashboard")}
           </button>
         </>
       ) : (
         <>
           <p className="text-sm text-[#4b5563]">
-            Set up a payout account to receive lesson payments.
+            {t("setupDescription")}
           </p>
 
           {status?.hasAccount && status?.detailsSubmitted && (
             <div className="rounded-lg border border-warning/20 bg-warning/10 p-3">
               <p className="text-sm text-[#4b5563]">
-                Your account details have been submitted and are awaiting Stripe review.
+                {t("pendingReview")}
               </p>
             </div>
           )}
@@ -121,7 +124,7 @@ export function PayoutSection() {
             disabled={actionLoading}
             className="h-11 w-full rounded-[10px] border-2 border-[#1d4ed8] bg-[#2563eb] text-lg font-semibold text-white hover:bg-[#1d4ed8] disabled:opacity-60"
           >
-            {actionLoading ? "Loading..." : "Set up payout account"}
+            {actionLoading ? tc("loading") : t("setupButton")}
           </button>
         </>
       )}
