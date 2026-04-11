@@ -1,9 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { ReservationData } from "../types/reservation";
 
 export const useCheckout = () => {
+  const t = useTranslations("checkout");
   const router = useRouter();
   const [reservation, setReservation] = useState<ReservationData | null>(null);
   const [clientSecret, setClientSecret] = useState<string | null>(null);
@@ -14,7 +16,7 @@ export const useCheckout = () => {
   useEffect(() => {
     const stored = localStorage.getItem("pendingReservation");
     if (!stored) {
-      alert("Booking information was not found.");
+      alert(t("bookingNotFound"));
       router.push("/");
       return;
     }
@@ -23,13 +25,13 @@ export const useCheckout = () => {
       parsed = JSON.parse(stored) as ReservationData;
     } catch {
       localStorage.removeItem("pendingReservation");
-      alert("Booking information is corrupted. Please book again.");
+      alert(t("bookingCorrupted"));
       router.push("/");
       return;
     }
     if (!parsed.bookingId || !parsed.mentorId) {
       localStorage.removeItem("pendingReservation");
-      alert("Booking information is invalid. Please book again.");
+      alert(t("bookingInvalid"));
       router.push("/");
       return;
     }
@@ -49,7 +51,7 @@ export const useCheckout = () => {
         if (!res.ok) {
           // 期限切れ等で無効な予約の場合、localStorageをクリーンアップ
           localStorage.removeItem("pendingReservation");
-          setPaymentError(data.error || "Failed to initialize payment.");
+          setPaymentError(data.error || t("paymentInitFailed"));
           return;
         }
         // 既に決済済みの場合は完了ページへリダイレクト
@@ -63,7 +65,7 @@ export const useCheckout = () => {
         setClientSecret(data.clientSecret);
         setAmountCents(data.amount);
       } catch {
-        setPaymentError("Failed to initialize payment.");
+        setPaymentError(t("paymentInitFailed"));
       } finally {
         setLoadingPayment(false);
       }

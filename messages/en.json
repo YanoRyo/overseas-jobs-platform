@@ -240,6 +240,10 @@
     "orderSummary": "Order summary",
     "lessonFee": "Lesson fee ({duration} min)",
     "total": "Total",
+    "bookingNotFound": "Booking information was not found.",
+    "bookingCorrupted": "Booking information is corrupted. Please book again.",
+    "bookingInvalid": "Booking information is invalid. Please book again.",
+    "paymentInitFailed": "Failed to initialize payment.",
     "complete": {
       "checkingPayment": "Checking payment status...",
       "notFound": "Payment details were not found.",
