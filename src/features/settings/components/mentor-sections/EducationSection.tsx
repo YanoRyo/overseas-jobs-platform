@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { DEGREE_TYPE_OPTIONS } from "@/features/shared/constants/options";
 import type { MentorSettingsEducationForm } from "../../types/mentorSettings";
 
@@ -12,6 +13,9 @@ type Props = {
 };
 
 export function EducationSection({ data, saving, message, onChange, onSave }: Props) {
+  const t = useTranslations("settings.mentorSections");
+  const tc = useTranslations("common");
+
   return (
     <div className="space-y-4">
       <label className="flex items-center gap-2 text-sm text-[#2d3348]">
@@ -21,13 +25,13 @@ export function EducationSection({ data, saving, message, onChange, onSave }: Pr
           onChange={(e) => onChange({ hasNoDegree: e.target.checked })}
           className="h-4 w-4"
         />
-        I don&apos;t have a higher education degree
+        {t("noDegree")}
       </label>
 
       {!data.hasNoDegree && (
         <>
           <div>
-            <label className="mb-1 block text-sm font-medium text-[#2d3348]">University</label>
+            <label className="mb-1 block text-sm font-medium text-[#2d3348]">{t("university")}</label>
             <input
               type="text"
               value={data.university}
@@ -37,7 +41,7 @@ export function EducationSection({ data, saving, message, onChange, onSave }: Pr
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-[#2d3348]">Degree</label>
+            <label className="mb-1 block text-sm font-medium text-[#2d3348]">{t("degree")}</label>
             <input
               type="text"
               value={data.degree}
@@ -47,7 +51,7 @@ export function EducationSection({ data, saving, message, onChange, onSave }: Pr
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-[#2d3348]">Degree type</label>
+            <label className="mb-1 block text-sm font-medium text-[#2d3348]">{t("degreeType")}</label>
             <select
               value={data.degreeType ?? ""}
               onChange={(e) =>
@@ -55,7 +59,7 @@ export function EducationSection({ data, saving, message, onChange, onSave }: Pr
               }
               className="w-full rounded-[10px] border border-[#cfd3e1] px-3 py-2.5 text-sm"
             >
-              <option value="">Choose degree type...</option>
+              <option value="">{t("chooseDegreeType")}</option>
               {DEGREE_TYPE_OPTIONS.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
@@ -65,7 +69,7 @@ export function EducationSection({ data, saving, message, onChange, onSave }: Pr
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-[#2d3348]">Specialization</label>
+            <label className="mb-1 block text-sm font-medium text-[#2d3348]">{t("specialization")}</label>
             <input
               type="text"
               value={data.specialization}
@@ -83,7 +87,7 @@ export function EducationSection({ data, saving, message, onChange, onSave }: Pr
           disabled={saving}
           className="h-11 w-full rounded-[10px] border-2 border-[#1d4ed8] bg-[#2563eb] text-lg font-semibold text-white disabled:opacity-60"
         >
-          {saving ? "Saving..." : "Save changes"}
+          {saving ? tc("saving") : tc("save")}
         </button>
         {message && <p className="mt-2 text-sm text-[#5e6478]">{message}</p>}
       </div>

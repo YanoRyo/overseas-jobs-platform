@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
+import { useTranslations } from "next-intl";
 import type { MentorSettingsVideoForm } from "../../types/mentorSettings";
 
 type Props = {
@@ -54,13 +55,15 @@ const getEmbedUrl = (url: string): string | null => {
 };
 
 export function VideoSection({ data, saving, message, onChange, onSave }: Props) {
+  const t = useTranslations("settings.mentorSections");
+  const tc = useTranslations("common");
   const embedUrl = useMemo(() => getEmbedUrl(data.videoUrl), [data.videoUrl]);
 
   return (
     <div className="space-y-4">
       <div>
         <label className="mb-1 block text-sm font-medium text-[#2d3348]">
-          Video preview
+          {t("videoPreview")}
         </label>
         <div className="aspect-video overflow-hidden rounded-[10px] border border-[#cfd3e1] bg-[#f6f7fb]">
           {embedUrl ? (
@@ -74,7 +77,7 @@ export function VideoSection({ data, saving, message, onChange, onSave }: Props)
             />
           ) : (
             <div className="flex h-full items-center justify-center text-sm text-[#6a7084]">
-              Video preview will appear here
+              {t("videoPreviewPlaceholder")}
             </div>
           )}
         </div>
@@ -82,7 +85,7 @@ export function VideoSection({ data, saving, message, onChange, onSave }: Props)
 
       <div>
         <label className="mb-1 block text-sm font-medium text-[#2d3348]">
-          Video URL (YouTube / Vimeo)
+          {t("videoUrl")}
         </label>
         <input
           type="url"
@@ -99,7 +102,7 @@ export function VideoSection({ data, saving, message, onChange, onSave }: Props)
           disabled={saving}
           className="h-11 w-full rounded-[10px] border-2 border-[#1d4ed8] bg-[#2563eb] text-lg font-semibold text-white disabled:opacity-60"
         >
-          {saving ? "Saving..." : "Save changes"}
+          {saving ? tc("saving") : tc("save")}
         </button>
         {message && <p className="mt-2 text-sm text-[#5e6478]">{message}</p>}
       </div>

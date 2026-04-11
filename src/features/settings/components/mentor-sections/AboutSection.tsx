@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Plus, Trash2, X } from "lucide-react";
 import {
   COUNTRIES,
@@ -21,6 +22,8 @@ type Props = {
 };
 
 export function AboutSection({ data, saving, message, onChange, onSave }: Props) {
+  const t = useTranslations("settings.mentorSections");
+  const tc = useTranslations("common");
   const [expertiseInput, setExpertiseInput] = useState("");
 
   const canAddExpertise = useMemo(
@@ -92,7 +95,7 @@ export function AboutSection({ data, saving, message, onChange, onSave }: Props)
     <div className="space-y-4">
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <div>
-          <label className="mb-1 block text-sm font-medium text-[#2d3348]">First name</label>
+          <label className="mb-1 block text-sm font-medium text-[#2d3348]">{t("firstName")}</label>
           <input
             type="text"
             value={data.firstName}
@@ -101,7 +104,7 @@ export function AboutSection({ data, saving, message, onChange, onSave }: Props)
           />
         </div>
         <div>
-          <label className="mb-1 block text-sm font-medium text-[#2d3348]">Last name</label>
+          <label className="mb-1 block text-sm font-medium text-[#2d3348]">{t("lastName")}</label>
           <input
             type="text"
             value={data.lastName}
@@ -112,7 +115,7 @@ export function AboutSection({ data, saving, message, onChange, onSave }: Props)
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium text-[#2d3348]">Email</label>
+        <label className="mb-1 block text-sm font-medium text-[#2d3348]">{t("email")}</label>
         <input
           type="email"
           value={data.email}
@@ -122,13 +125,13 @@ export function AboutSection({ data, saving, message, onChange, onSave }: Props)
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium text-[#2d3348]">Country of birth</label>
+        <label className="mb-1 block text-sm font-medium text-[#2d3348]">{t("countryOfBirth")}</label>
         <select
           value={data.countryCode}
           onChange={(e) => onChange({ countryCode: e.target.value })}
           className="w-full rounded-[10px] border border-[#cfd3e1] bg-white px-3 py-2.5 text-sm"
         >
-          <option value="">Select a country</option>
+          <option value="">{t("selectCountry")}</option>
           {COUNTRIES.map((country) => (
             <option key={country.code} value={country.code}>
               {country.name}
@@ -138,7 +141,7 @@ export function AboutSection({ data, saving, message, onChange, onSave }: Props)
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium text-[#2d3348]">Phone number</label>
+        <label className="mb-1 block text-sm font-medium text-[#2d3348]">{t("phoneNumber")}</label>
         <div className="flex gap-2">
           <select
             value={data.phoneCountryCode}
@@ -161,7 +164,7 @@ export function AboutSection({ data, saving, message, onChange, onSave }: Props)
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium text-[#2d3348]">Expertise</label>
+        <label className="mb-1 block text-sm font-medium text-[#2d3348]">{t("expertise")}</label>
         <div className="flex gap-2">
           <input
             type="text"
@@ -182,7 +185,7 @@ export function AboutSection({ data, saving, message, onChange, onSave }: Props)
             className="inline-flex h-[42px] items-center gap-1 rounded-[10px] border border-[#cfd3e1] px-3 text-sm font-semibold disabled:opacity-40"
           >
             <Plus className="h-4 w-4" />
-            Add
+            {tc("add")}
           </button>
         </div>
 
@@ -208,7 +211,7 @@ export function AboutSection({ data, saving, message, onChange, onSave }: Props)
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium text-[#2d3348]">Languages</label>
+        <label className="mb-1 block text-sm font-medium text-[#2d3348]">{t("languages")}</label>
         <div className="space-y-2">
           {data.languages.map((language) => (
             <div key={language.id} className="flex gap-2">
@@ -219,7 +222,7 @@ export function AboutSection({ data, saving, message, onChange, onSave }: Props)
                 }
                 className="flex-1 rounded-[10px] border border-[#cfd3e1] bg-white px-3 py-2.5 text-sm"
               >
-                <option value="">Select language</option>
+                <option value="">{t("selectLanguage")}</option>
                 {LANGUAGES.map((option) => (
                   <option key={option.code} value={option.code}>
                     {option.name}
@@ -255,7 +258,7 @@ export function AboutSection({ data, saving, message, onChange, onSave }: Props)
             className="inline-flex items-center gap-1 text-sm font-semibold text-[#4b5575]"
           >
             <Plus className="h-4 w-4" />
-            Add language
+            {t("addLanguage")}
           </button>
         </div>
       </div>
@@ -267,7 +270,7 @@ export function AboutSection({ data, saving, message, onChange, onSave }: Props)
           disabled={saving}
           className="h-11 w-full rounded-[10px] border-2 border-[#1d4ed8] bg-[#2563eb] text-lg font-semibold text-white disabled:opacity-60"
         >
-          {saving ? "Saving..." : "Save changes"}
+          {saving ? tc("saving") : tc("save")}
         </button>
         {message && <p className="mt-2 text-sm text-[#5e6478]">{message}</p>}
       </div>

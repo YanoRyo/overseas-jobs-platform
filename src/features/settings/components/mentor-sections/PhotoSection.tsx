@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import Image from "next/image";
 import { AvatarCropModal } from "../AvatarCropModal";
 import { useMentorAvatarUpload } from "../../hooks/useMentorAvatarUpload";
@@ -12,6 +13,8 @@ type Props = {
 };
 
 export function PhotoSection({ mentorId, avatarUrl, onSaved }: Props) {
+  const t = useTranslations("settings.mentorSections");
+  const ts = useTranslations("settings");
   const { uploading, uploadAvatar } = useMentorAvatarUpload(mentorId);
   const [pickedFile, setPickedFile] = useState<File | null>(null);
   const [cropOpen, setCropOpen] = useState(false);
@@ -22,7 +25,7 @@ export function PhotoSection({ mentorId, avatarUrl, onSaved }: Props) {
     if (!file) return;
 
     if (file.size > 2 * 1024 * 1024) {
-      setMessage("File size must be <= 2MB");
+      setMessage(ts("fileSizeLimit"));
       return;
     }
 
@@ -36,14 +39,14 @@ export function PhotoSection({ mentorId, avatarUrl, onSaved }: Props) {
     const result = await uploadAvatar(croppedFile);
 
     if (!result.ok || !result.url) {
-      setMessage(result.error ?? "Upload failed");
+      setMessage(result.error ?? ts("uploadFailed"));
       return;
     }
 
     onSaved(result.url);
     setCropOpen(false);
     setPickedFile(null);
-    setMessage("Saved");
+    setMessage(ts("saved"));
   };
 
   return (
@@ -58,7 +61,7 @@ export function PhotoSection({ mentorId, avatarUrl, onSaved }: Props) {
         onSave={onSaveAvatar}
       />
 
-      <p className="text-sm text-[#606579]">Profile image</p>
+      <p className="text-sm text-[#606579]">{t("profileImage")}</p>
 
       <div className="flex items-start gap-8">
         <div className="relative h-40 w-40 overflow-hidden rounded-[12px] bg-[#eceef5]">
@@ -73,7 +76,7 @@ export function PhotoSection({ mentorId, avatarUrl, onSaved }: Props) {
 
         <div>
           <label className="inline-flex h-[44px] cursor-pointer items-center rounded-[10px] border-2 border-[#1f1f2d] bg-white px-5 text-sm font-semibold text-[#171923]">
-            Upload photo
+            {ts("uploadPhoto")}
             <input
               type="file"
               accept="image/png,image/jpeg"
@@ -84,9 +87,9 @@ export function PhotoSection({ mentorId, avatarUrl, onSaved }: Props) {
           </label>
 
           <p className="mt-3 text-xs text-[#6f7486]">
-            Maximum size – 2MB
+            {ts("maxSize")}
             <br />
-            JPG or PNG format
+            {ts("formatHint")}
           </p>
         </div>
       </div>

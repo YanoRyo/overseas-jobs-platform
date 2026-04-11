@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Plus, Trash2 } from "lucide-react";
 import {
   DAY_OF_WEEK_OPTIONS,
@@ -26,6 +27,9 @@ export function AvailabilitySection({
   onChange,
   onSave,
 }: Props) {
+  const t = useTranslations("settings.mentorSections");
+  const tc = useTranslations("common");
+
   const addSlot = () => {
     const next: MentorSettingsAvailabilitySlot = {
       id: crypto.randomUUID(),
@@ -57,13 +61,13 @@ export function AvailabilitySection({
   return (
     <div className="space-y-4">
       <div>
-        <label className="mb-1 block text-sm font-medium text-[#2d3348]">Timezone</label>
+        <label className="mb-1 block text-sm font-medium text-[#2d3348]">{t("timezone")}</label>
         <select
           value={data.timezone}
           onChange={(e) => onChange({ timezone: e.target.value })}
           className="w-full rounded-[10px] border border-[#cfd3e1] px-3 py-2.5 text-sm"
         >
-          <option value="">Select timezone</option>
+          <option value="">{t("selectTimezone")}</option>
           {TIMEZONE_OPTIONS.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label} ({option.offset})
@@ -122,7 +126,7 @@ export function AvailabilitySection({
                 checked={slot.isEnabled}
                 onChange={(e) => updateSlot(slot.id, "isEnabled", e.target.checked)}
               />
-              Enabled
+              {t("enabled")}
             </label>
 
             <button
@@ -141,7 +145,7 @@ export function AvailabilitySection({
           className="inline-flex items-center gap-1 text-sm font-semibold text-[#4b5575]"
         >
           <Plus className="h-4 w-4" />
-          Add timeslot
+          {t("addTimeslot")}
         </button>
       </div>
 
@@ -152,7 +156,7 @@ export function AvailabilitySection({
           disabled={saving}
           className="h-11 w-full rounded-[10px] border-2 border-[#1d4ed8] bg-[#2563eb] text-lg font-semibold text-white disabled:opacity-60"
         >
-          {saving ? "Saving..." : "Save changes"}
+          {saving ? tc("saving") : tc("save")}
         </button>
         {message && <p className="mt-2 text-sm text-[#5e6478]">{message}</p>}
       </div>
