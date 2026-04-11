@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { Dialog } from "@headlessui/react";
 import { X } from "lucide-react";
 import { Link, useRouter } from "@/i18n/navigation";
@@ -32,6 +33,9 @@ export const AuthModal = ({
   defaultMode = "signup",
 }: AuthModalProps) => {
   const router = useRouter();
+  const tLogin = useTranslations("auth.login");
+  const tSignup = useTranslations("auth.signup");
+  const tc = useTranslations("common");
   const [mode, setMode] = useState<"signup" | "login">(defaultMode);
 
   const signup = useSignup({ initialRole, redirect: redirectAfterAuth });
@@ -53,7 +57,7 @@ export const AuthModal = ({
     "flex-1 py-2 text-sm font-medium text-muted border-b-2 border-transparent hover:text-primary";
 
   const displayTitle =
-    title || (mode === "signup" ? "Create your account" : "Log in");
+    title || (mode === "signup" ? tSignup("title") : tLogin("title"));
 
   return (
     <Dialog
@@ -89,14 +93,14 @@ export const AuthModal = ({
             onClick={() => setMode("signup")}
             className={mode === "signup" ? activeTabClass : inactiveTabClass}
           >
-            Sign up
+            {tSignup("submit")}
           </button>
           <button
             type="button"
             onClick={() => setMode("login")}
             className={mode === "login" ? activeTabClass : inactiveTabClass}
           >
-            Log in
+            {tLogin("submit")}
           </button>
         </div>
 
@@ -110,14 +114,14 @@ export const AuthModal = ({
             />
 
             <div className="my-6">
-              <AuthDivider />
+              <AuthDivider label={tc("or")} />
             </div>
 
             <form onSubmit={signup.handleEmailSignup} className="space-y-4">
               <div>
                 <input
                   type="email"
-                  placeholder="Email"
+                  placeholder={tSignup("email")}
                   className={inputClassName}
                   value={signup.email}
                   onChange={(e) => signup.setEmail(e.target.value)}
@@ -127,7 +131,7 @@ export const AuthModal = ({
               <div>
                 <input
                   type="password"
-                  placeholder="Password"
+                  placeholder={tSignup("password")}
                   className={inputClassName}
                   value={signup.password}
                   onChange={(e) => signup.setPassword(e.target.value)}
@@ -137,7 +141,7 @@ export const AuthModal = ({
               <div>
                 <input
                   type="password"
-                  placeholder="Confirm password"
+                  placeholder={tSignup("confirmPassword")}
                   className={inputClassName}
                   value={signup.confirmPassword}
                   onChange={(e) => signup.setConfirmPassword(e.target.value)}
@@ -149,7 +153,7 @@ export const AuthModal = ({
                 disabled={signup.loading}
                 className="w-full rounded-xl bg-accent py-3 text-sm font-semibold text-white transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {signup.loading ? "Creating account..." : "Sign up"}
+                {signup.loading ? tSignup("creatingAccount") : tSignup("submit")}
               </button>
             </form>
           </>
@@ -163,7 +167,7 @@ export const AuthModal = ({
             />
 
             <div className="my-6">
-              <AuthDivider />
+              <AuthDivider label={tc("or")} />
             </div>
 
             <form onSubmit={login.handleSubmit} className="space-y-4">
@@ -173,7 +177,7 @@ export const AuthModal = ({
               <div>
                 <input
                   type="email"
-                  placeholder="Email"
+                  placeholder={tLogin("email")}
                   className={inputClassName}
                   value={login.email}
                   onChange={(e) => login.setEmail(e.target.value)}
@@ -183,7 +187,7 @@ export const AuthModal = ({
               <div>
                 <input
                   type="password"
-                  placeholder="Password"
+                  placeholder={tLogin("password")}
                   className={inputClassName}
                   value={login.password}
                   onChange={(e) => login.setPassword(e.target.value)}
@@ -195,18 +199,18 @@ export const AuthModal = ({
                 disabled={login.loading}
                 className="w-full rounded-xl bg-accent py-3 text-sm font-semibold text-white transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {login.loading ? "Logging in..." : "Log in"}
+                {login.loading ? tLogin("loggingIn") : tLogin("submit")}
               </button>
             </form>
           </>
         )}
 
         <p className="mt-6 text-center text-xs text-muted">
-          By continuing, you agree to our{" "}
+          {tLogin("termsNotice").split(tLogin("termsLinkText"))[0]}
           <Link href="/policy" className="text-accent hover:underline">
-            Terms & Privacy Policy
+            {tLogin("termsLinkText")}
           </Link>
-          .
+          {tLogin("termsNotice").split(tLogin("termsLinkText"))[1]}
         </p>
       </Dialog.Panel>
     </Dialog>
