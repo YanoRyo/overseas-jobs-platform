@@ -1,15 +1,13 @@
 "use client";
 
 import { useState } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
-
-const RESET_REQUEST_MESSAGE =
-  "If an account exists for this email, you'll receive a password reset link shortly.";
 
 export const useForgotPassword = () => {
   const supabase = useSupabaseClient();
   const locale = useLocale();
+  const te = useTranslations("auth.errors");
 
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -33,7 +31,7 @@ export const useForgotPassword = () => {
       console.error("resetPasswordForEmail error", error);
     }
 
-    setSuccessMessage(RESET_REQUEST_MESSAGE);
+    setSuccessMessage(te("resetRequestMessage"));
     setLoading(false);
   };
 

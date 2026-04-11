@@ -1,4 +1,5 @@
 "use client";
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { AUTH_INPUT_CLASS_NAME, AUTH_SUBMIT_BUTTON_CLASS_NAME } from "../constants/styles";
 import { useLogin } from "../hooks/useLogin";
@@ -14,6 +15,7 @@ type LoginFormProps = {
 };
 
 export const LoginForm = ({ redirect }: LoginFormProps) => {
+  const t = useTranslations("auth.login");
   const signupHref = redirect
     ? `/auth/signup?redirect=${encodeURIComponent(redirect)}`
     : "/auth/signup";
@@ -37,12 +39,12 @@ export const LoginForm = ({ redirect }: LoginFormProps) => {
 
   return (
     <AuthShell
-      title="Log in"
+      title={t("title")}
       description={
         <p className="text-sm text-secondary">
-          New here?{" "}
+          {t("newHere")}{" "}
           <Link href={signupHref} className="text-accent hover:underline">
-            Create an account
+            {t("createAccount")}
           </Link>
         </p>
       }
@@ -51,7 +53,7 @@ export const LoginForm = ({ redirect }: LoginFormProps) => {
         <RoleSelector
           value={role}
           onChange={setRole}
-          hint="Used for first-time social sign-in and account recovery."
+          hint={t("roleHint")}
         />
         <SocialAuthButtons
           onGoogle={handleGoogleLogin}
@@ -71,11 +73,11 @@ export const LoginForm = ({ redirect }: LoginFormProps) => {
             />
           )}
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-primary">Email</label>
+            <label className="text-sm font-semibold text-primary">{t("email")}</label>
             <input
               type="email"
               className={AUTH_INPUT_CLASS_NAME}
-              placeholder="you@example.com"
+              placeholder={t("emailPlaceholder")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -83,8 +85,8 @@ export const LoginForm = ({ redirect }: LoginFormProps) => {
           </div>
 
           <PasswordField
-            label="Password"
-            placeholder="Your password"
+            label={t("password")}
+            placeholder={t("passwordPlaceholder")}
             value={password}
             onChange={setPassword}
             required
@@ -96,7 +98,7 @@ export const LoginForm = ({ redirect }: LoginFormProps) => {
               href="/auth/forgot-password"
               className="text-xs font-semibold text-accent hover:underline"
             >
-              Forgot password?
+              {t("forgotPassword")}
             </Link>
           </div>
 
@@ -105,16 +107,16 @@ export const LoginForm = ({ redirect }: LoginFormProps) => {
             disabled={loading}
             className={AUTH_SUBMIT_BUTTON_CLASS_NAME}
           >
-            {loading ? "Logging in..." : "Log in"}
+            {loading ? t("loggingIn") : t("submit")}
           </button>
         </form>
 
         <p className="text-center text-xs text-muted">
-          By continuing, you agree to our{" "}
+          {t("termsNotice").split(t("termsLinkText"))[0]}
           <Link href="/policy" className="text-accent hover:underline">
-            Terms & Privacy Policy
+            {t("termsLinkText")}
           </Link>
-          .
+          {t("termsNotice").split(t("termsLinkText"))[1]}
         </p>
       </div>
     </AuthShell>

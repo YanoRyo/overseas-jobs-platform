@@ -132,7 +132,21 @@
       "termsPrefix": "By continuing, you agree to our",
       "termsLink": "Terms & Privacy Policy"
     },
-    "selectRole": "Please select a role."
+    "selectRole": "Please select a role.",
+    "signingIn": "Signing you in...",
+    "errors": {
+      "emailNotConfirmed": "Please verify your email before logging in.",
+      "invalidCredentials": "Invalid login credentials. If you recently signed up, try resending the verification email.",
+      "syncFailed": "Failed to prepare your user profile. Please try again.",
+      "sessionFailed": "Login session could not be established. Please try again.",
+      "networkError": "Could not reach the authentication server. Please check your connection and try again.",
+      "enterEmail": "Please enter your email address.",
+      "verificationSent": "If your account exists, a verification email has been sent.",
+      "checkInputs": "Please check your inputs.",
+      "profileFailed": "Failed to prepare your profile.",
+      "resetRequestMessage": "If an account exists for this email, you'll receive a password reset link shortly.",
+      "confirmationSent": "We've sent a confirmation email. Please open the link in your inbox to finish creating your account."
+    }
   },
   "mentors": {
     "filterByCountry": "Filter by country",

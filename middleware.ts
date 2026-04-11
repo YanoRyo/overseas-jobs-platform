@@ -53,7 +53,7 @@ export async function middleware(req: NextRequest) {
 
   if (isProtected && !session) {
     const loginUrl = new URL(`/${locale}/auth/login`, req.url);
-    loginUrl.searchParams.set("redirect", pathname);
+    loginUrl.searchParams.set("redirect", pathWithoutLocale);
     return NextResponse.redirect(loginUrl);
   }
 

@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import { useRouter } from "@/i18n/navigation";
 import { useOAuthSignIn } from "./useOAuthSignIn";
@@ -26,6 +26,7 @@ export const useLogin = (options?: UseLoginOptions) => {
   const supabase = useSupabaseClient();
   const locale = useLocale();
   const router = useRouter();
+  const te = useTranslations("auth.errors");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -41,8 +42,7 @@ export const useLogin = (options?: UseLoginOptions) => {
       requireRole: !options?.initialRole,
     });
 
-  const getNetworkErrorMessage = () =>
-    "Could not reach the authentication server. Please check your connection and try again.";
+  const getNetworkErrorMessage = () => te("networkError");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -60,15 +60,13 @@ export const useLogin = (options?: UseLoginOptions) => {
 
       if (error) {
         if (isEmailNotConfirmedError(error)) {
-          setError("Please verify your email before logging in.");
+          setError(te("emailNotConfirmed"));
           setNeedsEmailVerification(true);
           return;
         }
 
         if (shouldSuggestVerificationResend(error)) {
-          setError(
-            "Invalid login credentials. If you recently signed up, try resending the verification email."
-          );
+          setError(te("invalidCredentials"));
           setNeedsEmailVerification(true);
           return;
         }
@@ -82,15 +80,12 @@ export const useLogin = (options?: UseLoginOptions) => {
         data.session?.access_token ?? null
       );
       if (!syncResult.ok) {
-        setError(
-          syncResult.error ??
-            "Failed to prepare your user profile. Please try again."
-        );
+        setError(syncResult.error ?? te("syncFailed"));
         return;
       }
 
       if (!data.session) {
-        setError("Login session could not be established. Please try again.");
+        setError(te("sessionFailed"));
         return;
       }
 
@@ -109,7 +104,7 @@ export const useLogin = (options?: UseLoginOptions) => {
 
   const handleResendVerification = async () => {
     if (!email) {
-      setResendMessage("Please enter your email address.");
+      setResendMessage(te("enterEmail"));
       return;
     }
 
@@ -136,9 +131,7 @@ export const useLogin = (options?: UseLoginOptions) => {
         return;
       }
 
-      setResendMessage(
-        "If your account exists, a verification email has been sent."
-      );
+      setResendMessage(te("verificationSent"));
       setResendLoading(false);
     } catch (caughtError) {
       console.error("resend verification error", caughtError);

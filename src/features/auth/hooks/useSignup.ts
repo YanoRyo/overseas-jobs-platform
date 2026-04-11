@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import type { UserRole } from "../types";
@@ -16,6 +16,8 @@ export const useSignup = (options?: UseSignupOptions) => {
   const supabase = useSupabaseClient();
   const locale = useLocale();
   const router = useRouter();
+  const te = useTranslations("auth.errors");
+  const ta = useTranslations("auth");
   const redirectPath = options?.redirect
     ? options.redirect.startsWith("/")
       ? options.redirect
@@ -43,12 +45,12 @@ export const useSignup = (options?: UseSignupOptions) => {
 
     const selectedRole = role;
     if (!selectedRole) {
-      alert("Please select a role.");
+      alert(ta("selectRole"));
       return;
     }
 
     if (!email || !password || password !== confirmPassword) {
-      alert("Please check your inputs.");
+      alert(te("checkInputs"));
       return;
     }
 
@@ -85,14 +87,12 @@ export const useSignup = (options?: UseSignupOptions) => {
       );
 
       if (!syncResult.ok) {
-        alert(syncResult.error ?? "Failed to prepare your profile.");
+        alert(syncResult.error ?? te("profileFailed"));
         return;
       }
     }
 
-    setSuccessMessage(
-      "We've sent a confirmation email. Please open the link in your inbox to finish creating your account."
-    );
+    setSuccessMessage(te("confirmationSent"));
   };
 
   const handleSuccessClose = () => {
