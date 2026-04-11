@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Heart } from "lucide-react";
+import { useTranslations } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { useSessionContext } from "@supabase/auth-helpers-react";
 
@@ -12,8 +13,6 @@ type Props = {
   showLabel?: boolean;
   className?: string;
   iconClassName?: string;
-  activeLabel?: string;
-  inactiveLabel?: string;
 };
 
 export function FavoriteToggleButton({
@@ -21,9 +20,10 @@ export function FavoriteToggleButton({
   showLabel = false,
   className = "",
   iconClassName = "h-5 w-5",
-  activeLabel = "Saved to Favorites",
-  inactiveLabel = "Save to Favorites",
 }: Props) {
+  const t = useTranslations("favorites");
+  const activeLabel = t("saved");
+  const inactiveLabel = t("save");
   const { isLoading: authLoading } = useSessionContext();
   const router = useRouter();
   const pathname = usePathname();

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import type { UserRole } from "@/features/auth/types";
 import {
@@ -15,6 +16,7 @@ type Props = {
 };
 
 export function SettingsTopTabs({ role, activeTabId, tabs }: Props) {
+  const t = useTranslations("settings.topTabs");
   const renderedTabs = tabs ?? getSettingsTopTabs(role);
 
   return (
@@ -34,10 +36,10 @@ export function SettingsTopTabs({ role, activeTabId, tabs }: Props) {
             >
               {isLink ? (
                 <Link href={href} className="hover:text-[#1f1f2d]">
-                  {tab.label}
+                  {t(tab.label)}
                 </Link>
               ) : (
-                tab.label
+                t(tab.label)
               )}
               {selected && (
                 <span className="absolute inset-x-0 -bottom-px h-[3px] bg-[#2563eb]" />

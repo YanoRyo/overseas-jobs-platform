@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono, Noto_Sans_JP } from "next/font/google";
 import { notFound } from "next/navigation";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
+import { getTranslations } from "next-intl/server";
 import { Header } from "@/components/header/Header";
 import { FavoritesProvider } from "@/features/favorites/context/FavoritesContext";
 import { SupabaseProvider } from "@/components/SupabaseProvider";
@@ -24,10 +25,13 @@ const notoSansJP = Noto_Sans_JP({
   weight: ["400", "500", "600", "700"],
 });
 
-export const metadata: Metadata = {
-  title: "Bridgeee",
-  description: "Find mentors for your overseas career",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("common");
+  return {
+    title: "Bridgeee",
+    description: t("siteDescription"),
+  };
+}
 
 export default async function LocaleLayout({
   children,

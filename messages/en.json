@@ -13,7 +13,8 @@
     "back": "Back",
     "skip": "Skip",
     "required": "Required",
-    "submitting": "Submitting..."
+    "submitting": "Submitting...",
+    "siteDescription": "Find mentors for your overseas career"
   },
   "navigation": {
     "logo": "Bridgeee",
@@ -282,6 +283,16 @@
     "mentorIncomplete": "Mentor registration is incomplete",
     "mentorIncompleteDescription": "Complete your mentor profile to unlock mentor features.",
     "completeMentorProfile": "Complete mentor profile",
+    "nav": {
+      "account": "Account",
+      "password": "Password"
+    },
+    "topTabs": {
+      "home": "Home",
+      "messages": "Messages",
+      "myLessons": "My lessons",
+      "settings": "Settings"
+    },
     "mentorNav": {
       "about": "About",
       "photo": "Photo",
@@ -643,5 +654,22 @@
       "slideshows": "Use slideshows or presentations",
       "otherPeople": "Have any other people visible in your video"
     }
+  },
+  "policy": {
+    "metaTitle": "Terms & Privacy Policy | Bridgeee",
+    "metaDescription": "Review the Bridgeee Terms of Service and Privacy Policy before using the platform.",
+    "legalLabel": "Bridgeee Legal",
+    "pageTitle": "Terms & Privacy Policy",
+    "pageDescription": "This page explains the main rules for using Bridgeee and how we handle personal information across accounts, mentor profiles, messages, booking requests, bookings, reviews, and payments.",
+    "lastUpdated": "Last updated: {date}",
+    "draftNotice": "This is a product-ready policy draft for Bridgeee and should be reviewed by your legal advisor before production launch.",
+    "termsTitle": "Terms of Service",
+    "termsDescription": "Covers who can use Bridgeee, how lessons and payments work, and the rules for messages, profiles, and reviews.",
+    "termsSubDescription": "These terms describe the rules for using Bridgeee as a student, mentor, or other account holder.",
+    "privacyTitle": "Privacy Policy",
+    "privacyDescription": "Explains what information Bridgeee collects, how it is used, when it is shared, and what choices users may have.",
+    "privacySubDescription": "This policy explains how Bridgeee collects, uses, stores, and shares information when people use the platform.",
+    "jumpToTerms": "Jump to Terms",
+    "jumpToPrivacy": "Jump to Privacy"
   }
 }

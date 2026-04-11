@@ -13,7 +13,8 @@
     "back": "戻る",
     "skip": "スキップ",
     "required": "必須",
-    "submitting": "送信中..."
+    "submitting": "送信中...",
+    "siteDescription": "海外キャリアのメンターを見つけよう"
   },
   "navigation": {
     "logo": "Bridgeee",
@@ -282,6 +283,16 @@
     "mentorIncomplete": "メンター登録が未完了です",
     "mentorIncompleteDescription": "メンター機能を利用するには、プロフィールを完成させてください。",
     "completeMentorProfile": "メンタープロフィールを完成させる",
+    "nav": {
+      "account": "アカウント",
+      "password": "パスワード"
+    },
+    "topTabs": {
+      "home": "ホーム",
+      "messages": "メッセージ",
+      "myLessons": "レッスン一覧",
+      "settings": "設定"
+    },
     "mentorNav": {
       "about": "基本情報",
       "photo": "写真",
@@ -643,5 +654,22 @@
       "slideshows": "スライドショーやプレゼンテーションを使用しないでください",
       "otherPeople": "他の人物がビデオに映らないようにしてください"
     }
+  },
+  "policy": {
+    "metaTitle": "利用規約・プライバシーポリシー | Bridgeee",
+    "metaDescription": "Bridgeeeの利用規約とプライバシーポリシーをご確認ください。",
+    "legalLabel": "Bridgeee 規約",
+    "pageTitle": "利用規約・プライバシーポリシー",
+    "pageDescription": "このページでは、Bridgeeeの利用ルールと、アカウント・メンタープロフィール・メッセージ・予約・レビュー・決済における個人情報の取り扱いについて説明しています。",
+    "lastUpdated": "最終更新日: {date}",
+    "draftNotice": "こちらはBridgeeeのプロダクト向けポリシー草案です。本番運用前に法務アドバイザーによるレビューが必要です。",
+    "termsTitle": "利用規約",
+    "termsDescription": "Bridgeeeの利用資格、レッスンと決済の仕組み、メッセージ・プロフィール・レビューのルールについて説明しています。",
+    "termsSubDescription": "この規約は、受講生・メンター・その他のアカウント保有者としてBridgeeeを利用する際のルールを定めたものです。",
+    "privacyTitle": "プライバシーポリシー",
+    "privacyDescription": "Bridgeeeが収集する情報、その利用方法、共有する場合、ユーザーの選択肢について説明しています。",
+    "privacySubDescription": "このポリシーは、Bridgeeeの利用時に収集・使用・保存・共有される情報について説明しています。",
+    "jumpToTerms": "利用規約へ移動",
+    "jumpToPrivacy": "プライバシーポリシーへ移動"
   }
 }
