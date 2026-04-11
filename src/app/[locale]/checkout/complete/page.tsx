@@ -136,15 +136,18 @@ function CheckoutCompleteContent() {
   );
 }
 
+function CheckoutCompleteFallback() {
+  const tc = useTranslations("common");
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <p className="text-sm text-[#606579]">{tc("loading")}</p>
+    </div>
+  );
+}
+
 export default function CheckoutCompletePage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <p className="text-sm text-[#606579]">Loading…</p>
-        </div>
-      }
-    >
+    <Suspense fallback={<CheckoutCompleteFallback />}>
       <CheckoutCompleteContent />
     </Suspense>
   );

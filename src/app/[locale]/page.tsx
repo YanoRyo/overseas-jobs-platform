@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import {
   useSessionContext,
@@ -12,6 +13,7 @@ import { MentorList } from "@/features/mentors/components/MentorList";
 export const dynamic = "force-dynamic";
 
 export default function Home() {
+  const tc = useTranslations("common");
   const router = useRouter();
   const supabase = useSupabaseClient();
   const user = useUser();
@@ -87,7 +89,7 @@ export default function Home() {
   }, [authLoading, router, supabase, user]);
 
   if (authLoading || resolvingRole) {
-    return <div className="px-6 py-10 text-sm text-gray-400">Loading...</div>;
+    return <div className="px-6 py-10 text-sm text-gray-400">{tc("loading")}</div>;
   }
 
   if (!shouldShowMentorList) {

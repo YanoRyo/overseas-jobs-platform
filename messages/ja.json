@@ -34,6 +34,7 @@
   "locale": {
     "language": "言語",
     "currency": "通貨",
+    "selectorLabel": "言語と通貨",
     "en": "English",
     "ja": "日本語"
   },
@@ -283,6 +284,8 @@
     "mentorIncomplete": "メンター登録が未完了です",
     "mentorIncompleteDescription": "メンター機能を利用するには、プロフィールを完成させてください。",
     "completeMentorProfile": "メンタープロフィールを完成させる",
+    "loadError": "ユーザーロールの解決に失敗しました。フォールバック設定を表示しています。",
+    "unableToLoad": "設定を読み込めませんでした。",
     "nav": {
       "account": "アカウント",
       "password": "パスワード"

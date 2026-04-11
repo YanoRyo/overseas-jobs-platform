@@ -1,6 +1,7 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
@@ -15,6 +16,8 @@ import type { UserRole } from "@/features/auth/types";
 type ViewerRole = UserRole | null;
 
 function SettingsPageContent() {
+  const t = useTranslations("settings");
+  const tc = useTranslations("common");
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = useSupabaseClient();
@@ -78,7 +81,7 @@ function SettingsPageContent() {
         if (!cancelled) {
           setViewerRole("student");
           setNeedsMentorRegistration(false);
-          setLoadError("Failed to resolve user role. Showing fallback settings.");
+          setLoadError(t("loadError"));
         }
       } finally {
         if (!cancelled) {
@@ -95,14 +98,14 @@ function SettingsPageContent() {
   }, [router, supabase]);
 
   if (loading) {
-    return <div className="px-6 py-10 text-sm text-gray-400">Loading...</div>;
+    return <div className="px-6 py-10 text-sm text-gray-400">{tc("loading")}</div>;
   }
 
   if (!viewerRole) {
     if (!loadError) return null;
     return (
       <div className="px-6 py-10 text-sm text-red-500">
-        {loadError ?? "Unable to load settings."}
+        {loadError ?? t("unableToLoad")}
       </div>
     );
   }
@@ -137,13 +140,14 @@ function SettingsPageContent() {
   return <SettingsLayout />;
 }
 
+function SettingsFallback() {
+  const tc = useTranslations("common");
+  return <div className="px-6 py-10 text-sm text-gray-400">{tc("loading")}</div>;
+}
+
 export default function SettingsPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="px-6 py-10 text-sm text-gray-400">Loading...</div>
-      }
-    >
+    <Suspense fallback={<SettingsFallback />}>
       <SettingsPageContent />
     </Suspense>
   );

@@ -34,6 +34,7 @@
   "locale": {
     "language": "Language",
     "currency": "Currency",
+    "selectorLabel": "Language and currency",
     "en": "English",
     "ja": "日本語"
   },
@@ -283,6 +284,8 @@
     "mentorIncomplete": "Mentor registration is incomplete",
     "mentorIncompleteDescription": "Complete your mentor profile to unlock mentor features.",
     "completeMentorProfile": "Complete mentor profile",
+    "loadError": "Failed to resolve user role. Showing fallback settings.",
+    "unableToLoad": "Unable to load settings.",
     "nav": {
       "account": "Account",
       "password": "Password"

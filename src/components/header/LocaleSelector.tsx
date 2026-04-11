@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useRouter, usePathname } from "@/i18n/navigation";
 import { ChevronDown } from "lucide-react";
 import { useCurrency } from "@/features/currency/context/CurrencyContext";
@@ -16,6 +16,7 @@ const LANGUAGE_OPTIONS: { code: Locale; label: string }[] = [
 
 export default function LocaleSelector() {
   const locale = useLocale() as Locale;
+  const t = useTranslations("locale");
   const router = useRouter();
   const pathname = usePathname();
   const { currency, setCurrency } = useCurrency();
@@ -60,7 +61,7 @@ export default function LocaleSelector() {
         type="button"
         onClick={() => setOpen((v) => !v)}
         className="flex items-center gap-1 rounded-lg px-2 py-1.5 text-sm text-[#455065] transition-colors hover:bg-[#f4f6fb]"
-        aria-label="Language and currency"
+        aria-label={t("selectorLabel")}
       >
         <span>
           {currentLanguage}, {currentCurrency}
@@ -73,7 +74,7 @@ export default function LocaleSelector() {
           {/* Language Section */}
           <div className="px-4 pt-4 pb-2">
             <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#7a8094]">
-              {locale === "ja" ? "言語" : "Language"}
+              {t("language")}
             </div>
             <div className="space-y-1">
               {LANGUAGE_OPTIONS.map((lang) => (
@@ -98,7 +99,7 @@ export default function LocaleSelector() {
           {/* Currency Section */}
           <div className="px-4 pt-2 pb-4">
             <div className="mb-2 text-xs font-semibold uppercase tracking-wider text-[#7a8094]">
-              {locale === "ja" ? "通貨" : "Currency"}
+              {t("currency")}
             </div>
             <div className="space-y-1">
               {CURRENCIES.map((cur) => (
