@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import Flag from 'react-world-flags';
 import Image from 'next/image';
-import Link from 'next/link';
+import { Link } from '@/i18n/navigation';
+import { useTranslations } from 'next-intl';
 import { FavoriteToggleButton } from '@/features/favorites/components/FavoriteToggleButton';
 import type { MentorListItem } from '@/features/mentors/types';
 
@@ -11,6 +12,7 @@ type MentorCardProps = {
 };
 
 export default function MentorCard({ mentor, onBook }: MentorCardProps) {
+  const t = useTranslations('mentors');
   const [expanded, setExpanded] = useState(false);
   const [canExpand, setCanExpand] = useState(false);
   const introductionRef = useRef<HTMLParagraphElement>(null);
@@ -102,7 +104,7 @@ export default function MentorCard({ mentor, onBook }: MentorCardProps) {
                 }}
                 className="text-accent hover:underline mt-1 text-base font-medium"
               >
-                {expanded ? 'Show less' : 'Read more'}
+                {expanded ? t('showLess') : t('readMore')}
               </button>
             )}
           </div>
@@ -122,11 +124,11 @@ export default function MentorCard({ mentor, onBook }: MentorCardProps) {
                 </svg>
                 {mentor.rating}
               </div>
-              <p className="text-sm text-muted">{mentor.reviewCount} reviews</p>
+              <p className="text-sm text-muted">{t('reviews', { count: mentor.reviewCount })}</p>
             </div>
             <div className="flex flex-col items-end justify-end text-right">
               <p className="text-lg font-bold text-primary">${mentor.hourlyRate}</p>
-              <p className="text-sm text-muted">50-minute lesson</p>
+              <p className="text-sm text-muted">{t('lessonDuration')}</p>
             </div>
           </div>
 
@@ -139,7 +141,7 @@ export default function MentorCard({ mentor, onBook }: MentorCardProps) {
             }}
             className="mt-0 rounded-lg bg-accent px-4 py-2 text-base text-white transition-colors hover:bg-accent-hover"
           >
-            Book Lesson
+            {t('bookLesson')}
           </button>
         </div>
 
