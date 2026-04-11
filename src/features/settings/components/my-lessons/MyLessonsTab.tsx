@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { useMyLessons } from "../../hooks/useMyLessons";
 import { LessonCard } from "./LessonCard";
@@ -28,10 +29,12 @@ function LessonSection({
 }
 
 export function MyLessonsTab({ role }: { role: UserRole }) {
+  const t = useTranslations("settings.myLessons");
+  const tc = useTranslations("common");
   const { lessons, loading, error } = useMyLessons(role);
 
   if (loading) {
-    return <p className="text-sm text-gray-400">Loading...</p>;
+    return <p className="text-sm text-gray-400">{tc("loading")}</p>;
   }
 
   if (error) {
@@ -48,15 +51,15 @@ export function MyLessonsTab({ role }: { role: UserRole }) {
       <div className="rounded-xl border border-border bg-white p-8 text-center shadow-sm">
         <p className="text-secondary">
           {role === "mentor"
-            ? "No lessons have been booked yet."
-            : "You do not have any lessons yet."}
+            ? t("noLessonsBooked")
+            : t("noLessonsYet")}
         </p>
         {role === "student" ? (
           <Link
             href="/"
             className="mt-3 inline-block text-sm font-medium text-accent hover:underline"
           >
-            Find a mentor
+            {t("findMentor")}
           </Link>
         ) : null}
       </div>
@@ -65,9 +68,9 @@ export function MyLessonsTab({ role }: { role: UserRole }) {
 
   return (
     <div className="space-y-8">
-      <LessonSection title="Upcoming" items={lessons.upcoming} />
-      <LessonSection title="Pending" items={lessons.pending} />
-      <LessonSection title="Completed" items={lessons.completed} />
+      <LessonSection title={t("upcoming")} items={lessons.upcoming} />
+      <LessonSection title={t("pending")} items={lessons.pending} />
+      <LessonSection title={t("completed")} items={lessons.completed} />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 
 export function MessageInput({
   onSend,
@@ -9,6 +10,7 @@ export function MessageInput({
   onSend: (text: string) => Promise<boolean>;
   sending: boolean;
 }) {
+  const t = useTranslations("messages");
   const [text, setText] = useState("");
 
   const submit = async () => {
@@ -23,7 +25,7 @@ export function MessageInput({
           value={text}
           onChange={(e) => setText(e.target.value)}
           rows={1}
-          placeholder="Your message"
+          placeholder={t("placeholder")}
           className="min-w-0 flex-1 resize-none rounded-xl border px-3 py-2 text-sm focus:outline-none"
         />
         <button
@@ -31,7 +33,7 @@ export function MessageInput({
           disabled={sending || !text.trim()}
           className="shrink-0 rounded-xl bg-black px-4 py-2 text-sm text-white disabled:opacity-40"
         >
-          Send
+          {t("send")}
         </button>
       </div>
     </div>

@@ -1,8 +1,10 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useChangePassword } from "../hooks/useChangePassword";
 
 export function PasswordChangeSection() {
+  const t = useTranslations("settings");
   const {
     currentPassword,
     newPassword,
@@ -19,7 +21,7 @@ export function PasswordChangeSection() {
   return (
     <form onSubmit={handleSubmit}>
       <label className="block text-sm font-medium text-gray-700 mb-1">
-        Current password
+        {t("currentPassword")}
       </label>
       <input
         type="password"
@@ -30,7 +32,7 @@ export function PasswordChangeSection() {
       />
 
       <label className="block text-sm font-medium text-gray-700 mb-1">
-        New password
+        {t("newPassword")}
       </label>
       <input
         type="password"
@@ -41,7 +43,7 @@ export function PasswordChangeSection() {
       />
 
       <label className="block text-sm font-medium text-gray-700 mb-1">
-        Confirm new password
+        {t("confirmNewPassword")}
       </label>
       <input
         type="password"
@@ -57,14 +59,14 @@ export function PasswordChangeSection() {
           disabled={loading}
           className="h-11 w-full rounded-[10px] border-2 border-[#1d4ed8] bg-[#2563eb] text-lg font-semibold text-white disabled:opacity-60"
         >
-          {loading ? "Updating..." : "Change password"}
+          {loading ? t("updating") : t("changePasswordButton")}
         </button>
 
         {error && <p className="text-sm text-error">{error}</p>}
         {success && (
           <div className="p-3 bg-success/10 border border-success/20 rounded-lg">
             <p className="text-sm font-medium text-success">
-              Password updated successfully.
+              {t("passwordUpdated")}
             </p>
           </div>
         )}
