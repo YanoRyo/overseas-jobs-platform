@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Heart } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter } from "@/i18n/navigation";
 import { useSessionContext } from "@supabase/auth-helpers-react";
 
 import { useFavorites } from "../context/FavoritesContext";

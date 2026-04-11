@@ -3,7 +3,7 @@ import { useState } from "react";
 import { Dialog } from "@headlessui/react";
 import { X, Sunrise, Sun, Sunset, Moon } from "lucide-react";
 import type { MentorDetailModel } from "@/features/mentors/types";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useUser } from "@supabase/auth-helpers-react";
 import { useBookedSlots } from "@/features/checkout/hooks/useBookedSlots";
 import { useCreateBooking } from "@/features/checkout/hooks/useCreateBooking";

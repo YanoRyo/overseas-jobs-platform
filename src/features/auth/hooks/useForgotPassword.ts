@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLocale } from "next-intl";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 
 const RESET_REQUEST_MESSAGE =
@@ -8,6 +9,7 @@ const RESET_REQUEST_MESSAGE =
 
 export const useForgotPassword = () => {
   const supabase = useSupabaseClient();
+  const locale = useLocale();
 
   const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
@@ -23,7 +25,7 @@ export const useForgotPassword = () => {
     const { error } = await supabase.auth.resetPasswordForEmail(
       normalizedEmail,
       {
-        redirectTo: `${window.location.origin}/auth/reset-password`,
+        redirectTo: `${window.location.origin}/${locale}/auth/reset-password`,
       }
     );
 

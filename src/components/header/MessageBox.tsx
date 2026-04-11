@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
+import { usePathname } from "@/i18n/navigation";
 import { MessageCircle } from "lucide-react";
 import { MessagesPanel } from "@/features/messages/components/MessagesPanel";
 import { useUnreadCount } from "@/features/messages/hooks/useUnreadCount";

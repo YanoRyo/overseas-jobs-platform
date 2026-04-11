@@ -1,6 +1,7 @@
 "use client";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useLocale } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import type { UserRole } from "../types";
 import { useOAuthSignIn } from "./useOAuthSignIn";
@@ -13,6 +14,7 @@ type UseSignupOptions = {
 
 export const useSignup = (options?: UseSignupOptions) => {
   const supabase = useSupabaseClient();
+  const locale = useLocale();
   const router = useRouter();
   const redirectPath = options?.redirect
     ? options.redirect.startsWith("/")
@@ -56,7 +58,7 @@ export const useSignup = (options?: UseSignupOptions) => {
       email,
       password,
       options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback?${new URLSearchParams(
+        emailRedirectTo: `${window.location.origin}/${locale}/auth/callback?${new URLSearchParams(
           {
             redirect: redirectPath,
             role: selectedRole,

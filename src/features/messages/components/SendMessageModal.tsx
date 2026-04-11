@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, usePathname } from "@/i18n/navigation";
 import { useUser } from "@supabase/auth-helpers-react";
 
 import { useSendMessage } from "../hooks/useSendMessage";
@@ -20,6 +20,7 @@ export const SendMessageModal = ({
   onClose,
 }: Props) => {
   const router = useRouter();
+  const pathname = usePathname();
   const user = useUser();
 
   const [category, setCategory] = useState("");
@@ -94,7 +95,7 @@ export const SendMessageModal = ({
                 onClick={() =>
                   router.push(
                     `/auth/login?redirect=${encodeURIComponent(
-                      window.location.pathname
+                      pathname
                     )}`
                   )
                 }
@@ -108,7 +109,7 @@ export const SendMessageModal = ({
                 onClick={() =>
                   router.push(
                     `/auth/signup?redirect=${encodeURIComponent(
-                      window.location.pathname
+                      pathname
                     )}`
                   )
                 }

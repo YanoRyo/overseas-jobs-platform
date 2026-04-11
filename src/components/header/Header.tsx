@@ -1,10 +1,9 @@
 "use client";
 import { Suspense, useEffect, useState } from "react";
-import { usePathname } from "next/navigation";
 import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
 
 import type { UserRole } from "@/features/auth/types";
-import Link from "next/link";
+import { Link, usePathname } from "@/i18n/navigation";
 import FavoritesBox from "./FavoritesBox";
 import LocaleSelector from "./LocaleSelector";
 import MessageBox from "./MessageBox";

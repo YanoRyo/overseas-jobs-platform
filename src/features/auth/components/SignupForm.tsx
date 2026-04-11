@@ -1,5 +1,5 @@
 "use client";
-import Link from "next/link";
+import { Link } from "@/i18n/navigation";
 import { useSignup } from "../hooks/useSignup";
 import { AuthNoticeDialog } from "./AuthNoticeDialog";
 import { AuthShell } from "./AuthShell";

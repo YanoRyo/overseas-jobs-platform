@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useProfile } from "../hooks/useProfile";
 import { SettingsNav } from "./SettingsNav";
 import type { SettingsTab } from "./SettingsNav";

@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useRouter, usePathname } from "@/i18n/navigation";
 
 import { ConversationItem } from "./ConversationItem";
 import { useMessageThreads } from "../hooks/useMessageThreads";

@@ -1,7 +1,7 @@
 'use client';
 
 import { useUser } from '@supabase/auth-helpers-react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
 import { useMentorRegistration } from '../hooks/useMentorRegistration';
 import { AuthModal } from '@/features/auth/components/AuthModal';
 import { ProgressIndicator } from './ProgressIndicator';

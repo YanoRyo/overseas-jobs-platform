@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { Dialog } from "@headlessui/react";
 import { X } from "lucide-react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
+import { Link, useRouter } from "@/i18n/navigation";
 import { useSignup } from "../hooks/useSignup";
 import { useLogin } from "../hooks/useLogin";
 import { SocialAuthButtons } from "./SocialAuthButtons";

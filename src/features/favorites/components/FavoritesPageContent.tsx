@@ -1,7 +1,7 @@
 "use client";
 
 import { Heart } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter } from "@/i18n/navigation";
 import { useSessionContext, useUser } from "@supabase/auth-helpers-react";
 
 import MentorCard from "@/components/MentorCard";

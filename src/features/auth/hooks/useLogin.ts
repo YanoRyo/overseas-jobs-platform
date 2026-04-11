@@ -1,6 +1,8 @@
 "use client";
 import { useState } from "react";
+import { useLocale } from "next-intl";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import { useRouter } from "@/i18n/navigation";
 import { useOAuthSignIn } from "./useOAuthSignIn";
 import type { UserRole } from "../types";
 import {
@@ -22,6 +24,8 @@ export const useLogin = (options?: UseLoginOptions) => {
       : "/"
     : "/";
   const supabase = useSupabaseClient();
+  const locale = useLocale();
+  const router = useRouter();
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -95,7 +99,7 @@ export const useLogin = (options?: UseLoginOptions) => {
         refresh_token: data.session.refresh_token,
       });
 
-      window.location.assign(redirectPath);
+      router.push(redirectPath);
     } catch (caughtError) {
       console.error("signInWithPassword error", caughtError);
       setLoading(false);
@@ -117,7 +121,7 @@ export const useLogin = (options?: UseLoginOptions) => {
         type: "signup",
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?${new URLSearchParams(
+          emailRedirectTo: `${window.location.origin}/${locale}/auth/callback?${new URLSearchParams(
             {
               redirect: redirectPath,
               ...(role ? { role } : {}),

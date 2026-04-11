@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { MessageSquare } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter } from "@/i18n/navigation";
 
 import { ConversationDetail } from "@/features/messages/components/ConversationDetail";
 import { ConversationItem as ConversationListItem } from "@/features/messages/components/ConversationItem";
