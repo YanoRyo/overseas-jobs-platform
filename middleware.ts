@@ -11,7 +11,7 @@ export async function middleware(req: NextRequest) {
   const intlResponse = intlMiddleware(req);
 
   // リダイレクトの場合はそのまま返す
-  if (intlResponse.headers.get("location")) {
+  if (intlResponse.headers.get("location") || intlResponse.status === 307 || intlResponse.status === 308) {
     return intlResponse;
   }
 
