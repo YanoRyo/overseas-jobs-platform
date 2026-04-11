@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { Plus, Trash2, X } from "lucide-react";
 import type {
   AboutFormData,
@@ -29,6 +30,9 @@ export const AboutStep = ({
   onNext,
   canGoNext,
 }: AboutStepProps) => {
+  const t = useTranslations("mentorRegistration.about");
+  const tOptions = useTranslations("options");
+  const tCommon = useTranslations("common");
   const [expertiseInput, setExpertiseInput] = useState("");
 
   // 言語追加
@@ -116,10 +120,9 @@ export const AboutStep = ({
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-primary">About</h1>
+        <h1 className="text-2xl font-bold text-primary">{t("title")}</h1>
         <p className="text-secondary mt-2">
-          Start creating your public mentor profile. Your progress will be
-          automatically saved as you complete each section.
+          {t("description")}
         </p>
       </div>
 
@@ -132,14 +135,14 @@ export const AboutStep = ({
               htmlFor="firstName"
               className="block text-sm font-medium text-primary mb-1"
             >
-              First name <span className="text-error">*</span>
+              {t("firstName")} <span className="text-error">*</span>
             </label>
             <input
               type="text"
               id="firstName"
               value={data.firstName}
               onChange={(e) => onUpdate({ firstName: e.target.value })}
-              placeholder="E.g. John"
+              placeholder={t("firstNamePlaceholder")}
               className={`
                 w-full border rounded-lg px-3 py-2 bg-surface text-primary
                 placeholder:text-muted
@@ -159,14 +162,14 @@ export const AboutStep = ({
               htmlFor="lastName"
               className="block text-sm font-medium text-primary mb-1"
             >
-              Last name <span className="text-error">*</span>
+              {t("lastName")} <span className="text-error">*</span>
             </label>
             <input
               type="text"
               id="lastName"
               value={data.lastName}
               onChange={(e) => onUpdate({ lastName: e.target.value })}
-              placeholder="E.g. Doe"
+              placeholder={t("lastNamePlaceholder")}
               className={`
                 w-full border rounded-lg px-3 py-2 bg-surface text-primary
                 placeholder:text-muted
@@ -188,14 +191,14 @@ export const AboutStep = ({
             htmlFor="email"
             className="block text-sm font-medium text-primary mb-1"
           >
-            Email <span className="text-error">*</span>
+            {t("email")} <span className="text-error">*</span>
           </label>
           <input
             type="email"
             id="email"
             value={data.email}
             onChange={(e) => onUpdate({ email: e.target.value })}
-            placeholder="E.g. john.doe@example.com"
+            placeholder={t("emailPlaceholder")}
             className={`
               w-full border rounded-lg px-3 py-2 bg-surface text-primary
               placeholder:text-muted
@@ -216,7 +219,7 @@ export const AboutStep = ({
             htmlFor="country"
             className="block text-sm font-medium text-primary mb-1"
           >
-            Country of birth <span className="text-error">*</span>
+            {t("countryOfBirth")} <span className="text-error">*</span>
           </label>
           <select
             id="country"
@@ -230,10 +233,10 @@ export const AboutStep = ({
             aria-required="true"
             aria-invalid={!!errors.countryCode}
           >
-            <option value="">Select a country</option>
+            <option value="">{t("selectCountry")}</option>
             {COUNTRIES.map((country) => (
               <option key={country.code} value={country.code}>
-                {country.name}
+                {tOptions(`countries.${country.code}`)}
               </option>
             ))}
           </select>
@@ -248,7 +251,7 @@ export const AboutStep = ({
             htmlFor="phone"
             className="block text-sm font-medium text-primary mb-1"
           >
-            Phone number <span className="text-error">*</span>
+            {t("phoneNumber")} <span className="text-error">*</span>
           </label>
           <div className="flex gap-2">
             <select
@@ -267,7 +270,7 @@ export const AboutStep = ({
               id="phone"
               value={data.phoneNumber}
               onChange={(e) => onUpdate({ phoneNumber: e.target.value })}
-              placeholder="123-456-7890"
+              placeholder={t("phonePlaceholder")}
               className={`
                 flex-1 border rounded-lg px-3 py-2 bg-surface text-primary
                 placeholder:text-muted
@@ -289,7 +292,7 @@ export const AboutStep = ({
             htmlFor="expertise"
             className="block text-sm font-medium text-primary mb-2"
           >
-            Expertise / Topics you can help with{" "}
+            {t("expertise")}{" "}
             <span className="text-error">*</span>
           </label>
 
@@ -301,7 +304,7 @@ export const AboutStep = ({
               value={expertiseInput}
               onChange={(e) => setExpertiseInput(e.target.value)}
               onKeyDown={handleExpertiseKeyDown}
-              placeholder="E.g. Interview preparation, Resume writing..."
+              placeholder={t("expertisePlaceholder")}
               className={`
                 flex-1 border rounded-lg px-3 py-2 bg-surface text-primary
                 placeholder:text-muted
@@ -317,7 +320,7 @@ export const AboutStep = ({
               disabled={!expertiseInput.trim()}
               className="px-4 py-2 bg-accent text-white rounded-lg hover:bg-accent-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
             >
-              Add
+              {tCommon("add")}
             </button>
           </div>
 
@@ -351,7 +354,7 @@ export const AboutStep = ({
         {/* Languages */}
         <div>
           <label className="block text-sm font-medium text-primary mb-2">
-            Languages you can conduct sessions in{" "}
+            {t("languages")}{" "}
             <span className="text-error">*</span>
           </label>
 
@@ -365,10 +368,10 @@ export const AboutStep = ({
                   }
                   className="flex-1 border border-border rounded-lg px-3 py-2 bg-surface text-primary focus:outline-none focus:ring-2 focus:ring-accent"
                 >
-                  <option value="">Select language</option>
+                  <option value="">{t("selectLanguage")}</option>
                   {LANGUAGES.map((l) => (
                     <option key={l.code} value={l.code}>
-                      {l.name}
+                      {tOptions(`languages.${l.code}`)}
                     </option>
                   ))}
                 </select>
@@ -386,7 +389,7 @@ export const AboutStep = ({
                 >
                   {LANGUAGE_PROFICIENCY_OPTIONS.map((level) => (
                     <option key={level.value} value={level.value}>
-                      {level.label}
+                      {tOptions(`proficiency.${level.value}`)}
                     </option>
                   ))}
                 </select>
@@ -395,7 +398,7 @@ export const AboutStep = ({
                   type="button"
                   onClick={() => removeLanguage(lang.id)}
                   className="p-2 text-muted hover:text-error transition-colors"
-                  aria-label="Remove language"
+                  aria-label={t("removeLanguage")}
                 >
                   <Trash2 className="w-5 h-5" />
                 </button>
@@ -408,7 +411,7 @@ export const AboutStep = ({
               className="flex items-center gap-2 text-accent hover:text-accent-hover transition-colors"
             >
               <Plus className="w-4 h-4" />
-              <span>Add another language</span>
+              <span>{t("addLanguage")}</span>
             </button>
           </div>
           {errors.languages && (

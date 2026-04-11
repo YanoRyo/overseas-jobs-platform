@@ -406,6 +406,15 @@
     "stepOf": "Step {current} of {total}",
     "completeRegistration": "Complete registration",
     "saveAndContinue": "Save and continue",
+    "steps": {
+      "about": "About",
+      "photo": "Photo",
+      "education": "Education",
+      "description": "Description",
+      "video": "Video",
+      "availability": "Availability",
+      "pricing": "Pricing"
+    },
     "about": {
       "title": "About",
       "description": "Start creating your public mentor profile. Your progress will be automatically saved as you complete each section.",

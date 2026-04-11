@@ -1,5 +1,7 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
+
 type StepNavigationProps = {
   onBack?: () => void;
   onNext: () => void;
@@ -23,10 +25,13 @@ export const StepNavigation = ({
   isSubmitting = false,
   nextLabel,
 }: StepNavigationProps) => {
+  const t = useTranslations('mentorRegistration');
+  const tc = useTranslations('common');
+
   const getNextButtonLabel = () => {
     if (nextLabel) return nextLabel;
-    if (isLastStep) return 'Complete registration';
-    return 'Save and continue';
+    if (isLastStep) return t('completeRegistration');
+    return t('saveAndContinue');
   };
 
   return (
@@ -46,7 +51,7 @@ export const StepNavigation = ({
               transition-colors
             "
           >
-            Back
+            {tc('back')}
           </button>
         )}
       </div>
@@ -65,7 +70,7 @@ export const StepNavigation = ({
               transition-colors
             "
           >
-            Skip
+            {tc('skip')}
           </button>
         )}
 
@@ -81,7 +86,7 @@ export const StepNavigation = ({
             transition-colors
           "
         >
-          {isSubmitting ? 'Submitting...' : getNextButtonLabel()}
+          {isSubmitting ? tc('submitting') : getNextButtonLabel()}
         </button>
       </div>
     </div>

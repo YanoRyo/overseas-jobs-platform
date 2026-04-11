@@ -1,9 +1,9 @@
 "use client";
 
 import { useCallback, useRef, useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { Upload, Check, User } from "lucide-react";
 import type { PhotoFormData } from "../../types/registration";
-import { PHOTO_REQUIREMENTS } from "../../../shared/constants/options";
 import { StepNavigation } from "../shared/StepNavigation";
 
 type PhotoStepProps = {
@@ -23,6 +23,8 @@ export const PhotoStep = ({
   onBack,
   canGoNext,
 }: PhotoStepProps) => {
+  const t = useTranslations("mentorRegistration.photo");
+  const tOptions = useTranslations("options");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [fileError, setFileError] = useState<string | null>(null);
 
@@ -36,13 +38,13 @@ export const PhotoStep = ({
 
       // ファイル形式チェック
       if (!file.type.startsWith("image/")) {
-        setFileError("Please select an image file");
+        setFileError(t("selectImage"));
         return;
       }
 
       // ファイルサイズチェック (5MB)
       if (file.size > 5 * 1024 * 1024) {
-        setFileError("File size must be less than 5MB");
+        setFileError(t("fileSizeLimit"));
         return;
       }
 
@@ -75,9 +77,9 @@ export const PhotoStep = ({
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-primary">Profile photo</h1>
+        <h1 className="text-2xl font-bold text-primary">{t("title")}</h1>
         <p className="text-secondary mt-2">
-          Choose a photo that will help learners get to know you.
+          {t("description")}
         </p>
       </div>
 
@@ -115,7 +117,7 @@ export const PhotoStep = ({
             "
           >
             <Upload className="w-4 h-4" />
-            <span>{previewUrl ? "Upload new photo" : "Upload photo"}</span>
+            <span>{previewUrl ? t("uploadNewPhoto") : t("uploadPhoto")}</span>
           </button>
 
           <input
@@ -135,13 +137,13 @@ export const PhotoStep = ({
         {/* Requirements checklist */}
         <div className="flex-1">
           <h2 className="text-lg font-semibold text-primary mb-4">
-            What your photo needs
+            {t("requirements")}
           </h2>
           <ul className="space-y-3">
-            {PHOTO_REQUIREMENTS.map((requirement, index) => (
-              <li key={index} className="flex items-start gap-3">
+            {(['facingForward', 'headAndShoulders', 'centered', 'faceVisible', 'onlyPerson', 'colorPhoto', 'noLogos'] as const).map((key) => (
+              <li key={key} className="flex items-start gap-3">
                 <Check className="w-5 h-5 text-success flex-shrink-0 mt-0.5" />
-                <span className="text-secondary">{requirement}</span>
+                <span className="text-secondary">{tOptions(`photoRequirements.${key}`)}</span>
               </li>
             ))}
           </ul>

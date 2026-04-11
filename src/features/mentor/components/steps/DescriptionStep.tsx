@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Info } from "lucide-react";
 import type { DescriptionFormData } from "../../types/registration";
 import { VALIDATION_CONFIG } from "../../../shared/constants/options";
@@ -22,6 +23,7 @@ export const DescriptionStep = ({
   onBack,
   canGoNext,
 }: DescriptionStepProps) => {
+  const t = useTranslations("mentorRegistration.description");
   const { introduction, workExperience, motivation, headline } =
     VALIDATION_CONFIG;
 
@@ -29,11 +31,9 @@ export const DescriptionStep = ({
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-primary">Profile description</h1>
+        <h1 className="text-2xl font-bold text-primary">{t("title")}</h1>
         <p className="text-secondary mt-2">
-          This info will go on your public profile. Write it in the language
-          you&apos;ll be teaching and make sure to follow our guidelines to get
-          approved.
+          {t("description")}
         </p>
       </div>
 
@@ -42,12 +42,10 @@ export const DescriptionStep = ({
         {/* 1. Introduce yourself */}
         <div>
           <h2 className="text-lg font-semibold text-primary mb-2">
-            1. Introduce yourself <span className="text-error">*</span>
+            {t("introduceTitle")} <span className="text-error">*</span>
           </h2>
           <p className="text-secondary text-sm mb-3">
-            Show potential students who you are! Share your teaching experience
-            and passion for education and briefly mention your interests and
-            hobbies.
+            {t("introduceDescription")}
           </p>
 
           <textarea
@@ -71,8 +69,7 @@ export const DescriptionStep = ({
                 <div className="flex items-start gap-2 p-2 bg-blue-50 rounded-lg">
                   <Info className="w-4 h-4 text-blue-600 flex-shrink-0 mt-0.5" />
                   <p className="text-sm text-blue-800">
-                    Don&apos;t include your last name or present your
-                    information in a CV format
+                    {t("introduceWarning")}
                   </p>
                 </div>
               )}
@@ -93,10 +90,10 @@ export const DescriptionStep = ({
         {/* 2. Work experience */}
         <div>
           <h2 className="text-lg font-semibold text-primary mb-2">
-            2. Work experience <span className="text-error">*</span>
+            {t("workTitle")} <span className="text-error">*</span>
           </h2>
           <p className="text-secondary text-sm mb-3">
-            Describe your relevant work experience and achievements.
+            {t("workDescription")}
           </p>
 
           <textarea
@@ -132,10 +129,10 @@ export const DescriptionStep = ({
         {/* 3. Motivate potential students */}
         <div>
           <h2 className="text-lg font-semibold text-primary mb-2">
-            3. Motivate potential students <span className="text-error">*</span>
+            {t("motivateTitle")} <span className="text-error">*</span>
           </h2>
           <p className="text-secondary text-sm mb-3">
-            Encourage potential students to book a session with you.
+            {t("motivateDescription")}
           </p>
 
           <textarea
@@ -171,17 +168,17 @@ export const DescriptionStep = ({
         {/* 4. Write a catchy headline */}
         <div>
           <h2 className="text-lg font-semibold text-primary mb-2">
-            4. Write a catchy headline <span className="text-error">*</span>
+            {t("headlineTitle")} <span className="text-error">*</span>
           </h2>
           <p className="text-secondary text-sm mb-3">
-            This will be displayed prominently on your profile.
+            {t("headlineDescription")}
           </p>
 
           <input
             type="text"
             value={data.headline}
             onChange={(e) => onUpdate({ headline: e.target.value })}
-            placeholder="E.g. Experienced software engineer helping you land your dream job"
+            placeholder={t("headlinePlaceholder")}
             className={`
               w-full border rounded-lg px-3 py-2 bg-surface text-primary placeholder:text-muted
               ${errors.headline ? "border-error" : "border-border"}

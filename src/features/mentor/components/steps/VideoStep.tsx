@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { useTranslations } from "next-intl";
 import { Info, Check, X, ChevronDown, ChevronUp } from "lucide-react";
 import type { VideoFormData } from "../../types/registration";
-import { VIDEO_REQUIREMENTS } from "../../../shared/constants/options";
 import { StepNavigation } from "../shared/StepNavigation";
 
 type VideoStepProps = {
@@ -74,6 +74,9 @@ export const VideoStep = ({
   onSkip,
   canGoNext,
 }: VideoStepProps) => {
+  const t = useTranslations("mentorRegistration.video");
+  const tOptions = useTranslations("options");
+  const tCommon = useTranslations("common");
   const [showRequirements, setShowRequirements] = useState(true);
 
   const embedUrl = useMemo(() => getEmbedUrl(data.videoUrl), [data.videoUrl]);
@@ -82,9 +85,9 @@ export const VideoStep = ({
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-primary">Video introduction</h1>
+        <h1 className="text-2xl font-bold text-primary">{t("title")}</h1>
         <p className="text-secondary mt-2">
-          Add a horizontal video of up to 2 minutes
+          {t("description")}
         </p>
       </div>
 
@@ -92,8 +95,7 @@ export const VideoStep = ({
       <div className="flex items-start gap-3 p-4 bg-blue-50 border border-blue-200 rounded-lg">
         <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
         <p className="text-sm text-blue-800">
-          Adding a video is optional but highly recommended to increase your
-          booking rate. You can add it later from your profile settings.
+          {t("optional")}
         </p>
       </div>
 
@@ -101,9 +103,7 @@ export const VideoStep = ({
         {/* Left column - URL input and preview */}
         <div className="space-y-6">
           <p className="text-secondary">
-            Introduce yourself to students in the same language as your written
-            description. If you teach a different language, include a short
-            sample.
+            {t("instruction")}
           </p>
 
           {/* Video preview */}
@@ -119,7 +119,7 @@ export const VideoStep = ({
               />
             ) : (
               <div className="w-full h-full flex items-center justify-center text-muted">
-                <p className="text-sm">Video preview will appear here</p>
+                <p className="text-sm">{t("previewPlaceholder")}</p>
               </div>
             )}
           </div>
@@ -130,26 +130,26 @@ export const VideoStep = ({
               htmlFor="videoUrl"
               className="block text-sm font-medium text-primary mb-2"
             >
-              Or paste a link to your video
+              {t("pasteLink")}
             </label>
             <p className="text-sm text-muted mb-2">
-              Learn how to upload videos to{" "}
+              {t("learnHow")}{" "}
               <a
                 href="https://www.youtube.com"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-accent hover:underline"
               >
-                YouTube
+                {t("youtube")}
               </a>{" "}
-              or{" "}
+              {tCommon("or")}{" "}
               <a
                 href="https://vimeo.com"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-accent hover:underline"
               >
-                Vimeo
+                {t("vimeo")}
               </a>
             </p>
             <input
@@ -157,7 +157,7 @@ export const VideoStep = ({
               id="videoUrl"
               value={data.videoUrl}
               onChange={(e) => onUpdate({ videoUrl: e.target.value })}
-              placeholder="https://www.youtube.com/watch?v=..."
+              placeholder={t("urlPlaceholder")}
               className={`
                 w-full border rounded-lg px-3 py-2 bg-surface text-primary placeholder:text-muted
                 ${errors.videoUrl ? "border-error" : "border-border"}
@@ -178,7 +178,7 @@ export const VideoStep = ({
             className="flex items-center justify-between w-full text-left"
           >
             <h2 className="text-lg font-semibold text-primary">
-              Video requirements
+              {t("requirements")}
             </h2>
             {showRequirements ? (
               <ChevronUp className="w-5 h-5 text-muted" />
@@ -188,7 +188,7 @@ export const VideoStep = ({
           </button>
 
           <p className="text-sm text-muted mt-1">
-            Make sure your video meets the requirements to get approved
+            {t("requirementsDescription")}
           </p>
 
           {showRequirements && (
@@ -197,16 +197,16 @@ export const VideoStep = ({
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <Check className="w-5 h-5 text-success" />
-                  <span className="font-medium text-success">Do</span>
+                  <span className="font-medium text-success">{t("do")}</span>
                 </div>
                 <ul className="space-y-2">
-                  {VIDEO_REQUIREMENTS.do.map((item, index) => (
+                  {(['duration', 'horizontal', 'lighting', 'stable', 'faceVisible', 'experience', 'greet'] as const).map((key) => (
                     <li
-                      key={index}
+                      key={key}
                       className="flex items-start gap-2 text-sm text-secondary"
                     >
                       <span className="text-muted">•</span>
-                      <span>{item}</span>
+                      <span>{tOptions(`videoRequirementsDo.${key}`)}</span>
                     </li>
                   ))}
                 </ul>
@@ -216,16 +216,16 @@ export const VideoStep = ({
               <div>
                 <div className="flex items-center gap-2 mb-3">
                   <X className="w-5 h-5 text-error" />
-                  <span className="font-medium text-error">Don&apos;t</span>
+                  <span className="font-medium text-error">{t("dont")}</span>
                 </div>
                 <ul className="space-y-2">
-                  {VIDEO_REQUIREMENTS.dont.map((item, index) => (
+                  {(['surname', 'logos', 'slideshows', 'otherPeople'] as const).map((key) => (
                     <li
-                      key={index}
+                      key={key}
                       className="flex items-start gap-2 text-sm text-secondary"
                     >
                       <span className="text-muted">•</span>
-                      <span>{item}</span>
+                      <span>{tOptions(`videoRequirementsDont.${key}`)}</span>
                     </li>
                   ))}
                 </ul>

@@ -406,6 +406,15 @@
     "stepOf": "ステップ {current} / {total}",
     "completeRegistration": "登録を完了",
     "saveAndContinue": "保存して次へ",
+    "steps": {
+      "about": "基本情報",
+      "photo": "写真",
+      "education": "学歴",
+      "description": "説明",
+      "video": "動画",
+      "availability": "空き時間",
+      "pricing": "料金"
+    },
     "about": {
       "title": "基本情報",
       "description": "公開メンタープロフィールの作成を開始します。各セクションを完了すると、進捗は自動的に保存されます。",
