@@ -5,6 +5,7 @@ import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { Header } from "@/components/header/Header";
 import { FavoritesProvider } from "@/features/favorites/context/FavoritesContext";
 import { SupabaseProvider } from "@/components/SupabaseProvider";
+import { CurrencyProvider } from "@/features/currency/context/CurrencyContext";
 import { routing } from "@/i18n/routing";
 
 const geistSans = Geist({
@@ -49,12 +50,14 @@ export default async function LocaleLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${notoSansJP.variable} antialiased`}
       >
         <NextIntlClientProvider locale={locale} messages={messages}>
-          <SupabaseProvider>
-            <FavoritesProvider>
-              <Header />
-              {children}
-            </FavoritesProvider>
-          </SupabaseProvider>
+          <CurrencyProvider>
+            <SupabaseProvider>
+              <FavoritesProvider>
+                <Header />
+                {children}
+              </FavoritesProvider>
+            </SupabaseProvider>
+          </CurrencyProvider>
         </NextIntlClientProvider>
       </body>
     </html>
