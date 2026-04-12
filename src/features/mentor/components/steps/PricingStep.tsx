@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Info, DollarSign } from "lucide-react";
 import type { PricingFormData } from "../../types/registration";
 import { PRICING_CONFIG } from "../../../shared/constants/options";
@@ -24,6 +25,7 @@ export const PricingStep = ({
   canGoNext,
   isSubmitting,
 }: PricingStepProps) => {
+  const t = useTranslations("mentorRegistration.pricing");
   const { minRate, maxRate, sessionDuration } = PRICING_CONFIG;
 
   const handleRateChange = (value: string) => {
@@ -44,9 +46,9 @@ export const PricingStep = ({
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-primary">
-          Set your {sessionDuration} minute lesson price
+          {t("title", { duration: sessionDuration })}
         </h1>
-        <p className="text-secondary mt-2">Price in USD only</p>
+        <p className="text-secondary mt-2">{t("priceInUsd")}</p>
       </div>
 
       {/* Price input */}
@@ -55,7 +57,7 @@ export const PricingStep = ({
           htmlFor="hourlyRate"
           className="block text-sm font-medium text-primary mb-2"
         >
-          Session price <span className="text-error">*</span>
+          {t("sessionPrice")} <span className="text-error">*</span>
         </label>
 
         <div className="relative">
@@ -84,7 +86,7 @@ export const PricingStep = ({
         </div>
 
         <p className="text-sm text-muted mt-2">
-          Minimum: ${minRate} — Maximum: ${maxRate}
+          {t("minMax", { min: minRate, max: maxRate })}
         </p>
 
         {errors.hourlyRate && (
@@ -97,11 +99,9 @@ export const PricingStep = ({
         <div className="flex items-start gap-3 p-4 bg-surface border border-border rounded-lg">
           <Info className="w-5 h-5 text-muted flex-shrink-0 mt-0.5" />
           <div className="text-sm text-secondary">
-            <p className="font-medium text-primary mb-2">Platform commission</p>
+            <p className="font-medium text-primary mb-2">{t("commission")}</p>
             <p>
-              Our platform takes a small commission from each session to cover
-              operational costs and continue improving the service. The exact
-              commission rate will be displayed in your dashboard.
+              {t("commissionDescription")}
             </p>
           </div>
         </div>
@@ -110,12 +110,12 @@ export const PricingStep = ({
       {/* Price preview */}
       {data.hourlyRate > 0 && (
         <div className="max-w-md p-4 bg-accent/10 border border-accent/20 rounded-lg">
-          <p className="text-sm text-secondary mb-1">Students will see:</p>
+          <p className="text-sm text-secondary mb-1">{t("studentsWillSee")}</p>
           <p className="text-2xl font-bold text-primary">
             ${data.hourlyRate}
             <span className="text-base font-normal text-muted">
               {" "}
-              / {sessionDuration} min
+              {t("perMin", { duration: sessionDuration })}
             </span>
           </p>
         </div>

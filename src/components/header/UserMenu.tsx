@@ -2,7 +2,9 @@
 
 import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { usePathname, useRouter, useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { usePathname, useRouter } from "@/i18n/navigation";
+import { useSearchParams } from "next/navigation";
 import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
 
 import type { UserRole } from "@/features/auth/types";
@@ -51,19 +53,23 @@ function getDisplayName(profile: Profile | null, email?: string | null) {
   return "Guest";
 }
 
-function getMenuItems(role: UserRole): MenuItem[] {
+function getMenuItems(
+  role: UserRole,
+  tTabs: (key: string) => string,
+  tNav: (key: string) => string
+): MenuItem[] {
   const tabItems = getSettingsTopTabs(role)
     .filter((tab) => tab.href && tab.clickable)
     .map((tab) => ({
       id: tab.id,
-      label: tab.label,
+      label: tTabs(tab.label),
       href: tab.href as string,
     }));
 
   if (role === "student") {
     return [
       ...tabItems,
-      { id: "saved-tutors", label: "Saved tutors", href: "/favorites" },
+      { id: "saved-tutors", label: tNav("savedTutors"), href: "/favorites" },
     ];
   }
 
@@ -76,6 +82,8 @@ export default function UserMenu({ viewerRole = null }: Props) {
   const searchParams = useSearchParams();
   const supabase = useSupabaseClient();
   const user = useUser();
+  const tNav = useTranslations("navigation");
+  const tTabs = useTranslations("settings.topTabs");
 
   const [open, setOpen] = useState(false);
   const [profile, setProfile] = useState<Profile | null>(null);
@@ -160,14 +168,14 @@ export default function UserMenu({ viewerRole = null }: Props) {
   }, [profile]);
   const statusLabel = user
     ? menuRole === "mentor"
-      ? "Mentor account"
+      ? tNav("mentorAccount")
       : menuRole === "student"
-        ? "Student account"
-        : "Account"
-    : "Not logged in";
+        ? tNav("studentAccount")
+        : tNav("account")
+    : tNav("notLoggedIn");
   const menuItems = useMemo(
-    () => (menuRole ? getMenuItems(menuRole) : []),
-    [menuRole]
+    () => (menuRole ? getMenuItems(menuRole, tTabs, tNav) : []),
+    [menuRole, tTabs, tNav]
   );
   const currentHref = useMemo(
     () => `${pathname || "/"}${searchKey ? `?${searchKey}` : ""}`,
@@ -304,7 +312,7 @@ export default function UserMenu({ viewerRole = null }: Props) {
                 onClick={goLogin}
                 className="w-full rounded-2xl px-4 py-3 text-left text-[17px] text-[#1f1f2d] transition-colors hover:bg-[#f7f8fc]"
               >
-                Log in
+                {tNav("logIn")}
               </button>
             )}
           </div>
@@ -318,7 +326,7 @@ export default function UserMenu({ viewerRole = null }: Props) {
                   onClick={logout}
                   className="w-full rounded-2xl px-4 py-3 text-left text-[17px] text-[#1f1f2d] transition-colors hover:bg-[#f7f8fc]"
                 >
-                  Log out
+                  {tNav("logOut")}
                 </button>
               </div>
             </>

@@ -1,5 +1,6 @@
 "use client";
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { useSignup } from "../hooks/useSignup";
 import { AuthNoticeDialog } from "./AuthNoticeDialog";
 import { AuthShell } from "./AuthShell";
@@ -13,6 +14,7 @@ type SignupFormProps = {
 };
 
 export const SignupForm = ({ redirect }: SignupFormProps) => {
+  const t = useTranslations("auth.signup");
   const loginHref = redirect
     ? `/auth/login?redirect=${encodeURIComponent(redirect)}`
     : "/auth/login";
@@ -39,12 +41,12 @@ export const SignupForm = ({ redirect }: SignupFormProps) => {
   return (
     <>
       <AuthShell
-        title="Create your account"
+        title={t("title")}
         description={
           <p className="text-sm text-secondary">
-            Already have an account?{" "}
+            {t("alreadyHaveAccount")}{" "}
             <Link href={loginHref} className="text-accent hover:underline">
-              Log in
+              {t("loginLink")}
             </Link>
           </p>
         }
@@ -53,7 +55,7 @@ export const SignupForm = ({ redirect }: SignupFormProps) => {
           <RoleSelector
             value={role}
             onChange={setRole}
-            hint="Required to complete sign up."
+            hint={t("roleHint")}
           />
           <SocialAuthButtons
             onGoogle={handleGoogleSignup}
@@ -65,10 +67,10 @@ export const SignupForm = ({ redirect }: SignupFormProps) => {
 
           <form onSubmit={handleEmailSignup} className="space-y-5">
             <div className="space-y-2">
-              <label className="text-sm font-semibold text-primary">Email</label>
+              <label className="text-sm font-semibold text-primary">{t("email")}</label>
               <input
                 type="email"
-                placeholder="you@example.com"
+                placeholder={t("emailPlaceholder")}
                 className={inputClassName}
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -76,16 +78,16 @@ export const SignupForm = ({ redirect }: SignupFormProps) => {
             </div>
 
             <PasswordField
-              label="Password"
-              placeholder="Create a password"
+              label={t("password")}
+              placeholder={t("passwordPlaceholder")}
               value={password}
               onChange={setPassword}
               className={inputClassName}
             />
 
             <PasswordField
-              label="Confirm password"
-              placeholder="Confirm your password"
+              label={t("confirmPassword")}
+              placeholder={t("confirmPasswordPlaceholder")}
               value={confirmPassword}
               onChange={setConfirmPassword}
               className={inputClassName}
@@ -95,28 +97,25 @@ export const SignupForm = ({ redirect }: SignupFormProps) => {
               disabled={loading || !role}
               className="w-full rounded-xl bg-accent py-3 text-sm font-semibold text-white transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {loading ? "Creating account..." : "Sign up"}
+              {loading ? t("creatingAccount") : t("submit")}
             </button>
           </form>
 
           <p className="text-center text-xs text-muted">
-            By continuing, you agree to our{" "}
+            {t("termsNotice").split(t("termsLinkText"))[0]}
             <Link href="/policy" className="text-accent hover:underline">
-              Terms & Privacy Policy
+              {t("termsLinkText")}
             </Link>
-            .
+            {t("termsNotice").split(t("termsLinkText"))[1]}
           </p>
         </div>
       </AuthShell>
 
       <AuthNoticeDialog
         open={!!successMessage}
-        title="Check Your Inbox"
-        description={
-          successMessage ??
-          "We've sent a confirmation email. Please use the link in your inbox to finish creating your account."
-        }
-        primaryLabel="Back to login"
+        title={t("checkInbox")}
+        description={successMessage ?? t("confirmationSent")}
+        primaryLabel={t("backToLogin")}
         onPrimary={handleSuccessClose}
       />
     </>

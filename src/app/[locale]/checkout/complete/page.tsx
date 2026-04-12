@@ -1,7 +1,9 @@
 "use client";
 
 import { Suspense, useEffect, useState } from "react";
-import { useSearchParams, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
+import { useSearchParams } from "next/navigation";
 import { CheckCircle2, XCircle } from "lucide-react";
 import { getStripe } from "@/lib/stripe/client";
 
@@ -11,6 +13,8 @@ type PaymentResult = {
 };
 
 function CheckoutCompleteContent() {
+  const t = useTranslations("checkout.complete");
+  const tc = useTranslations("common");
   const searchParams = useSearchParams();
   const router = useRouter();
   const [result, setResult] = useState<PaymentResult | null>(null);
@@ -18,7 +22,7 @@ function CheckoutCompleteContent() {
   useEffect(() => {
     const clientSecret = searchParams.get("payment_intent_client_secret");
     if (!clientSecret) {
-      setResult({ status: "failed", message: "Payment details were not found." });
+      setResult({ status: "failed", message: t("notFound") });
       return;
     }
 
@@ -27,7 +31,7 @@ function CheckoutCompleteContent() {
       if (!stripe) {
         setResult({
           status: "failed",
-          message: "Failed to initialize the payment system.",
+          message: t("initFailed"),
         });
         return;
       }
@@ -38,19 +42,19 @@ function CheckoutCompleteContent() {
 
       switch (paymentIntent?.status) {
         case "succeeded":
-          setResult({ status: "succeeded", message: "Payment completed." });
+          setResult({ status: "succeeded", message: t("success") });
           localStorage.removeItem("pendingReservation");
           break;
         case "processing":
           setResult({
             status: "processing",
-            message: "Your payment is processing. Please wait a moment.",
+            message: t("processing"),
           });
           break;
         default:
           setResult({
             status: "failed",
-            message: "Payment failed. Please try again.",
+            message: t("failed"),
           });
           break;
       }
@@ -62,7 +66,7 @@ function CheckoutCompleteContent() {
   if (!result) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <p className="text-sm text-[#606579]">Checking payment status...</p>
+        <p className="text-sm text-[#606579]">{t("checkingPayment")}</p>
       </div>
     );
   }
@@ -89,7 +93,7 @@ function CheckoutCompleteContent() {
         {isSuccess && (
           <div className="mt-6 rounded-lg border border-success/20 bg-success/10 p-3">
             <p className="text-sm text-[#4b5563]">
-              Your meeting link will be issued after payment confirmation and will be available in My Lessons.
+              {t("meetingLinkInfo")}
             </p>
           </div>
         )}
@@ -101,13 +105,13 @@ function CheckoutCompleteContent() {
                 onClick={() => router.push("/settings?tab=my-lessons")}
                 className="h-11 w-full rounded-[10px] border-2 border-[#1d4ed8] bg-[#2563eb] text-lg font-semibold text-white hover:bg-[#1d4ed8]"
               >
-                Go to My Lessons
+                {t("goToMyLessons")}
               </button>
               <button
                 onClick={() => router.push("/")}
                 className="h-11 w-full rounded-[10px] border border-[#cfd3e1] bg-white text-lg font-medium text-[#4b5563] hover:bg-gray-50"
               >
-                Back to Home
+                {tc("backToHome")}
               </button>
             </>
           ) : (
@@ -116,13 +120,13 @@ function CheckoutCompleteContent() {
                 onClick={() => router.push("/checkout")}
                 className="h-11 w-full rounded-[10px] border-2 border-[#1d4ed8] bg-[#2563eb] text-lg font-semibold text-white hover:bg-[#1d4ed8]"
               >
-                Try Again
+                {t("tryAgain")}
               </button>
               <button
                 onClick={() => router.push("/")}
                 className="h-11 w-full rounded-[10px] border border-[#cfd3e1] bg-white text-lg font-medium text-[#4b5563] hover:bg-gray-50"
               >
-                Back to Home
+                {tc("backToHome")}
               </button>
             </>
           )}
@@ -132,15 +136,18 @@ function CheckoutCompleteContent() {
   );
 }
 
+function CheckoutCompleteFallback() {
+  const tc = useTranslations("common");
+  return (
+    <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <p className="text-sm text-[#606579]">{tc("loading")}</p>
+    </div>
+  );
+}
+
 export default function CheckoutCompletePage() {
   return (
-    <Suspense
-      fallback={
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <p className="text-sm text-[#606579]">Loading...</p>
-        </div>
-      }
-    >
+    <Suspense fallback={<CheckoutCompleteFallback />}>
       <CheckoutCompleteContent />
     </Suspense>
   );

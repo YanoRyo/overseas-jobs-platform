@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { Plus, Trash2, Info } from "lucide-react";
 import type {
   AvailabilityFormData,
@@ -31,6 +32,9 @@ export const AvailabilityStep = ({
   onBack,
   canGoNext,
 }: AvailabilityStepProps) => {
+  const t = useTranslations("mentorRegistration.availability");
+  const tOptions = useTranslations("options");
+
   // 曜日ごとのスロットをグループ化
   const slotsByDay = DAY_OF_WEEK_OPTIONS.map((day) => ({
     day,
@@ -105,27 +109,26 @@ export const AvailabilityStep = ({
     <div className="space-y-8">
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-primary">Availability</h1>
+        <h1 className="text-2xl font-bold text-primary">{t("title")}</h1>
         <p className="text-secondary mt-2">
-          Set your availability for sessions
+          {t("description")}
         </p>
       </div>
 
       {/* Timezone */}
       <div>
         <h2 className="text-lg font-semibold text-primary mb-2">
-          Set your timezone
+          {t("timezoneTitle")}
         </h2>
         <p className="text-secondary text-sm mb-3">
-          A correct timezone is essential to coordinate lessons with
-          international students
+          {t("timezoneDescription")}
         </p>
 
         <label
           htmlFor="timezone"
           className="block text-sm font-medium text-primary mb-1"
         >
-          Choose your timezone <span className="text-error">*</span>
+          {t("chooseTimezone")} <span className="text-error">*</span>
         </label>
         <select
           id="timezone"
@@ -138,7 +141,7 @@ export const AvailabilityStep = ({
           `}
           aria-required="true"
         >
-          <option value="">Select timezone</option>
+          <option value="">{t("selectTimezone")}</option>
           {TIMEZONE_OPTIONS.map((tz) => (
             <option key={tz.value} value={tz.value}>
               {tz.label} ({tz.offset})
@@ -153,11 +156,10 @@ export const AvailabilityStep = ({
       {/* Availability */}
       <div>
         <h2 className="text-lg font-semibold text-primary mb-2">
-          Set your availability
+          {t("availabilityTitle")}
         </h2>
         <p className="text-secondary text-sm mb-4">
-          Availability shows your potential working hours. Students can book
-          lessons at these times.
+          {t("availabilityDescription")}
         </p>
 
         {/* Info box */}
@@ -165,12 +167,10 @@ export const AvailabilityStep = ({
           <Info className="w-5 h-5 text-blue-600 flex-shrink-0 mt-0.5" />
           <div className="text-sm text-blue-800">
             <p className="font-medium">
-              Add popular hours to get more students
+              {t("popularHoursTitle")}
             </p>
             <p className="mt-1">
-              Most students book lessons between 6:00 and 9:00 (popular hours).
-              Add time slots during these hours to triple your chances of
-              getting booked.
+              {t("popularHoursDescription")}
             </p>
           </div>
         </div>
@@ -193,9 +193,9 @@ export const AvailabilityStep = ({
                     checked={isEnabled}
                     onChange={() => toggleDay(day.value)}
                     className="w-5 h-5 rounded border-border text-accent focus:ring-accent"
-                    aria-label={`Enable ${day.label}`}
+                    aria-label={`Enable ${tOptions(`days.${['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][day.value]}`)}`}
                   />
-                  <span className="font-medium text-primary">{day.label}</span>
+                  <span className="font-medium text-primary">{tOptions(`days.${['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][day.value]}`)}</span>
                 </div>
 
                 {/* Time slots */}
@@ -204,7 +204,7 @@ export const AvailabilityStep = ({
                     {slots.map((slot) => (
                       <div key={slot.id} className="flex items-center gap-3">
                         <div className="flex items-center gap-2">
-                          <label className="text-sm text-muted">From</label>
+                          <label className="text-sm text-muted">{t("from")}</label>
                           <select
                             value={slot.startTime}
                             data-slot-id={slot.id}
@@ -222,7 +222,7 @@ export const AvailabilityStep = ({
                         </div>
 
                         <div className="flex items-center gap-2">
-                          <label className="text-sm text-muted">To</label>
+                          <label className="text-sm text-muted">{t("to")}</label>
                           <select
                             value={slot.endTime}
                             data-slot-id={slot.id}
@@ -243,7 +243,7 @@ export const AvailabilityStep = ({
                           type="button"
                           onClick={() => removeSlot(slot.id)}
                           className="p-1.5 text-muted hover:text-error transition-colors"
-                          aria-label="Remove time slot"
+                          aria-label={t("removeTimeslot")}
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -257,7 +257,7 @@ export const AvailabilityStep = ({
                       className="flex items-center gap-1 text-sm text-accent hover:text-accent-hover transition-colors"
                     >
                       <Plus className="w-4 h-4" />
-                      <span>Add another timeslot</span>
+                      <span>{t("addTimeslot")}</span>
                     </button>
                   </div>
                 )}

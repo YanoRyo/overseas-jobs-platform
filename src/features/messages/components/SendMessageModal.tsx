@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useRouter, usePathname } from "@/i18n/navigation";
 import { useUser } from "@supabase/auth-helpers-react";
 
 import { useSendMessage } from "../hooks/useSendMessage";
@@ -19,7 +20,10 @@ export const SendMessageModal = ({
   isOpen,
   onClose,
 }: Props) => {
+  const t = useTranslations("messages.sendModal");
+  const ta = useTranslations("auth");
   const router = useRouter();
+  const pathname = usePathname();
   const user = useUser();
 
   const [category, setCategory] = useState("");
@@ -37,7 +41,7 @@ export const SendMessageModal = ({
 
     // 0) ログイン必須
     if (!isLoggedIn) {
-      setLocalError("You need to be logged in to send a message.");
+      setLocalError(t("loginRequired"));
       return;
       // すぐログインに飛ばしたいなら下を使う
       // router.push("/auth/login");
@@ -46,11 +50,11 @@ export const SendMessageModal = ({
 
     // 1) 入力バリデーション
     if (!category) {
-      setLocalError("Please select a purpose.");
+      setLocalError(t("selectPurpose"));
       return;
     }
     if (!message.trim()) {
-      setLocalError("Please enter a message.");
+      setLocalError(t("enterMessage"));
       return;
     }
 
@@ -78,29 +82,29 @@ export const SendMessageModal = ({
           ✕
         </button>
 
-        <h2 className="text-xl font-semibold mb-2">Contact {mentorName}</h2>
+        <h2 className="text-xl font-semibold mb-2">{t("title", { mentorName })}</h2>
 
         <p className="text-sm text-gray-600 mb-4">
-          Please select a message topic and send your message.
+          {t("instruction")}
         </p>
 
         {/* 未ログイン時の案内 */}
         {!isLoggedIn && (
           <div className="mb-4 rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2 text-sm text-yellow-800">
-            Please sign up or log in to send a message.
+            {t("notLoggedIn")}
             <div className="mt-2 flex gap-2">
               <button
                 type="button"
                 onClick={() =>
                   router.push(
                     `/auth/login?redirect=${encodeURIComponent(
-                      window.location.pathname
+                      pathname
                     )}`
                   )
                 }
                 className="px-3 py-1 rounded-md bg-yellow-700 text-white text-xs font-semibold"
               >
-                Log In
+                {ta("login.submit")}
               </button>
 
               <button
@@ -108,13 +112,13 @@ export const SendMessageModal = ({
                 onClick={() =>
                   router.push(
                     `/auth/signup?redirect=${encodeURIComponent(
-                      window.location.pathname
+                      pathname
                     )}`
                   )
                 }
                 className="px-3 py-1 rounded-md border border-yellow-700 text-yellow-800 text-xs font-semibold"
               >
-                Sign Up
+                {ta("signup.submit")}
               </button>
             </div>
           </div>
@@ -122,7 +126,7 @@ export const SendMessageModal = ({
 
         {/* カテゴリ */}
         <label className="block text-sm font-medium mb-1">
-          Select a purpose
+          {t("purposeLabel")}
         </label>
         <select
           value={category}
@@ -130,21 +134,21 @@ export const SendMessageModal = ({
           className="w-full border rounded-lg px-3 py-2 mb-4"
           disabled={!isLoggedIn || loading}
         >
-          <option value="">Select an option</option>
-          <option value="career">Working abroad</option>
-          <option value="visa">Visa questions</option>
-          <option value="interview">Interview preparation</option>
-          <option value="other">Other</option>
+          <option value="">{t("purposePlaceholder")}</option>
+          <option value="career">{t("purposeWorkAbroad")}</option>
+          <option value="visa">{t("purposeVisa")}</option>
+          <option value="interview">{t("purposeInterview")}</option>
+          <option value="other">{t("purposeOther")}</option>
         </select>
 
         {/* メッセージ */}
-        <label className="block text-sm font-medium mb-1">Message</label>
+        <label className="block text-sm font-medium mb-1">{t("messageLabel")}</label>
         <textarea
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           rows={5}
           className="w-full border rounded-lg px-3 py-2 mb-4"
-          placeholder="Hello! I would like to consult about working abroad."
+          placeholder={t("messagePlaceholder")}
           disabled={!isLoggedIn || loading}
         />
 
@@ -158,7 +162,7 @@ export const SendMessageModal = ({
           onClick={handleSend}
           disabled={!isLoggedIn || loading}
         >
-          {loading ? "Sending..." : "Send Message"}
+          {loading ? t("sending") : t("submit")}
         </button>
       </div>
     </div>

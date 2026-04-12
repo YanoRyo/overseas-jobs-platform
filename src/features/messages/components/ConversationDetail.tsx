@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 
 import type { ConversationItem } from "../types/conversationItem";
@@ -16,6 +17,7 @@ export function ConversationDetail({
   conversation: ConversationItem;
   onBack: () => void;
 }) {
+  const tc = useTranslations("common");
   const supabase = useSupabaseClient();
 
   const avatarUrl =
@@ -71,7 +73,7 @@ export function ConversationDetail({
       <div className="min-h-0 flex-1 overflow-hidden">
         {loading ? (
           <div className="flex h-full items-center px-4 text-sm text-gray-400">
-            Loading...
+            {tc("loading")}
           </div>
         ) : (
           <MessageThread

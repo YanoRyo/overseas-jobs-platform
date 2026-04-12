@@ -1,12 +1,14 @@
 "use client";
 
-import Link from "next/link";
+import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 import { AUTH_INPUT_CLASS_NAME, AUTH_SUBMIT_BUTTON_CLASS_NAME } from "../constants/styles";
 import { useForgotPassword } from "../hooks/useForgotPassword";
 import { AuthNoticeDialog } from "./AuthNoticeDialog";
 import { AuthShell } from "./AuthShell";
 
 export const ForgotPasswordForm = () => {
+  const t = useTranslations("auth.forgotPassword");
   const {
     email,
     loading,
@@ -20,27 +22,27 @@ export const ForgotPasswordForm = () => {
   return (
     <>
       <AuthShell
-        title="Forgot password"
+        title={t("title")}
         description={
           <p className="text-sm text-secondary">
-            Remembered it?{" "}
+            {t("rememberedIt")}{" "}
             <Link href="/auth/login" className="text-accent hover:underline">
-              Back to login
+              {t("backToLogin")}
             </Link>
           </p>
         }
       >
         <form onSubmit={handleSubmit} className="space-y-5">
           <p className="text-sm text-secondary">
-            Enter your email and we&apos;ll send a reset link.
+            {t("instruction")}
           </p>
 
           <div className="space-y-2">
-            <label className="text-sm font-semibold text-primary">Email</label>
+            <label className="text-sm font-semibold text-primary">{t("email")}</label>
             <input
               type="email"
               className={AUTH_INPUT_CLASS_NAME}
-              placeholder="you@example.com"
+              placeholder={t("emailPlaceholder")}
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
@@ -52,19 +54,16 @@ export const ForgotPasswordForm = () => {
             disabled={loading}
             className={AUTH_SUBMIT_BUTTON_CLASS_NAME}
           >
-            {loading ? "Sending..." : "Send reset link"}
+            {loading ? t("sending") : t("submit")}
           </button>
         </form>
       </AuthShell>
 
       <AuthNoticeDialog
         open={!!successMessage}
-        title="Reset Email Sent"
-        description={
-          successMessage ??
-          "If your account exists, you'll receive a password reset link shortly."
-        }
-        primaryLabel="Got it"
+        title={t("emailSent")}
+        description={successMessage ?? t("emailSentDescription")}
+        primaryLabel={t("gotIt")}
         onPrimary={handleSuccessClose}
       />
     </>

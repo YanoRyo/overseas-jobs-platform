@@ -1,5 +1,6 @@
 "use client";
 import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { useMentorSearch } from "../hooks/useMentorSearch";
 import SearchFilters from "@/components/SearchFilters";
 import MentorCard from "@/components/MentorCard";
@@ -13,6 +14,8 @@ import { AuthModal } from "@/features/auth/components/AuthModal";
 const PENDING_BOOKING_KEY = "pendingBookingMentorId";
 
 export function MentorList() {
+  const t = useTranslations("mentors");
+  const tc = useTranslations("common");
   const {
     filters,
     updateFilter,
@@ -54,7 +57,7 @@ export function MentorList() {
       } = await fetchMentorById(mentorId);
 
       if (fetchError || !data) {
-        setBookingError("Failed to retrieve mentor information");
+        setBookingError(t("failedToRetrieve"));
         return;
       }
 
@@ -67,7 +70,7 @@ export function MentorList() {
       );
       setSelectedMentor(detailModel);
     } catch {
-      setBookingError("Failed to retrieve mentor information.");
+      setBookingError(t("failedToRetrieve"));
     } finally {
       setBookingLoading(false);
     }
@@ -144,7 +147,7 @@ export function MentorList() {
 
       {!loading && hasSearched && mentors.length === 0 && (
         <p className="text-secondary text-center py-8">
-          No mentors matched your filters.
+          {t("noMentorsMatched")}
         </p>
       )}
 
@@ -157,7 +160,7 @@ export function MentorList() {
         >
           <div className="flex flex-col items-center gap-4">
             <div className="h-10 w-10 animate-spin rounded-full border-4 border-white/40 border-t-white" />
-            <p className="text-white">Loading...</p>
+            <p className="text-white">{tc("loading")}</p>
           </div>
         </div>
       )}
@@ -178,8 +181,8 @@ export function MentorList() {
         }}
         defaultMode="login"
         initialRole="student"
-        title="Log in to continue booking"
-        description="You need to log in to book a lesson."
+        title={t("loginToContinue")}
+        description={t("loginToBook")}
         redirectOnClose=""
         redirectAfterAuth="/"
       />

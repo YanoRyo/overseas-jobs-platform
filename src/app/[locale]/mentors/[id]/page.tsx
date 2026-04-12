@@ -1,6 +1,7 @@
 "use client";
 
 import { use, useState, useEffect, useCallback } from "react";
+import { useTranslations } from "next-intl";
 import { useMentorDetail } from "@/features/mentors/hooks/useMentorDetail";
 import { MentorDetail } from "@/features/mentors/components/MentorDetail";
 import { useUser } from "@supabase/auth-helpers-react";
@@ -17,6 +18,8 @@ export default function MentorDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = use(params);
+  const t = useTranslations("mentors");
+  const tc = useTranslations("common");
   const user = useUser();
   const { createBookingAndCheckout } = useCreateBooking();
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -99,9 +102,9 @@ export default function MentorDetailPage({
     }
   };
 
-  if (loading) return <div className="p-6">Loading...</div>;
+  if (loading) return <div className="p-6">{tc("loading")}</div>;
   if (error || !mentor)
-    return <div className="p-6">Mentor not found.</div>;
+    return <div className="p-6">{t("mentorNotFound")}</div>;
 
   return (
     <>
@@ -117,8 +120,8 @@ export default function MentorDetailPage({
         onClose={() => setIsAuthModalOpen(false)}
         defaultMode="login"
         initialRole="student"
-        title="Log in to continue booking"
-        description="You need to log in to book a lesson."
+        title={t("loginToContinue")}
+        description={t("loginToBook")}
         redirectOnClose=""
         redirectAfterAuth={`/mentors/${id}`}
       />

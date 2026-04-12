@@ -10,7 +10,10 @@ import {
   MessageCircle,
   Zap,
 } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 import { useUser } from "@supabase/auth-helpers-react";
+import { PriceDisplay } from "@/features/currency/components/PriceDisplay";
 import BookingModal from "@/components/BookingModal";
 import { useBookedSlots } from "@/features/checkout/hooks/useBookedSlots";
 import { FavoriteToggleButton } from "@/features/favorites/components/FavoriteToggleButton";
@@ -55,23 +58,8 @@ type WeeklySchedule = {
   hasAnySlots: boolean;
 };
 
-const LANGUAGE_LEVEL_LABELS: Record<string, string> = {
-  native: "Native",
-  c2: "C2",
-  c1: "C1",
-  b2: "Upper Intermediate B2",
-  b1: "Intermediate B1",
-  a2: "Elementary A2",
-  a1: "Beginner A1",
-};
-
-const DEGREE_TYPE_LABELS: Record<string, string> = {
-  associate: "Associate Degree",
-  bachelor: "Bachelor's Degree",
-  master: "Master's Degree",
-  doctorate: "Doctorate",
-  diploma: "Diploma / Certificate",
-};
+const LANGUAGE_LEVEL_KEYS = ["native", "c2", "c1", "b2", "b1", "a2", "a1"] as const;
+const DEGREE_TYPE_KEYS = ["associate", "bachelor", "master", "doctorate", "diploma"] as const;
 
 const DEFAULT_DURATION = 25;
 
@@ -172,7 +160,8 @@ const buildWeeklySchedule = (
   availability: MentorDetailModel["availability"],
   mentorTimeZone: string,
   viewerTimeZone: string,
-  weekStartParts: DateOnlyParts
+  weekStartParts: DateOnlyParts,
+  dateLocale: string = "en-US"
 ): WeeklySchedule => {
   const rangeEndParts = addDaysToDateParts(weekStartParts, 6);
   const rangeLabel =
@@ -210,7 +199,7 @@ const buildWeeklySchedule = (
 
   const days: WeeklySchedule["days"] = [];
   const scheduleMap = new Map<string, Set<string>>();
-  const weekdayFormatter = new Intl.DateTimeFormat("en-US", {
+  const weekdayFormatter = new Intl.DateTimeFormat(dateLocale, {
     timeZone: viewerTimeZone,
     weekday: "short",
   });
@@ -316,6 +305,8 @@ export const MentorDetail = ({
   onCloseBooking,
   onTimeSlotClick,
 }: Props) => {
+  const t = useTranslations("mentors");
+  const locale = useLocale();
   const user = useUser();
   const [bioExpanded, setBioExpanded] = useState(false);
   const [canExpandBio, setCanExpandBio] = useState(false);
@@ -405,9 +396,10 @@ export const MentorDetail = ({
         mentor.availability,
         mentor.timezone,
         selectedTimezone,
-        weekStartParts
+        weekStartParts,
+        locale
       ),
-    [mentor.availability, mentor.timezone, selectedTimezone, weekStartParts]
+    [mentor.availability, mentor.timezone, selectedTimezone, weekStartParts, locale]
   );
 
   const displayedReviews = reviewExpanded
@@ -416,7 +408,7 @@ export const MentorDetail = ({
   const languageList =
     mentor.spokenLanguages.length > 0
       ? mentor.spokenLanguages
-      : [{ name: "Not registered", level: "" }];
+      : [{ name: t("detail.notRegistered"), level: "" }];
 
   return (
     <div className="bg-surface">
@@ -444,9 +436,8 @@ export const MentorDetail = ({
                     <h1 className="text-3xl font-semibold text-primary">
                       {mentor.name}
                     </h1>
-                    {/* Subtitle: "From {countryName}" */}
                     <p className="mt-1 flex flex-wrap items-center gap-2 text-secondary">
-                      From {countryName}
+                      {t("detail.from", { country: countryName })}
                       <span className="inline-flex items-center rounded border border-border bg-white px-0.5 py-0.5">
                         <Flag
                           code={mentor.country}
@@ -461,13 +452,12 @@ export const MentorDetail = ({
                       {mentor.intro}
                     </p>
                   )}
-                  {/* Subjects: Inline format */}
                   <p className="break-all text-sm text-secondary">
                     <span className="font-semibold text-primary">
-                      Subjects:{" "}
+                      {t("detail.subjects")}:{" "}
                     </span>
                     {mentor.subjects.length === 0
-                      ? "Not registered"
+                      ? t("detail.notRegistered")
                       : mentor.subjects.join(", ")}
                   </p>
                 </div>
@@ -476,7 +466,7 @@ export const MentorDetail = ({
 
             {/* About Me */}
             <section className="pb-8 border-b border-border last:border-b-0 last:pb-0">
-              <h2 className="text-xl font-semibold text-primary">About Me</h2>
+              <h2 className="text-xl font-semibold text-primary">{t("detail.aboutMe")}</h2>
               <p
                 ref={bioRef}
                 className={`mt-4 break-all text-secondary whitespace-pre-wrap leading-relaxed ${
@@ -491,14 +481,14 @@ export const MentorDetail = ({
                   onClick={() => setBioExpanded((prev) => !prev)}
                   className="mt-3 text-accent hover:underline text-sm font-medium"
                 >
-                  {bioExpanded ? "Show less" : "Read more"}
+                  {bioExpanded ? t("showLess") : t("readMore")}
                 </button>
               )}
             </section>
 
             {/* Languages */}
             <section className="pb-8 border-b border-border last:border-b-0 last:pb-0">
-              <h2 className="text-xl font-semibold text-primary">Languages</h2>
+              <h2 className="text-xl font-semibold text-primary">{t("detail.languages")}</h2>
               <div className="flex flex-wrap items-center gap-4 mt-4">
                 {languageList.map((lang, idx) => (
                   <span
@@ -508,8 +498,9 @@ export const MentorDetail = ({
                     {lang.name}
                     {lang.level && (
                       <span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded text-sm font-medium">
-                        {LANGUAGE_LEVEL_LABELS[lang.level] ??
-                          lang.level.toUpperCase()}
+                        {(LANGUAGE_LEVEL_KEYS as readonly string[]).includes(lang.level)
+                          ? t(`languageLevel.${lang.level}`)
+                          : lang.level.toUpperCase()}
                       </span>
                     )}
                   </span>
@@ -522,23 +513,21 @@ export const MentorDetail = ({
               {/* Header: "Student Reviews" + Info icon with tooltip */}
               <div className="flex items-center gap-2">
                 <h2 className="text-xl font-semibold text-primary">
-                  Student Reviews
+                  {t("detail.studentReviews")}
                 </h2>
                 <div className="relative group">
                   <Info className="w-4 h-4 text-muted cursor-help" />
                   {/* Tooltip with arrow pointing to icon */}
                   <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:block z-10">
                     <div className="bg-gray-900 text-white text-xs rounded-lg px-3 py-2 w-64">
-                      Only reviews from students who have taken lessons with
-                      this tutor are posted. See our{" "}
+                      {t("detail.reviewTooltip")}{" "}
                       <a
                         href="#"
                         onClick={(e) => e.preventDefault()}
                         className="text-blue-400 hover:underline"
                       >
-                        Terms of Service
-                      </a>{" "}
-                      for details.
+                        {t("detail.termsOfService")}
+                      </a>
                     </div>
                     {/* Arrow pointing down to icon */}
                     <div
@@ -564,13 +553,13 @@ export const MentorDetail = ({
                   <span className="text-yellow-500 text-xl">★</span>
                 </span>
                 <p className="text-sm text-muted">
-                  Based on {mentor.reviewCount} student reviews
+                  {t("detail.basedOnReviews", { count: mentor.reviewCount })}
                 </p>
               </div>
 
               <div className="mt-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                 {displayedReviews.length === 0 ? (
-                  <p className="text-sm text-muted">No reviews yet.</p>
+                  <p className="text-sm text-muted">{t("detail.noReviews")}</p>
                 ) : (
                   displayedReviews.map((review) => (
                     <article
@@ -589,7 +578,7 @@ export const MentorDetail = ({
                             </p>
                             <span className="text-xs text-muted">
                               {new Date(review.createdAt).toLocaleDateString(
-                                "en-US",
+                                locale,
                                 {
                                   month: "short",
                                   day: "numeric",
@@ -605,7 +594,7 @@ export const MentorDetail = ({
                         </div>
                       </div>
                       <p className="mt-3 text-sm text-secondary leading-relaxed">
-                        {review.comment || "No comment provided."}
+                        {review.comment || t("detail.noComment")}
                       </p>
                     </article>
                   ))
@@ -620,8 +609,8 @@ export const MentorDetail = ({
                     className="px-6 py-2 border border-border rounded-full text-sm text-primary hover:bg-surface-hover transition"
                   >
                     {reviewExpanded
-                      ? "Show less"
-                      : `Show all ${mentor.reviewCount} reviews`}
+                      ? t("showLess")
+                      : t("detail.showAllReviews", { count: mentor.reviewCount })}
                   </button>
                 </div>
               )}
@@ -629,7 +618,7 @@ export const MentorDetail = ({
 
             {/* Schedule */}
             <section className="pb-8 border-b border-border last:border-b-0 last:pb-0">
-              <h2 className="text-xl font-semibold text-primary">Schedule</h2>
+              <h2 className="text-xl font-semibold text-primary">{t("detail.schedule")}</h2>
 
               {scheduleOpen && (
                 <>
@@ -637,8 +626,7 @@ export const MentorDetail = ({
                   <div className="mt-4 flex items-start gap-3 rounded-xl bg-gray-100 px-4 py-3 text-sm text-gray-700">
                     <Info className="h-4 w-4 mt-0.5 flex-shrink-0" />
                     <p>
-                      Select a time for your first lesson. Times are shown in
-                      your timezone.
+                      {t("detail.scheduleInfo")}
                     </p>
                   </div>
 
@@ -748,7 +736,7 @@ export const MentorDetail = ({
 
                   {!weeklySchedule.hasAnySlots && (
                     <p className="mt-4 text-sm text-muted">
-                      No available times currently.
+                      {t("detail.noAvailableTimes")}
                     </p>
                   )}
                 </>
@@ -761,20 +749,19 @@ export const MentorDetail = ({
                   onClick={() => setScheduleOpen((prev) => !prev)}
                   className="px-6 py-2 border border-border rounded-full text-sm text-primary hover:bg-surface-hover transition"
                 >
-                  {scheduleOpen ? "Hide schedule" : "Show full schedule"}
+                  {scheduleOpen ? t("detail.hideSchedule") : t("detail.showFullSchedule")}
                 </button>
               </div>
             </section>
 
             {/* Resume */}
             <section className="pb-8 border-b border-border last:border-b-0 last:pb-0">
-              <h2 className="text-xl font-semibold text-primary">Resume</h2>
-              {/* 3 tabs: Education, Work Experience, Certificates */}
+              <h2 className="text-xl font-semibold text-primary">{t("detail.resume")}</h2>
               <div className="mt-4 flex gap-2">
                 {[
-                  { id: "education", label: "Education" },
-                  { id: "work", label: "Work Experience" },
-                  { id: "certificate", label: "Certificates" },
+                  { id: "education", label: t("detail.education") },
+                  { id: "work", label: t("detail.workExperience") },
+                  { id: "certificate", label: t("detail.certificates") },
                 ].map((tab) => (
                   <button
                     key={tab.id}
@@ -799,30 +786,31 @@ export const MentorDetail = ({
                 {activeCareerTab === "education" ? (
                   mentor.hasNoDegree ? (
                     <div className="space-y-1">
-                      <p className="font-semibold text-primary">No Degree</p>
+                      <p className="font-semibold text-primary">{t("detail.noDegree")}</p>
                       <p className="text-sm text-muted">
-                        No education information registered.
+                        {t("detail.noEducation")}
                       </p>
                     </div>
                   ) : (
                     <div className="space-y-1">
                       <p className="text-base font-semibold text-primary">
-                        {mentor.university || "University not registered"}
+                        {mentor.university || t("detail.universityNotRegistered")}
                       </p>
                       <p className="text-sm text-secondary">
-                        {mentor.degree || "Degree not registered"}
+                        {mentor.degree || t("detail.degreeNotRegistered")}
                         {mentor.degreeType && (
                           <span className="ml-2 text-muted">
                             (
-                            {DEGREE_TYPE_LABELS[mentor.degreeType] ??
-                              mentor.degreeType}
+                            {(DEGREE_TYPE_KEYS as readonly string[]).includes(mentor.degreeType)
+                              ? t(`degreeType.${mentor.degreeType}`)
+                              : mentor.degreeType}
                             )
                           </span>
                         )}
                       </p>
                       {mentor.specialization && (
                         <p className="text-sm text-secondary">
-                          Major:{" "}
+                          {t("detail.major")}:{" "}
                           <span className="text-primary">
                             {mentor.specialization}
                           </span>
@@ -837,12 +825,12 @@ export const MentorDetail = ({
                     </div>
                   ) : (
                     <p className="text-sm text-muted">
-                      No work experience registered yet.
+                      {t("detail.noWorkExperience")}
                     </p>
                   )
                 ) : (
                   <p className="text-sm text-muted">
-                    No certificates registered yet.
+                    {t("detail.noCertificates")}
                   </p>
                 )}
               </div>
@@ -851,12 +839,12 @@ export const MentorDetail = ({
             {/* My Specialties */}
             <section className="pb-8 border-b border-border last:border-b-0 last:pb-0">
               <h2 className="text-xl font-semibold text-primary">
-                My Specialties
+                {t("detail.mySpecialties")}
               </h2>
               <div className="mt-4 divide-y divide-border">
                 {mentor.specialties.length === 0 ? (
                   <p className="text-sm text-muted">
-                    No specialties registered.
+                    {t("detail.noSpecialties")}
                   </p>
                 ) : (
                   mentor.specialties.map((item, index) => (
@@ -880,8 +868,7 @@ export const MentorDetail = ({
                       </button>
                       {openSpecialtyIndex === index && (
                         <p className="mt-2 text-sm text-secondary">
-                          Contact me via message to discuss specific lesson
-                          content in this area.
+                          {t("detail.specialtyDescription")}
                         </p>
                       )}
                     </div>
@@ -903,20 +890,18 @@ export const MentorDetail = ({
                     </span>
                   </div>
                   <p className="text-xs text-muted">
-                    {mentor.reviewCount} reviews
+                    {t("reviews", { count: mentor.reviewCount })}
                   </p>
                 </div>
                 <div className="text-center">
                   <span className="text-2xl font-bold text-primary">
                     {mentor.lessons}
                   </span>
-                  <p className="text-xs text-muted">Lessons</p>
+                  <p className="text-xs text-muted">{t("detail.lessons")}</p>
                 </div>
                 <div className="text-center">
-                  <span className="text-2xl font-bold text-primary">
-                    ${mentor.price}
-                  </span>
-                  <p className="text-xs text-muted">50-min lesson</p>
+                  <PriceDisplay amountUSD={mentor.price} className="text-2xl font-bold text-primary" showHelper={false} />
+                  <p className="text-xs text-muted">{t("detail.lessonDurationShort")}</p>
                 </div>
               </div>
 
@@ -926,7 +911,7 @@ export const MentorDetail = ({
                 onClick={onOpenBooking}
               >
                 <Zap className="w-5 h-5" />
-                Book Lesson
+                {t("bookLesson")}
               </button>
 
               <button
@@ -934,7 +919,7 @@ export const MentorDetail = ({
                 onClick={() => setIsMessageOpen(true)}
               >
                 <MessageCircle className="w-5 h-5" />
-                Send Message
+                {t("detail.sendMessage")}
               </button>
 
               <FavoriteToggleButton

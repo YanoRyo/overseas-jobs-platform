@@ -1,7 +1,8 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { useUser } from '@supabase/auth-helpers-react';
-import { useRouter } from 'next/navigation';
+import { useRouter } from '@/i18n/navigation';
 import { useMentorRegistration } from '../hooks/useMentorRegistration';
 import { AuthModal } from '@/features/auth/components/AuthModal';
 import { ProgressIndicator } from './ProgressIndicator';
@@ -14,6 +15,7 @@ import { AvailabilityStep } from './steps/AvailabilityStep';
 import { PricingStep } from './steps/PricingStep';
 
 export const MentorRegistration = () => {
+  const t = useTranslations('mentorRegistration');
   const user = useUser();
   const router = useRouter();
 
@@ -169,8 +171,8 @@ export const MentorRegistration = () => {
         open={isLoggedOut}
         onClose={() => router.push('/')}
         initialRole="mentor"
-        title="Create your account"
-        description="An account is required to register as a mentor."
+        title={t('accountRequired')}
+        description={t('accountRequiredDescription')}
         redirectOnClose="/"
       />
     </div>

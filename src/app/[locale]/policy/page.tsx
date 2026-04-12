@@ -1,11 +1,14 @@
 import type { Metadata } from "next";
-import Link from "next/link";
+import { getTranslations } from "next-intl/server";
+import { Link } from "@/i18n/navigation";
 
-export const metadata: Metadata = {
-  title: "Terms & Privacy Policy | Bridgeee",
-  description:
-    "Review the Bridgeee Terms of Service and Privacy Policy before using the platform.",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("policy");
+  return {
+    title: t("metaTitle"),
+    description: t("metaDescription"),
+  };
+}
 
 const LAST_UPDATED = "April 9, 2026";
 
@@ -177,48 +180,44 @@ function PolicySection({
   );
 }
 
-export default function PolicyPage() {
+export default async function PolicyPage() {
+  const t = await getTranslations("policy");
   return (
     <div className="min-h-screen bg-[#fafafb]">
       <main className="mx-auto max-w-[960px] px-6 py-12">
         <div className="rounded-3xl border border-border bg-white p-8 shadow-sm">
           <p className="text-sm font-semibold uppercase tracking-[0.18em] text-accent">
-            Bridgeee Legal
+            {t("legalLabel")}
           </p>
           <h1 className="mt-3 text-4xl font-semibold tracking-tight text-primary">
-            Terms & Privacy Policy
+            {t("pageTitle")}
           </h1>
           <p className="mt-4 max-w-3xl text-sm leading-7 text-secondary">
-            This page explains the main rules for using Bridgeee and how we
-            handle personal information across accounts, mentor profiles,
-            messages, booking requests, bookings, reviews, and payments.
+            {t("pageDescription")}
           </p>
           <p className="mt-3 text-sm text-muted">
-            Last updated: {LAST_UPDATED}
+            {t("lastUpdated", { date: LAST_UPDATED })}
           </p>
 
           <div className="mt-6 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm leading-6 text-amber-900">
-            This is a product-ready policy draft for Bridgeee and should be
-            reviewed by your legal advisor before production launch.
+            {t("draftNotice")}
           </div>
 
           <div className="mt-8 grid gap-4 md:grid-cols-2">
             <div className="rounded-2xl border border-border bg-[#fafafb] p-5">
               <h2 className="text-lg font-semibold text-primary">
-                Terms of Service
+                {t("termsTitle")}
               </h2>
               <p className="mt-2 text-sm leading-6 text-secondary">
-                Covers who can use Bridgeee, how lessons and payments work, and
-                the rules for messages, profiles, and reviews.
+                {t("termsDescription")}
               </p>
             </div>
             <div className="rounded-2xl border border-border bg-[#fafafb] p-5">
               <h2 className="text-lg font-semibold text-primary">
-                Privacy Policy
+                {t("privacyTitle")}
               </h2>
               <p className="mt-2 text-sm leading-6 text-secondary">
-                Explains what information Bridgeee collects, how it is used,
-                when it is shared, and what choices users may have.
+                {t("privacyDescription")}
               </p>
             </div>
           </div>
@@ -228,13 +227,13 @@ export default function PolicyPage() {
               href="#terms"
               className="rounded-full border border-border px-4 py-2 font-medium text-primary transition hover:bg-surface-hover"
             >
-              Jump to Terms
+              {t("jumpToTerms")}
             </Link>
             <Link
               href="#privacy"
               className="rounded-full border border-border px-4 py-2 font-medium text-primary transition hover:bg-surface-hover"
             >
-              Jump to Privacy
+              {t("jumpToPrivacy")}
             </Link>
           </div>
         </div>
@@ -243,11 +242,10 @@ export default function PolicyPage() {
           <section id="terms" className="scroll-mt-24">
             <div className="mb-5">
               <h2 className="text-3xl font-semibold text-primary">
-                Terms of Service
+                {t("termsTitle")}
               </h2>
               <p className="mt-2 text-sm leading-7 text-secondary">
-                These terms describe the rules for using Bridgeee as a student,
-                mentor, or other account holder.
+                {t("termsSubDescription")}
               </p>
             </div>
 
@@ -261,11 +259,10 @@ export default function PolicyPage() {
           <section id="privacy" className="scroll-mt-24">
             <div className="mb-5">
               <h2 className="text-3xl font-semibold text-primary">
-                Privacy Policy
+                {t("privacyTitle")}
               </h2>
               <p className="mt-2 text-sm leading-7 text-secondary">
-                This policy explains how Bridgeee collects, uses, stores, and
-                shares information when people use the platform.
+                {t("privacySubDescription")}
               </p>
             </div>
 

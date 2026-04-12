@@ -1,7 +1,8 @@
 "use client";
 
 import { Heart } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { usePathname, useRouter } from "@/i18n/navigation";
 import { useSessionContext, useUser } from "@supabase/auth-helpers-react";
 
 import MentorCard from "@/components/MentorCard";
@@ -9,6 +10,7 @@ import MentorCard from "@/components/MentorCard";
 import { useFavorites } from "../context/FavoritesContext";
 
 export function FavoritesPageContent() {
+  const t = useTranslations("favorites");
   const router = useRouter();
   const pathname = usePathname();
   const user = useUser();
@@ -23,16 +25,16 @@ export function FavoritesPageContent() {
             <Heart className="h-7 w-7 fill-[#e11d48] text-[#e11d48]" />
           </div>
           <div>
-            <h1 className="text-3xl font-bold text-[#111827]">Favorites</h1>
+            <h1 className="text-3xl font-bold text-[#111827]">{t("title")}</h1>
             <p className="mt-1 text-sm text-gray-500">
-              Saved mentors will appear here.
+              {t("subtitle")}
             </p>
           </div>
         </div>
 
         {loading || authLoading ? (
           <div className="py-16 text-center text-sm text-gray-500">
-            Loading favorites...
+            {t("loadingFavorites")}
           </div>
         ) : !user ? (
           <div className="rounded-3xl border border-[#e5e7eb] bg-white px-6 py-16 text-center shadow-sm">
@@ -40,11 +42,10 @@ export function FavoritesPageContent() {
               <Heart className="h-8 w-8 text-[#e11d48]" />
             </div>
             <h2 className="mt-5 text-2xl font-semibold text-[#111827]">
-              Log in to save favorites
+              {t("loginToSave")}
             </h2>
             <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-gray-500">
-              Save mentors from the list or detail page and access them quickly
-              from here.
+              {t("loginDescription")}
             </p>
             <button
               type="button"
@@ -54,7 +55,7 @@ export function FavoritesPageContent() {
               }}
               className="mt-5 rounded-full bg-[#111827] px-5 py-2 text-sm font-semibold text-white"
             >
-              Log In
+              {t("loginButton")}
             </button>
           </div>
         ) : favoriteMentors.length === 0 ? (
@@ -63,18 +64,17 @@ export function FavoritesPageContent() {
               <Heart className="h-8 w-8 text-[#e11d48]" />
             </div>
             <h2 className="mt-5 text-2xl font-semibold text-[#111827]">
-              No favorites yet
+              {t("noFavorites")}
             </h2>
             <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-gray-500">
-              Save mentors from the list or detail page and access them quickly
-              from here.
+              {t("noFavoritesDescription")}
             </p>
             <button
               type="button"
               onClick={() => router.push("/")}
               className="mt-5 rounded-full bg-[#111827] px-5 py-2 text-sm font-semibold text-white"
             >
-              Browse mentors
+              {t("browseMentors")}
             </button>
           </div>
         ) : (

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { MentorSettingsPricingForm } from "../../types/mentorSettings";
 
 type Props = {
@@ -11,10 +12,13 @@ type Props = {
 };
 
 export function PricingSection({ data, saving, message, onChange, onSave }: Props) {
+  const t = useTranslations("settings.mentorSections");
+  const tc = useTranslations("common");
+
   return (
     <div className="space-y-4">
       <div>
-        <label className="mb-1 block text-sm font-medium text-[#2d3348]">Hourly rate (USD)</label>
+        <label className="mb-1 block text-sm font-medium text-[#2d3348]">{t("hourlyRate")}</label>
         <input
           type="number"
           min={10}
@@ -33,7 +37,7 @@ export function PricingSection({ data, saving, message, onChange, onSave }: Prop
           disabled={saving}
           className="h-11 w-full rounded-[10px] border-2 border-[#1d4ed8] bg-[#2563eb] text-lg font-semibold text-white disabled:opacity-60"
         >
-          {saving ? "Saving..." : "Save changes"}
+          {saving ? tc("saving") : tc("save")}
         </button>
         {message && <p className="mt-2 text-sm text-[#5e6478]">{message}</p>}
       </div>

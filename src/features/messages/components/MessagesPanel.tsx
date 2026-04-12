@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { X } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 import type { MessageTab } from "@/features/messages/types/messageTab";
 import type { ConversationItem as ConversationItemType } from "../types/conversationItem";
@@ -10,6 +11,7 @@ import { ConversationList } from "./ConversationList";
 import { ConversationDetail } from "./ConversationDetail";
 
 export function MessagesPanel({ onClose }: { onClose: () => void }) {
+  const t = useTranslations("messages");
   const [activeTab, setActiveTab] = useState<MessageTab>("all");
   const [activeConversation, setActiveConversation] =
     useState<ConversationItemType | null>(null);
@@ -28,7 +30,7 @@ export function MessagesPanel({ onClose }: { onClose: () => void }) {
       {/* Header */}
       <div className="flex items-center justify-between px-5 py-4 border-b">
         <h2 className="text-base font-semibold truncate">
-          {activeConversation ? activeConversation.partnerName : "Messages"}
+          {activeConversation ? activeConversation.partnerName : t("title")}
         </h2>
 
         <button aria-label="close" onClick={onClose}>
@@ -50,13 +52,13 @@ export function MessagesPanel({ onClose }: { onClose: () => void }) {
               active={activeTab === "all"}
               onClick={() => setActiveTab("all")}
             >
-              All
+              {t("all")}
             </TabButton>
             <TabButton
               active={activeTab === "unread"}
               onClick={() => setActiveTab("unread")}
             >
-              Unread
+              {t("unread")}
             </TabButton>
           </div>
 

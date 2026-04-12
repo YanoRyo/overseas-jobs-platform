@@ -7,12 +7,16 @@ import {
   useElements,
 } from "@stripe/react-stripe-js";
 import { ShieldCheck } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 
 export const PaymentSection = ({
   amountCents,
 }: {
   amountCents: number | null;
 }) => {
+  const t = useTranslations("checkout");
+  const locale = useLocale();
   const stripe = useStripe();
   const elements = useElements();
   const [processing, setProcessing] = useState(false);
@@ -31,20 +35,20 @@ export const PaymentSection = ({
     const { error: confirmError } = await stripe.confirmPayment({
       elements,
       confirmParams: {
-        return_url: `${window.location.origin}/checkout/complete`,
+        return_url: `${window.location.origin}/${locale}/checkout/complete`,
       },
     });
 
     // confirmPaymentはリダイレクトするので、ここに到達するのはエラー時のみ
     if (confirmError) {
-      setError(confirmError.message ?? "Payment failed.");
+      setError(confirmError.message ?? t("paymentFailed"));
       setProcessing(false);
     }
   };
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <h2 className="text-xl font-semibold border-b pb-2">Payment method</h2>
+      <h2 className="text-xl font-semibold border-b pb-2">{t("paymentMethod")}</h2>
 
       <div className="rounded-[10px] border border-[#cfd3e1] bg-white p-4">
         <PaymentElement />
@@ -53,9 +57,9 @@ export const PaymentSection = ({
       <div className="flex items-start gap-3 rounded-lg border border-[#2563eb]/20 bg-[#2563eb]/5 p-3">
         <ShieldCheck className="mt-0.5 h-5 w-5 shrink-0 text-[#2563eb]" />
         <div>
-          <p className="text-sm font-medium text-[#1f1f2d]">Secure escrow payment</p>
+          <p className="text-sm font-medium text-[#1f1f2d]">{t("secureEscrow")}</p>
           <p className="text-xs text-[#606579]">
-            Your payment will be held safely until the lesson is completed.
+            {t("escrowDescription")}
           </p>
         </div>
       </div>
@@ -67,7 +71,7 @@ export const PaymentSection = ({
         disabled={!stripe || processing}
         className="h-11 w-full rounded-[10px] border-2 border-[#1d4ed8] bg-[#2563eb] text-lg font-semibold text-white hover:bg-[#1d4ed8] disabled:opacity-60"
       >
-        {processing ? "Processing..." : `Pay $${displayAmount}`}
+        {processing ? t("processing") : t("pay", { amount: displayAmount })}
       </button>
     </form>
   );

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { MentorSettingsDescriptionForm } from "../../types/mentorSettings";
 
 type Props = {
@@ -17,10 +18,13 @@ export function DescriptionSection({
   onChange,
   onSave,
 }: Props) {
+  const t = useTranslations("settings.mentorSections");
+  const tc = useTranslations("common");
+
   return (
     <div className="space-y-4">
       <div>
-        <label className="mb-1 block text-sm font-medium text-[#2d3348]">Introduce yourself</label>
+        <label className="mb-1 block text-sm font-medium text-[#2d3348]">{t("introduceYourself")}</label>
         <textarea
           rows={6}
           value={data.introduction}
@@ -30,7 +34,7 @@ export function DescriptionSection({
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium text-[#2d3348]">Work experience</label>
+        <label className="mb-1 block text-sm font-medium text-[#2d3348]">{t("workExperience")}</label>
         <textarea
           rows={4}
           value={data.workExperience}
@@ -40,7 +44,7 @@ export function DescriptionSection({
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium text-[#2d3348]">Motivate potential students</label>
+        <label className="mb-1 block text-sm font-medium text-[#2d3348]">{t("motivateStudents")}</label>
         <textarea
           rows={4}
           value={data.motivation}
@@ -50,7 +54,7 @@ export function DescriptionSection({
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium text-[#2d3348]">Headline</label>
+        <label className="mb-1 block text-sm font-medium text-[#2d3348]">{t("headline")}</label>
         <input
           type="text"
           value={data.headline}
@@ -66,7 +70,7 @@ export function DescriptionSection({
           disabled={saving}
           className="h-11 w-full rounded-[10px] border-2 border-[#1d4ed8] bg-[#2563eb] text-lg font-semibold text-white disabled:opacity-60"
         >
-          {saving ? "Saving..." : "Save changes"}
+          {saving ? tc("saving") : tc("save")}
         </button>
         {message && <p className="mt-2 text-sm text-[#5e6478]">{message}</p>}
       </div>

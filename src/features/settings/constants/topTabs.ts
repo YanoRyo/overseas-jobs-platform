@@ -13,28 +13,28 @@ export type SettingsTopTab = {
 export const SETTINGS_TOP_TABS: SettingsTopTab[] = [
   {
     id: "home",
-    label: "Home",
+    label: "home",
     href: "/",
     clickable: true,
     roles: ["student"],
   },
   {
     id: "messages",
-    label: "Messages",
+    label: "messages",
     href: "/settings?tab=messages",
     clickable: true,
     roles: ["mentor", "student"],
   },
   {
     id: "my-lessons",
-    label: "My lessons",
+    label: "myLessons",
     href: "/settings?tab=my-lessons",
     clickable: true,
     roles: ["mentor", "student"],
   },
   {
     id: "settings",
-    label: "Settings",
+    label: "settings",
     href: "/settings",
     clickable: true,
     roles: ["mentor", "student"],

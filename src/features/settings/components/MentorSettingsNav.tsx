@@ -1,22 +1,23 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { MentorSettingsSection } from "../types/mentorSettings";
 import { SettingsNavBase } from "./SettingsNavBase";
 
-const BASE_SECTIONS: { id: MentorSettingsSection; label: string }[] = [
-  { id: "about", label: "About" },
-  { id: "photo", label: "Photo" },
-  { id: "education", label: "Education" },
-  { id: "description", label: "Description" },
-  { id: "video", label: "Video" },
-  { id: "availability", label: "Availability" },
-  { id: "pricing", label: "Pricing" },
-  { id: "payout", label: "Payout" },
+const BASE_SECTION_KEYS: { id: MentorSettingsSection; labelKey: string }[] = [
+  { id: "about", labelKey: "about" },
+  { id: "photo", labelKey: "photo" },
+  { id: "education", labelKey: "education" },
+  { id: "description", labelKey: "description" },
+  { id: "video", labelKey: "video" },
+  { id: "availability", labelKey: "availability" },
+  { id: "pricing", labelKey: "pricing" },
+  { id: "payout", labelKey: "payout" },
 ];
 
-const SECTIONS_WITH_PASSWORD: { id: MentorSettingsSection; label: string }[] = [
-  ...BASE_SECTIONS,
-  { id: "password", label: "Password" },
+const SECTIONS_WITH_PASSWORD_KEYS: { id: MentorSettingsSection; labelKey: string }[] = [
+  ...BASE_SECTION_KEYS,
+  { id: "password", labelKey: "password" },
 ];
 
 type Props = {
@@ -26,7 +27,9 @@ type Props = {
 };
 
 export function MentorSettingsNav({ active, onChange, showPassword }: Props) {
-  const sections = showPassword ? SECTIONS_WITH_PASSWORD : BASE_SECTIONS;
+  const t = useTranslations("settings.mentorNav");
+  const sectionKeys = showPassword ? SECTIONS_WITH_PASSWORD_KEYS : BASE_SECTION_KEYS;
+  const sections = sectionKeys.map((s) => ({ id: s.id, label: t(s.labelKey) }));
   return (
     <SettingsNavBase items={sections} active={active} onChange={onChange} />
   );

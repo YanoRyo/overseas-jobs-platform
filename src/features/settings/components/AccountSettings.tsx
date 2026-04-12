@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import Image from "next/image";
+import { useTranslations } from "next-intl";
 import { useProfile } from "../hooks/useProfile";
 import { useAvatarUpload } from "../hooks/useAvatarUpload";
 import { AvatarCropModal } from "./AvatarCropModal";
@@ -9,6 +10,8 @@ import { COUNTRIES } from "@/features/shared/constants/options";
 import { TIMEZONE_OPTIONS } from "@/features/shared/constants/options";
 
 export function AccountSettings() {
+  const t = useTranslations("settings");
+  const tc = useTranslations("common");
   const { user, profile, loading, updateProfile, refetch } = useProfile();
   const { uploadAvatar, uploading } = useAvatarUpload();
 
@@ -46,7 +49,7 @@ export function AccountSettings() {
 
     // 2MB制限
     if (file.size > 2 * 1024 * 1024) {
-      setMsg("File size must be <= 2MB");
+      setMsg(t("fileSizeLimit"));
       return;
     }
 
@@ -62,7 +65,7 @@ export function AccountSettings() {
   const onSaveAvatar = async (croppedFile: File) => {
     const res = await uploadAvatar(croppedFile);
     if (!res.ok) {
-      setMsg("Upload failed");
+      setMsg(t("uploadFailed"));
       return;
     }
 
@@ -70,7 +73,7 @@ export function AccountSettings() {
 
     setCropOpen(false);
     setPickedFile(null);
-    setMsg("Uploaded!");
+    setMsg(t("uploaded"));
   };
 
   const onSave = async () => {
@@ -86,7 +89,7 @@ export function AccountSettings() {
       timezone: timezone,
     });
 
-    setMsg(res.ok ? "Saved!" : "Save failed");
+    setMsg(res.ok ? t("saved") : t("saveFailed"));
     setSaving(false);
   };
 
@@ -101,7 +104,7 @@ export function AccountSettings() {
         }}
         onSave={onSaveAvatar}
       />
-      <h1 className="mb-6 text-3xl font-bold sm:text-4xl">Account Settings</h1>
+      <h1 className="mb-6 text-3xl font-bold sm:text-4xl">{t("accountSettings")}</h1>
 
       <div className="flex flex-col gap-8 lg:flex-row lg:items-start lg:gap-10">
         {/* 左：プロフィール画像 */}
@@ -121,7 +124,7 @@ export function AccountSettings() {
         <div className="w-full min-w-0 flex-1 max-w-2xl">
           <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
             <label className="px-4 py-2 rounded-lg border hover:bg-gray-50 text-sm font-semibold cursor-pointer">
-              Upload photo
+              {t("uploadPhoto")}
               <input
                 type="file"
                 accept="image/png,image/jpeg"
@@ -132,15 +135,15 @@ export function AccountSettings() {
             </label>
 
             <div className="text-xs text-gray-500">
-              Maximum size – 2MB
+              {t("maxSize")}
               <br />
-              JPG or PNG format
+              {t("formatHint")}
             </div>
           </div>
 
           {/* 名前 */}
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            First name • Required
+            {t("firstNameRequired")}
           </label>
           <input
             value={firstName}
@@ -150,7 +153,7 @@ export function AccountSettings() {
           />
 
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Last name
+            {t("lastName")}
           </label>
           <input
             value={lastName}
@@ -161,7 +164,7 @@ export function AccountSettings() {
 
           {/* 電話番号 */}
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Phone number
+            {t("phoneNumber")}
           </label>
 
           <div className="mb-4 flex flex-col gap-2 sm:flex-row">
@@ -182,7 +185,7 @@ export function AccountSettings() {
               type="tel"
               value={phoneNumber}
               onChange={(e) => setPhoneNumber(e.target.value)}
-              placeholder="123-456-7890"
+              placeholder={t("phonePlaceholder")}
               className="w-full flex-1 border rounded-lg px-3 py-2 bg-white text-gray-900 placeholder:text-gray-400 border-gray-300 focus:outline-none focus:ring-2 focus:ring-black"
               disabled={!canEdit}
             />
@@ -190,7 +193,7 @@ export function AccountSettings() {
 
           {/* タイムゾーン */}
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Timezone
+            {t("timezone")}
           </label>
 
           <select
@@ -214,7 +217,7 @@ export function AccountSettings() {
               disabled={!canEdit || saving}
               className="h-11 w-full rounded-[10px] border-2 border-[#1d4ed8] bg-[#2563eb] text-lg font-semibold text-white disabled:opacity-60"
             >
-              {saving ? "Saving..." : "Save changes"}
+              {saving ? tc("saving") : tc("save")}
             </button>
 
             {msg && <div className="text-sm text-[#606579]">{msg}</div>}

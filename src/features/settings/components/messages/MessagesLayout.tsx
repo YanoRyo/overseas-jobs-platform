@@ -1,8 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { MessageSquare } from "lucide-react";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname, useRouter } from "@/i18n/navigation";
 
 import { ConversationDetail } from "@/features/messages/components/ConversationDetail";
 import { ConversationItem as ConversationListItem } from "@/features/messages/components/ConversationItem";
@@ -19,42 +20,11 @@ type Props = {
   showMentorRegistrationCallout?: boolean;
 };
 
-function buildTabs(role: Props["role"]) {
-  return [
-    ...(role === "student"
-      ? [{ id: "home", label: "Home", href: "/", clickable: true, roles: [role] }]
-      : []),
-    {
-      id: "messages",
-      label: "Messages",
-      href: "/settings?tab=messages",
-      clickable: true,
-      roles: [role],
-    },
-    {
-      id: "my-lessons",
-      label: "My lessons",
-      href: "/settings?tab=my-lessons",
-      clickable: true,
-      roles: [role],
-    },
-    {
-      id: "settings",
-      label: "Settings",
-      href: "/settings",
-      clickable: true,
-      roles: [role],
-    },
-  ];
-}
-
 export function MessagesLayout({ role, showMentorRegistrationCallout = false }: Props) {
-  const tabs = buildTabs(role);
-
   if (showMentorRegistrationCallout) {
     return (
       <div className="min-h-screen bg-white">
-        <SettingsTopTabs role={role} activeTabId="messages" tabs={tabs} />
+        <SettingsTopTabs role={role} activeTabId="messages" />
 
         <main className="mx-auto max-w-[1200px] px-6 py-10">
           <MentorRegistrationCallout />
@@ -63,16 +33,16 @@ export function MessagesLayout({ role, showMentorRegistrationCallout = false }: 
     );
   }
 
-  return <MessagesContent role={role} tabs={tabs} />;
+  return <MessagesContent role={role} />;
 }
 
 function MessagesContent({
   role,
-  tabs,
 }: {
   role: Props["role"];
-  tabs: ReturnType<typeof buildTabs>;
 }) {
+  const t = useTranslations("messages");
+  const tc = useTranslations("common");
   const [activeTab, setActiveTab] = useState<MessageTab>("all");
   const [activeConversation, setActiveConversation] =
     useState<ConversationItem | null>(null);
@@ -115,18 +85,18 @@ function MessagesContent({
 
   return (
     <div className="min-h-screen bg-white">
-      <SettingsTopTabs role={role} activeTabId="messages" tabs={tabs} />
+      <SettingsTopTabs role={role} activeTabId="messages" />
 
       <main className="flex h-[calc(100dvh-7.5rem)] min-h-0 flex-col">
         <div className="shrink-0 border-b border-[#e6e7eb] px-6">
           <div className="flex gap-8 text-[17px] font-medium">
             <MessagesFilterTab
-              label="All"
+              label={t("all")}
               active={activeTab === "all"}
               onClick={() => setActiveTab("all")}
             />
             <MessagesFilterTab
-              label="Unread"
+              label={t("unread")}
               count={unreadCount}
               active={activeTab === "unread"}
               onClick={() => setActiveTab("unread")}
@@ -140,7 +110,7 @@ function MessagesContent({
               {emptyReason === "not_logged_in" ? (
                 <div className="px-5 py-6">
                   <div className="rounded-2xl border border-[#fde68a] bg-[#fffbeb] px-4 py-4 text-sm text-[#92400e]">
-                    Please sign up or log in to view your messages.
+                    {t("loginRequired")}
                     <div className="mt-3 flex gap-2">
                       <button
                         type="button"
@@ -149,7 +119,7 @@ function MessagesContent({
                         }
                         className="rounded-full bg-[#111827] px-4 py-2 text-xs font-semibold text-white"
                       >
-                        Log In
+                        {t("loginButton")}
                       </button>
                       <button
                         type="button"
@@ -158,20 +128,20 @@ function MessagesContent({
                         }
                         className="rounded-full border border-[#111827] px-4 py-2 text-xs font-semibold text-[#111827]"
                       >
-                        Sign Up
+                        {t("signUpButton")}
                       </button>
                     </div>
                   </div>
                 </div>
               ) : loading ? (
                 <div className="px-5 py-6 text-sm text-[#6b7280]">
-                  Loading messages...
+                  {tc("loading")}
                 </div>
               ) : conversations.length === 0 ? (
                 <div className="px-5 py-6 text-sm text-[#6b7280]">
                   {activeTab === "unread"
-                    ? "You have no unread messages."
-                    : "No conversations yet."}
+                    ? t("noUnreadMessages")
+                    : t("noConversations")}
                 </div>
               ) : (
                 conversations.map((conversation) => (
@@ -198,11 +168,10 @@ function MessagesContent({
                   <MessageSquare className="h-8 w-8 text-[#2563eb]" />
                 </div>
                 <h1 className="mt-6 text-2xl font-semibold text-[#1f1f2d]">
-                  Select a conversation
+                  {t("selectConversation")}
                 </h1>
                 <p className="mt-3 max-w-md text-sm leading-6 text-[#606579]">
-                  Open a message thread from the list to read the latest
-                  conversation and reply from here.
+                  {t("selectConversationDescription")}
                 </p>
               </div>
             )}

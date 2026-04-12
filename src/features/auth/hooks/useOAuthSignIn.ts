@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useLocale } from "next-intl";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import type { UserRole } from "../types";
 
@@ -15,6 +16,7 @@ const isUserRole = (value: UserRole | null): value is UserRole =>
 
 export const useOAuthSignIn = (options: UseOAuthSignInOptions) => {
   const supabase = useSupabaseClient();
+  const locale = useLocale();
   const [role, setRole] = useState<UserRole | null>(
     options.initialRole ?? null
   );
@@ -33,7 +35,7 @@ export const useOAuthSignIn = (options: UseOAuthSignInOptions) => {
     if (isUserRole(selectedRole)) {
       params.set("role", selectedRole);
     }
-    return `${window.location.origin}/auth/callback?${params.toString()}`;
+    return `${window.location.origin}/${locale}/auth/callback?${params.toString()}`;
   };
 
   const signInWithProvider = async (provider: "google" | "facebook") => {

@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useRouter } from "@/i18n/navigation";
 import { useProfile } from "../hooks/useProfile";
 import { SettingsNav } from "./SettingsNav";
 import type { SettingsTab } from "./SettingsNav";
@@ -12,6 +13,8 @@ import { isEmailProvider } from "@/features/auth/utils/authProvider";
 
 export function SettingsLayout() {
   const router = useRouter();
+  const t = useTranslations("settings");
+  const tc = useTranslations("common");
   const { user, loading } = useProfile();
 
   const [active, setActive] = useState<SettingsTab>("account");
@@ -34,7 +37,7 @@ export function SettingsLayout() {
   // セッションリフレッシュが走った際にページ全体が Loading に戻ってしまうため、
   // 初回ロード完了を示す authChecked のみで判定する
   if (!authChecked) {
-    return <div className="px-6 py-10 text-sm text-gray-400">Loading...</div>;
+    return <div className="px-6 py-10 text-sm text-gray-400">{tc("loading")}</div>;
   }
 
   // 未ログインはリダイレクト中なので画面は出さない
@@ -56,7 +59,7 @@ export function SettingsLayout() {
           {active === "account" && <AccountSettings />}
           {active === "password" && (
             <>
-              <h1 className="mb-6 text-3xl font-bold">Change Password</h1>
+              <h1 className="mb-6 text-3xl font-bold">{t("changePassword")}</h1>
               <PasswordChangeSection />
             </>
           )}

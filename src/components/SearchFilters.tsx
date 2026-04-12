@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { SearchFilters as SearchFiltersType } from "@/features/mentors/types/searchFilters";
 import {
   COUNTRIES,
@@ -23,6 +24,13 @@ export default function SearchFilters({
   hitCount,
   loading,
 }: Props) {
+  const t = useTranslations("mentors");
+  const tc = useTranslations("common");
+  const sortLabelKey: Record<string, string> = {
+    "": "sort.default",
+    high: "sort.highest",
+    low: "sort.lowest",
+  };
   const selectBaseClass =
     "border border-border hover:border-border-hover rounded-lg px-3 py-2 text-base w-full bg-surface text-primary transition-colors";
   const selectSmallClass =
@@ -37,7 +45,7 @@ export default function SearchFilters({
           value={filters.country}
           onChange={(e) => onFilterChange("country", e.target.value)}
         >
-          <option value="">Filter by country</option>
+          <option value="">{t("filterByCountry")}</option>
           {COUNTRIES.map((country) => (
             <option key={country.code} value={country.code}>
               {country.name}
@@ -50,7 +58,7 @@ export default function SearchFilters({
           value={filters.language}
           onChange={(e) => onFilterChange("language", e.target.value)}
         >
-          <option value="">Filter by language</option>
+          <option value="">{t("filterByLanguage")}</option>
           {LANGUAGES.map((lang) => (
             <option key={lang.code} value={lang.name}>
               {lang.name}
@@ -67,7 +75,7 @@ export default function SearchFilters({
           value={filters.country}
           onChange={(e) => onFilterChange("country", e.target.value)}
         >
-          <option value="">Filter by country</option>
+          <option value="">{t("filterByCountry")}</option>
           {COUNTRIES.map((country) => (
             <option key={country.code} value={country.code}>
               {country.name}
@@ -86,7 +94,7 @@ export default function SearchFilters({
               value={filters.language}
               onChange={(e) => onFilterChange("language", e.target.value)}
             >
-              <option value="">Filter by language</option>
+              <option value="">{t("filterByLanguage")}</option>
               {LANGUAGES.map((lang) => (
                 <option key={lang.code} value={lang.name}>
                   {lang.name}
@@ -106,14 +114,14 @@ export default function SearchFilters({
             >
               {SORT_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
-                  {opt.label}
+                  {t(sortLabelKey[opt.value])}
                 </option>
               ))}
             </select>
 
             <input
               type="text"
-              placeholder="Search by keyword"
+              placeholder={t("searchByKeyword")}
               className={selectSmallClass}
               value={filters.keyword}
               onChange={(e) => onFilterChange("keyword", e.target.value)}
@@ -127,7 +135,7 @@ export default function SearchFilters({
               disabled={loading}
               className="bg-primary text-white px-3 py-2 rounded text-sm hover:bg-primary/90 transition-colors disabled:opacity-50"
             >
-              {loading ? "Searching..." : "Search"}
+              {loading ? tc("searching") : tc("search")}
             </button>
           </div>
         </details>
@@ -136,7 +144,7 @@ export default function SearchFilters({
       {/* 下段（件数 + PCのみの評価順・キーワード検索） */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
         <div className="text-lg sm:text-xl font-bold text-primary whitespace-nowrap">
-          {hitCount} mentors found
+          {t("mentorsFound", { count: hitCount })}
         </div>
 
         {/* 評価順 + キーワード検索 + 検索ボタン（PC表示） */}
@@ -160,7 +168,7 @@ export default function SearchFilters({
 
           <input
             type="text"
-            placeholder="Search keywords (e.g. visa, IT, English)"
+            placeholder={t("searchPlaceholder")}
             className="border border-border hover:border-border-hover rounded-lg px-3 py-2 text-base w-60 bg-surface text-primary transition-colors"
             value={filters.keyword}
             onChange={(e) => onFilterChange("keyword", e.target.value)}
@@ -174,7 +182,7 @@ export default function SearchFilters({
             disabled={loading}
             className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 whitespace-nowrap"
           >
-            {loading ? "Searching..." : "Search"}
+            {loading ? tc("searching") : tc("search")}
           </button>
         </div>
       </div>

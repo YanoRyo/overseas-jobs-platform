@@ -2,8 +2,10 @@
 import { useState } from "react";
 import { Dialog } from "@headlessui/react";
 import { X, Sunrise, Sun, Sunset, Moon } from "lucide-react";
+import { useTranslations } from "next-intl";
+import { useLocale } from "next-intl";
 import type { MentorDetailModel } from "@/features/mentors/types";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useUser } from "@supabase/auth-helpers-react";
 import { useBookedSlots } from "@/features/checkout/hooks/useBookedSlots";
 import { useCreateBooking } from "@/features/checkout/hooks/useCreateBooking";
@@ -15,6 +17,8 @@ type Props = {
 };
 
 export default function BookingModal({ isOpen, onClose, mentor }: Props) {
+  const t = useTranslations("booking");
+  const locale = useLocale();
   const user = useUser();
   const { createBookingAndCheckout } = useCreateBooking();
   const [duration, setDuration] = useState(25);
@@ -31,12 +35,12 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
   // 続けるボタン押下時の処理
   const handleContinue = async () => {
     if (!selectedTime) {
-      alert("Please select a time.");
+      alert(t("selectTime"));
       return;
     }
 
     if (!user || !user.id) {
-      alert("We couldn't verify your login. Please log in again.");
+      alert(t("loginRequired"));
       router.push("/auth/login?redirect=/checkout");
       return;
     }
@@ -63,10 +67,10 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
 
   // 時間帯定義
   const TIME_PERIODS = [
-    { name: "Morning", icon: Sunrise, start: "06:00", end: "12:00" },
-    { name: "Afternoon", icon: Sun, start: "12:00", end: "17:00" },
-    { name: "Evening", icon: Sunset, start: "17:00", end: "21:00" },
-    { name: "Night", icon: Moon, start: "21:00", end: "24:00" },
+    { nameKey: "morning" as const, icon: Sunrise, start: "06:00", end: "12:00" },
+    { nameKey: "afternoon" as const, icon: Sun, start: "12:00", end: "17:00" },
+    { nameKey: "evening" as const, icon: Sunset, start: "17:00", end: "21:00" },
+    { nameKey: "night" as const, icon: Moon, start: "21:00", end: "24:00" },
   ] as const;
 
   // duration変更時の処理（選択済み時間が無効or予約済みならリセット）
@@ -163,11 +167,11 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
     const endOfWeek = new Date(startOfWeek);
     endOfWeek.setDate(startOfWeek.getDate() + 6);
 
-    const startLabel = new Intl.DateTimeFormat("en-US", {
+    const startLabel = new Intl.DateTimeFormat(locale, {
       month: "short",
       day: "numeric",
     }).format(startOfWeek);
-    const endLabel = new Intl.DateTimeFormat("en-US", {
+    const endLabel = new Intl.DateTimeFormat(locale, {
       month: "short",
       day: "numeric",
       year: "numeric",
@@ -195,10 +199,10 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
             )}
             <div>
               <h2 className="text-xl font-semibold">
-                Book a lesson
+                {t("title")}
               </h2>
               <p className="text-sm text-secondary mt-1">
-                Talk with your mentor about your level and learning plan.
+                {t("subtitle")}
               </p>
             </div>
           </div>
@@ -217,7 +221,7 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
                 : "bg-white text-primary hover:bg-gray-50"
             }`}
           >
-            25 min
+            {t("min25")}
           </button>
           <div className="w-px bg-gray-300" />
           <button
@@ -228,7 +232,7 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
                 : "bg-white text-primary hover:bg-gray-50"
             }`}
           >
-            50 min
+            {t("min50")}
           </button>
         </div>
 
@@ -312,7 +316,7 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
               const day = new Date(startOfWeek);
               day.setDate(startOfWeek.getDate() + i);
 
-              const weekday = day.toLocaleDateString("en-US", {
+              const weekday = day.toLocaleDateString(locale, {
                 weekday: "short",
               });
               const dateNum = day.getDate();
@@ -350,8 +354,10 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
 
         {/* タイムゾーン表示 */}
         <p className="text-sm text-secondary">
-          Your timezone:{" "}
-          {Intl.DateTimeFormat().resolvedOptions().timeZone} ({getGmtOffset()})
+          {t("yourTimezone", {
+            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            offset: getGmtOffset(),
+          })}
         </p>
 
         {/* ④ 時間帯ごとのスロット */}
@@ -362,20 +368,20 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
             if (availableSlots.length === 0) {
               return (
                 <p className="text-secondary text-sm text-center py-4">
-                  No available times on this day.
+                  {t("noAvailableTimes")}
                 </p>
               );
             }
 
-            return TIME_PERIODS.map(({ name, icon: Icon, start, end }) => {
+            return TIME_PERIODS.map(({ nameKey, icon: Icon, start, end }) => {
               const slots = getTimeSlotsForPeriod(start, end, availableSlots);
               if (slots.length === 0) return null;
 
               return (
-                <div key={name}>
+                <div key={nameKey}>
                   <div className="flex items-center gap-2 mb-2">
                     <Icon className="w-4 h-4 text-muted" />
-                    <p className="font-semibold">{name}</p>
+                    <p className="font-semibold">{t(nameKey)}</p>
                   </div>
                   <div className="grid grid-cols-3 gap-2">
                     {slots.map((time) => {
@@ -414,7 +420,7 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
               : "bg-gray-200 text-gray-400 cursor-not-allowed"
           }`}
         >
-          Continue
+          {t("continue")}
         </button>
       </Dialog.Panel>
     </Dialog>

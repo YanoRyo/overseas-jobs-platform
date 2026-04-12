@@ -1,6 +1,6 @@
 "use client";
 import { useCallback } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import type { ReservationData } from "../types/reservation";
 

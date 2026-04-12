@@ -1,5 +1,6 @@
 'use client';
 
+import { useTranslations } from 'next-intl';
 import { Check, ChevronRight } from 'lucide-react';
 import type { RegistrationStep, StepStatus } from '../types/registration';
 import { REGISTRATION_STEPS } from '../types/registration';
@@ -17,10 +18,11 @@ export const ProgressIndicator = ({
   maxReachedStepIndex,
   onStepClick,
 }: ProgressIndicatorProps) => {
+  const t = useTranslations('mentorRegistration');
   const currentIndex = REGISTRATION_STEPS.findIndex((s) => s.id === currentStep);
 
   return (
-    <nav aria-label="Registration progress" className="w-full">
+    <nav aria-label={t('progress')} className="w-full">
       {/* Desktop view */}
       <ol className="hidden md:flex items-center justify-center">
         {REGISTRATION_STEPS.map((step, index) => {
@@ -65,7 +67,7 @@ export const ProgressIndicator = ({
                 </span>
 
                 {/* Step label */}
-                <span className="hidden lg:inline text-sm whitespace-nowrap">{step.label}</span>
+                <span className="hidden lg:inline text-sm whitespace-nowrap">{t(`steps.${step.id}`)}</span>
               </button>
 
               {/* Separator */}
@@ -81,10 +83,10 @@ export const ProgressIndicator = ({
       <div className="md:hidden">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm text-muted">
-            Step {currentIndex + 1} of {REGISTRATION_STEPS.length}
+            {t('stepOf', { current: currentIndex + 1, total: REGISTRATION_STEPS.length })}
           </span>
           <span className="text-sm font-medium text-primary">
-            {REGISTRATION_STEPS[currentIndex].label}
+            {t(`steps.${REGISTRATION_STEPS[currentIndex].id}`)}
           </span>
         </div>
 
@@ -120,7 +122,7 @@ export const ProgressIndicator = ({
                   ${status === 'pending' && !isCurrent ? 'bg-border' : ''}
                   ${isClickable ? 'cursor-pointer' : 'cursor-default'}
                 `}
-                aria-label={`Step ${index + 1}: ${step.label}`}
+                aria-label={`${t('stepOf', { current: index + 1, total: REGISTRATION_STEPS.length })}: ${t(`steps.${step.id}`)}`}
               />
             );
           })}

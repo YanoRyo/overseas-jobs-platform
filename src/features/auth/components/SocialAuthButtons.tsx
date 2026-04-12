@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 type SocialAuthButtonsProps = {
   onGoogle: () => void;
   onFacebook: () => void;
@@ -41,6 +43,8 @@ export const SocialAuthButtons = ({
   onFacebook,
   disabled = false,
 }: SocialAuthButtonsProps) => {
+  const t = useTranslations("auth.social");
+
   return (
     <div className="space-y-3">
       <button
@@ -50,7 +54,7 @@ export const SocialAuthButtons = ({
         className="flex w-full items-center justify-center gap-3 rounded-xl border border-border bg-white px-4 py-3 text-sm font-semibold text-primary shadow-sm transition hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-60"
       >
         <GoogleIcon />
-        Continue with Google
+        {t("google")}
       </button>
       <button
         type="button"
@@ -59,7 +63,7 @@ export const SocialAuthButtons = ({
         className="flex w-full items-center justify-center gap-3 rounded-xl border border-border bg-white px-4 py-3 text-sm font-semibold text-primary shadow-sm transition hover:bg-surface-hover disabled:cursor-not-allowed disabled:opacity-60"
       >
         <FacebookIcon />
-        Continue with Facebook
+        {t("facebook")}
       </button>
     </div>
   );

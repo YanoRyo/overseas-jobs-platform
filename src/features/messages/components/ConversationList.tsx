@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo } from "react";
-import { useRouter, usePathname } from "next/navigation";
+import { useTranslations } from "next-intl";
+import { useRouter, usePathname } from "@/i18n/navigation";
 
 import { ConversationItem } from "./ConversationItem";
 import { useMessageThreads } from "../hooks/useMessageThreads";
@@ -18,6 +19,8 @@ export function ConversationList({
   const router = useRouter();
   const pathname = usePathname();
 
+  const t = useTranslations("messages");
+  const tc = useTranslations("common");
   const { items, loading, emptyReason } = useMessageThreads(tab);
 
   const redirectParam = useMemo(
@@ -30,7 +33,7 @@ export function ConversationList({
     return (
       <div className="px-4 py-6">
         <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-3 text-sm text-yellow-800">
-          Please sign up or log in to view your messages.
+          {t("loginRequired")}
           <div className="mt-2 flex gap-2">
             <button
               type="button"
@@ -39,7 +42,7 @@ export function ConversationList({
               }
               className="px-3 py-1 rounded-md bg-yellow-700 text-white text-xs font-semibold"
             >
-              Log In
+              {t("loginButton")}
             </button>
 
             <button
@@ -49,7 +52,7 @@ export function ConversationList({
               }
               className="px-3 py-1 rounded-md border border-yellow-700 text-yellow-800 text-xs font-semibold"
             >
-              Sign Up
+              {t("signUpButton")}
             </button>
           </div>
         </div>
@@ -58,7 +61,7 @@ export function ConversationList({
   }
 
   if (loading) {
-    return <div className="px-4 py-6 text-sm text-gray-400">Loading...</div>;
+    return <div className="px-4 py-6 text-sm text-gray-400">{tc("loading")}</div>;
   }
 
   const conversations = items.filter((c) => {
@@ -68,7 +71,7 @@ export function ConversationList({
   });
 
   if (conversations.length === 0) {
-    return <div className="px-4 py-6 text-sm text-gray-400">No messages</div>;
+    return <div className="px-4 py-6 text-sm text-gray-400">{t("noMessages")}</div>;
   }
 
   return (

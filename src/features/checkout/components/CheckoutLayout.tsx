@@ -1,5 +1,6 @@
 "use client";
 import { Elements } from "@stripe/react-stripe-js";
+import { useTranslations } from "next-intl";
 import { getStripe } from "@/lib/stripe/client";
 import { useCheckout } from "../hooks/useCheckout";
 import { BackButton } from "./BackButton";
@@ -7,6 +8,7 @@ import { ReservationSummary } from "./ReservationSummary";
 import { PaymentSection } from "./PaymentSection";
 
 export const CheckoutLayout = () => {
+  const t = useTranslations("checkout");
   const { reservation, clientSecret, amountCents, paymentError, loadingPayment } =
     useCheckout();
 
@@ -22,12 +24,12 @@ export const CheckoutLayout = () => {
 
           {loadingPayment ? (
             <div className="space-y-4">
-              <h2 className="text-xl font-semibold border-b pb-2">Payment method</h2>
+              <h2 className="text-xl font-semibold border-b pb-2">{t("paymentMethod")}</h2>
               <div className="h-[200px] animate-pulse rounded-[10px] bg-gray-100" />
             </div>
           ) : paymentError ? (
             <div className="space-y-4">
-              <h2 className="text-xl font-semibold border-b pb-2">Payment method</h2>
+              <h2 className="text-xl font-semibold border-b pb-2">{t("paymentMethod")}</h2>
               <p className="text-sm text-[#c32a68]">{paymentError}</p>
             </div>
           ) : clientSecret ? (
