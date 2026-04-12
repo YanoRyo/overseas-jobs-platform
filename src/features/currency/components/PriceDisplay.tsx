@@ -1,12 +1,13 @@
 "use client";
 
 import { useCurrency } from "../context/CurrencyContext";
-import { useExchangeRates } from "../hooks/useExchangeRate";
 import { CURRENCIES } from "../constants";
 
 type Props = {
   amountUSD: number;
   className?: string;
+  /** USD参考価格を表示するか（default: true） */
+  showHelper?: boolean;
 };
 
 function formatCurrency(amount: number, currencyCode: string): string {
@@ -19,9 +20,12 @@ function formatCurrency(amount: number, currencyCode: string): string {
   return `${symbol}${amount.toFixed(2)}`;
 }
 
-export function PriceDisplay({ amountUSD, className }: Props) {
-  const { currency } = useCurrency();
-  const { convertFromUSD, loading } = useExchangeRates();
+export function PriceDisplay({
+  amountUSD,
+  className,
+  showHelper = true,
+}: Props) {
+  const { currency, convertFromUSD, ratesLoading } = useCurrency();
 
   if (currency === "USD") {
     return <span className={className}>${amountUSD.toFixed(2)}</span>;
@@ -29,16 +33,18 @@ export function PriceDisplay({ amountUSD, className }: Props) {
 
   const converted = convertFromUSD(amountUSD, currency);
 
-  if (loading || converted === null) {
+  if (ratesLoading || converted === null) {
     return <span className={className}>${amountUSD.toFixed(2)}</span>;
   }
 
   return (
     <span className={className}>
       {formatCurrency(converted, currency)}
-      <span className="ml-1 text-xs text-gray-400">
-        (≈ ${amountUSD.toFixed(2)})
-      </span>
+      {showHelper && (
+        <span className="ml-1 text-xs font-normal text-gray-400">
+          (≈ ${amountUSD.toFixed(2)})
+        </span>
+      )}
     </span>
   );
 }

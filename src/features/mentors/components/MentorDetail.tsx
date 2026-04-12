@@ -13,6 +13,7 @@ import {
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
 import { useUser } from "@supabase/auth-helpers-react";
+import { PriceDisplay } from "@/features/currency/components/PriceDisplay";
 import BookingModal from "@/components/BookingModal";
 import { useBookedSlots } from "@/features/checkout/hooks/useBookedSlots";
 import { FavoriteToggleButton } from "@/features/favorites/components/FavoriteToggleButton";
@@ -899,9 +900,7 @@ export const MentorDetail = ({
                   <p className="text-xs text-muted">{t("detail.lessons")}</p>
                 </div>
                 <div className="text-center">
-                  <span className="text-2xl font-bold text-primary">
-                    ${mentor.price}
-                  </span>
+                  <PriceDisplay amountUSD={mentor.price} className="text-2xl font-bold text-primary" showHelper={false} />
                   <p className="text-xs text-muted">{t("detail.lessonDurationShort")}</p>
                 </div>
               </div>

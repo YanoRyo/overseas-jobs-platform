@@ -4,6 +4,7 @@ import { ReservationData } from "../types/reservation";
 import { Globe } from "lucide-react";
 import Flag from "react-world-flags";
 import { countryCodeMap } from "@/lib/countryCodeMap";
+import { PriceDisplay } from "@/features/currency/components/PriceDisplay";
 
 export const ReservationSummary = ({
   reservation,
@@ -17,10 +18,8 @@ export const ReservationSummary = ({
   const { mentorName, mentorAvatarUrl, mentorCountry, duration, date, time, hourlyRate } =
     reservation;
 
-  const formatUsd = (cents: number) => `$${(cents / 100).toFixed(2)}`;
-
   // hourlyRateはドル単位、durationは分単位
-  const lessonFeeCents = Math.round(hourlyRate * (duration / 60) * 100);
+  const lessonFeeUSD = hourlyRate * (duration / 60);
 
   return (
     <div className="space-y-6">
@@ -79,12 +78,13 @@ export const ReservationSummary = ({
         <h3 className="text-lg font-semibold">{t("orderSummary")}</h3>
         <div className="flex justify-between text-base">
           <span>{t("lessonFee", { duration })}</span>
-          <span>{formatUsd(lessonFeeCents)}</span>
+          <PriceDisplay amountUSD={lessonFeeUSD} showHelper={false} />
         </div>
         <div className="flex justify-between text-lg font-semibold border-t pt-2">
           <span>{t("total")}</span>
-          <span>{amountCents != null ? formatUsd(amountCents) : formatUsd(lessonFeeCents)}</span>
+          <PriceDisplay amountUSD={amountCents != null ? amountCents / 100 : lessonFeeUSD} />
         </div>
+        <p className="text-xs text-gray-400 text-right">{t("chargedInUsd")}</p>
       </div>
     </div>
   );

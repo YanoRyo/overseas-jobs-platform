@@ -4,6 +4,7 @@ import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
 import { useTranslations } from 'next-intl';
 import { FavoriteToggleButton } from '@/features/favorites/components/FavoriteToggleButton';
+import { PriceDisplay } from '@/features/currency/components/PriceDisplay';
 import type { MentorListItem } from '@/features/mentors/types';
 
 type MentorCardProps = {
@@ -127,7 +128,7 @@ export default function MentorCard({ mentor, onBook }: MentorCardProps) {
               <p className="text-sm text-muted">{t('reviews', { count: mentor.reviewCount })}</p>
             </div>
             <div className="flex flex-col items-end justify-end text-right">
-              <p className="text-lg font-bold text-primary">${mentor.hourlyRate}</p>
+              <PriceDisplay amountUSD={mentor.hourlyRate} className="text-lg font-bold text-primary" showHelper={false} />
               <p className="text-sm text-muted">{t('lessonDuration')}</p>
             </div>
           </div>

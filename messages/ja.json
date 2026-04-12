@@ -256,6 +256,7 @@
     "orderSummary": "注文概要",
     "lessonFee": "レッスン料（{duration}分）",
     "total": "合計",
+    "chargedInUsd": "決済はUSDで行われます",
     "bookingNotFound": "予約情報が見つかりませんでした。",
     "bookingCorrupted": "予約情報が破損しています。もう一度予約してください。",
     "bookingInvalid": "予約情報が無効です。もう一度予約してください。",

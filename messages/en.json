@@ -256,6 +256,7 @@
     "orderSummary": "Order summary",
     "lessonFee": "Lesson fee ({duration} min)",
     "total": "Total",
+    "chargedInUsd": "You will be charged in USD",
     "bookingNotFound": "Booking information was not found.",
     "bookingCorrupted": "Booking information is corrupted. Please book again.",
     "bookingInvalid": "Booking information is invalid. Please book again.",
