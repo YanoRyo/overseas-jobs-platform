@@ -133,7 +133,7 @@ export default function SearchFilters({
             <button
               onClick={onSearch}
               disabled={loading}
-              className="bg-primary text-white px-3 py-2 rounded text-sm hover:bg-primary/90 transition-colors disabled:opacity-50"
+              className="rounded bg-accent px-3 py-2 text-sm font-semibold text-white transition-colors hover:bg-accent-hover disabled:opacity-50"
             >
               {loading ? tc("searching") : tc("search")}
             </button>
@@ -180,7 +180,7 @@ export default function SearchFilters({
           <button
             onClick={onSearch}
             disabled={loading}
-            className="bg-primary text-white px-4 py-2 rounded-lg hover:bg-primary/90 transition-colors disabled:opacity-50 whitespace-nowrap"
+            className="whitespace-nowrap rounded-lg bg-accent px-4 py-2 font-semibold text-white transition-colors hover:bg-accent-hover disabled:opacity-50"
           >
             {loading ? tc("searching") : tc("search")}
           </button>

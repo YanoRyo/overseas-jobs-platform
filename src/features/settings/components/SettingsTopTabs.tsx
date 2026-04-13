@@ -31,11 +31,22 @@ export function SettingsTopTabs({ role, activeTabId, tabs }: Props) {
             <div
               key={tab.id}
               className={`relative pb-3 text-[17px] font-medium ${
-                selected ? "text-[#1f1f2d]" : "text-[#52576a]"
+                selected
+                  ? tab.id === "messages"
+                    ? "text-[#2563eb]"
+                    : "text-[#1f1f2d]"
+                  : "text-[#52576a]"
               }`}
             >
               {isLink ? (
-                <Link href={href} className="hover:text-[#1f1f2d]">
+                <Link
+                  href={href}
+                  className={
+                    tab.id === "messages"
+                      ? "hover:text-[#2563eb]"
+                      : "hover:text-[#1f1f2d]"
+                  }
+                >
                   {t(tab.label)}
                 </Link>
               ) : (

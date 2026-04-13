@@ -89,8 +89,8 @@ function TabButton({
       onClick={onClick}
       className={`pb-2 transition-colors ${
         active
-          ? "font-semibold border-b-2 border-[#2563eb] text-black"
-          : "text-gray-400 hover:text-gray-600"
+          ? "border-b-2 border-[#2563eb] font-semibold text-[#2563eb]"
+          : "text-gray-400 hover:text-[#2563eb]"
       }`}
     >
       {children}

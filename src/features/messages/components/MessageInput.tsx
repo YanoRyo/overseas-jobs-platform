@@ -26,12 +26,12 @@ export function MessageInput({
           onChange={(e) => setText(e.target.value)}
           rows={1}
           placeholder={t("placeholder")}
-          className="min-w-0 flex-1 resize-none rounded-xl border px-3 py-2 text-sm focus:outline-none"
+          className="min-w-0 flex-1 resize-none rounded-[20px] border border-[#dbe5f3] bg-[#f8fbff] px-4 py-3 text-sm focus:border-[#93c5fd] focus:outline-none"
         />
         <button
           onClick={submit}
           disabled={sending || !text.trim()}
-          className="shrink-0 rounded-xl bg-black px-4 py-2 text-sm text-white disabled:opacity-40"
+          className="shrink-0 rounded-[20px] bg-accent px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-accent-hover disabled:opacity-40"
         >
           {t("send")}
         </button>

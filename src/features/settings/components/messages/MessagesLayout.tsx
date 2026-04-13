@@ -4,7 +4,9 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { MessageSquare } from "lucide-react";
 import { usePathname, useRouter } from "@/i18n/navigation";
+import { useSearchParams } from "next/navigation";
 
+import { AuthPromptCard } from "@/components/AuthPromptCard";
 import { ConversationDetail } from "@/features/messages/components/ConversationDetail";
 import { ConversationItem as ConversationListItem } from "@/features/messages/components/ConversationItem";
 import { useMessageThreads } from "@/features/messages/hooks/useMessageThreads";
@@ -50,10 +52,17 @@ function MessagesContent({
   const { items, loading, emptyReason } = useMessageThreads(activeTab);
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const redirectTarget = useMemo(() => {
+    const query = searchParams.toString();
+    if (!pathname) return "/settings?tab=messages";
+    return `${pathname}${query ? `?${query}` : ""}`;
+  }, [pathname, searchParams]);
 
   const redirectParam = useMemo(
-    () => encodeURIComponent(pathname || "/settings?tab=messages"),
-    [pathname]
+    () => encodeURIComponent(redirectTarget),
+    [redirectTarget]
   );
 
   const conversations = useMemo(
@@ -109,29 +118,17 @@ function MessagesContent({
             <div className="h-full overflow-y-auto">
               {emptyReason === "not_logged_in" ? (
                 <div className="px-5 py-6">
-                  <div className="rounded-2xl border border-[#fde68a] bg-[#fffbeb] px-4 py-4 text-sm text-[#92400e]">
-                    {t("loginRequired")}
-                    <div className="mt-3 flex gap-2">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          router.push(`/auth/login?redirect=${redirectParam}`)
-                        }
-                        className="rounded-full bg-[#111827] px-4 py-2 text-xs font-semibold text-white"
-                      >
-                        {t("loginButton")}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() =>
-                          router.push(`/auth/signup?redirect=${redirectParam}`)
-                        }
-                        className="rounded-full border border-[#111827] px-4 py-2 text-xs font-semibold text-[#111827]"
-                      >
-                        {t("signUpButton")}
-                      </button>
-                    </div>
-                  </div>
+                  <AuthPromptCard
+                    message={t("loginRequired")}
+                    loginLabel={t("loginButton")}
+                    signUpLabel={t("signUpButton")}
+                    onLogin={() =>
+                      router.push(`/auth/login?redirect=${redirectParam}`)
+                    }
+                    onSignUp={() =>
+                      router.push(`/auth/signup?redirect=${redirectParam}`)
+                    }
+                  />
                 </div>
               ) : loading ? (
                 <div className="px-5 py-6 text-sm text-[#6b7280]">
@@ -198,12 +195,18 @@ function MessagesFilterTab({
       type="button"
       onClick={onClick}
       className={`relative flex items-center gap-2 pb-4 pt-6 transition ${
-        active ? "text-[#1f1f2d]" : "text-[#6b7280] hover:text-[#1f1f2d]"
+        active ? "text-[#2563eb]" : "text-[#6b7280] hover:text-[#2563eb]"
       }`}
     >
       <span>{label}</span>
       {typeof count === "number" && count > 0 && (
-        <span className="inline-flex min-w-[22px] items-center justify-center rounded-full bg-[#f3f4f6] px-2 py-0.5 text-xs font-semibold text-[#1f1f2d]">
+        <span
+          className={`inline-flex min-w-[22px] items-center justify-center rounded-full px-2 py-0.5 text-xs font-semibold ${
+            active
+              ? "bg-[#dbeafe] text-[#1d4ed8]"
+              : "bg-[#f3f4f6] text-[#1f1f2d]"
+          }`}
+        >
           {count}
         </span>
       )}

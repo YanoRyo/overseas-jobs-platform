@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { usePathname } from "@/i18n/navigation";
 import { MessageCircle } from "lucide-react";
 import { MessagesPanel } from "@/features/messages/components/MessagesPanel";
@@ -8,8 +9,13 @@ import { useUnreadCount } from "@/features/messages/hooks/useUnreadCount";
 
 export default function MessageBox() {
   const [open, setOpen] = useState(false);
-  const pathname = usePathname(); // ★
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
   const { unreadCount } = useUnreadCount();
+  const pathWithoutLocale = pathname?.replace(/^\/[a-z]{2}(?=\/|$)/, "") || "";
+  const isMessagesPage =
+    pathWithoutLocale === "/settings" && searchParams.get("tab") === "messages";
+  const highlighted = open || isMessagesPage;
 
   // ページ遷移（pathが変わったら）必ず閉じる
   useEffect(() => {
@@ -20,7 +26,11 @@ export default function MessageBox() {
     <div className="relative">
       <button
         type="button"
-        className="relative p-2 rounded-full hover:bg-gray-100"
+        className={`relative rounded-full p-2 transition-colors ${
+          highlighted
+            ? "bg-[#eff6ff] text-[#2563eb]"
+            : "text-[#4f7bff] hover:bg-[#eff6ff] hover:text-[#2563eb]"
+        }`}
         aria-label="messages"
         onClick={() => setOpen((v) => !v)}
       >

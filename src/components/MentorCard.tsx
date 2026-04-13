@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { Zap } from 'lucide-react';
 import Flag from 'react-world-flags';
 import Image from 'next/image';
 import { Link } from '@/i18n/navigation';
@@ -140,8 +141,9 @@ export default function MentorCard({ mentor, onBook }: MentorCardProps) {
               e.stopPropagation();
               onBook();
             }}
-            className="mt-0 rounded-lg bg-accent px-4 py-2 text-base text-white transition-colors hover:bg-accent-hover"
+            className="mt-0 flex items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-base font-semibold text-white transition-colors hover:bg-accent-hover"
           >
+            <Zap className="h-5 w-5" />
             {t('bookLesson')}
           </button>
         </div>
@@ -153,9 +155,10 @@ export default function MentorCard({ mentor, onBook }: MentorCardProps) {
             e.stopPropagation();
             onBook();
           }}
-          className="md:hidden bg-accent hover:bg-accent-hover text-white px-4 py-2 rounded-lg text-base mt-4 w-full transition-colors"
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-base font-semibold text-white transition-colors hover:bg-accent-hover md:hidden"
         >
-          Book Lesson
+          <Zap className="h-5 w-5" />
+          {t('bookLesson')}
         </button>
       </div>
     </Link>

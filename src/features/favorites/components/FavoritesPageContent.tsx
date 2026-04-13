@@ -53,7 +53,7 @@ export function FavoritesPageContent() {
                 const redirectTo = encodeURIComponent(pathname || "/favorites");
                 router.push(`/auth/login?redirect=${redirectTo}`);
               }}
-              className="mt-5 rounded-full bg-[#111827] px-5 py-2 text-sm font-semibold text-white"
+              className="mt-5 rounded-full bg-accent px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-accent-hover"
             >
               {t("loginButton")}
             </button>

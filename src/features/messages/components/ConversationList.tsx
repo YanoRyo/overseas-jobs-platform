@@ -3,7 +3,9 @@
 import { useMemo } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter, usePathname } from "@/i18n/navigation";
+import { useSearchParams } from "next/navigation";
 
+import { AuthPromptCard } from "@/components/AuthPromptCard";
 import { ConversationItem } from "./ConversationItem";
 import { useMessageThreads } from "../hooks/useMessageThreads";
 import type { MessageTab } from "@/features/messages/types/messageTab";
@@ -18,44 +20,34 @@ export function ConversationList({
 }) {
   const router = useRouter();
   const pathname = usePathname();
+  const searchParams = useSearchParams();
 
   const t = useTranslations("messages");
   const tc = useTranslations("common");
   const { items, loading, emptyReason } = useMessageThreads(tab);
 
+  const redirectTarget = useMemo(() => {
+    const query = searchParams.toString();
+    if (!pathname) return "/";
+    return `${pathname}${query ? `?${query}` : ""}`;
+  }, [pathname, searchParams]);
+
   const redirectParam = useMemo(
-    () => encodeURIComponent(pathname || "/"),
-    [pathname]
+    () => encodeURIComponent(redirectTarget),
+    [redirectTarget]
   );
 
   // 未ログイン時：ログイン/新規登録導線を表示
   if (emptyReason === "not_logged_in") {
     return (
       <div className="px-4 py-6">
-        <div className="rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-3 text-sm text-yellow-800">
-          {t("loginRequired")}
-          <div className="mt-2 flex gap-2">
-            <button
-              type="button"
-              onClick={() =>
-                router.push(`/auth/login?redirect=${redirectParam}`)
-              }
-              className="px-3 py-1 rounded-md bg-yellow-700 text-white text-xs font-semibold"
-            >
-              {t("loginButton")}
-            </button>
-
-            <button
-              type="button"
-              onClick={() =>
-                router.push(`/auth/signup?redirect=${redirectParam}`)
-              }
-              className="px-3 py-1 rounded-md border border-yellow-700 text-yellow-800 text-xs font-semibold"
-            >
-              {t("signUpButton")}
-            </button>
-          </div>
-        </div>
+        <AuthPromptCard
+          message={t("loginRequired")}
+          loginLabel={t("loginButton")}
+          signUpLabel={t("signUpButton")}
+          onLogin={() => router.push(`/auth/login?redirect=${redirectParam}`)}
+          onSignUp={() => router.push(`/auth/signup?redirect=${redirectParam}`)}
+        />
       </div>
     );
   }

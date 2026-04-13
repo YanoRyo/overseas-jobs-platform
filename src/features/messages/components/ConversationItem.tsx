@@ -53,7 +53,7 @@ export function ConversationItem({
         onClick();
       }}
       className={`flex cursor-pointer gap-3 border-b px-4 py-4 transition ${
-        selected ? "bg-[#fff1f6]" : "hover:bg-gray-50"
+        selected ? "bg-[#eff6ff]" : "hover:bg-[#f8fbff]"
       }`}
     >
       <div className="relative w-10 h-10 rounded-lg overflow-hidden flex-shrink-0">
@@ -102,7 +102,7 @@ export function ConversationItem({
           </p>
 
           {conversation.unreadCount > 0 && (
-            <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#111827] px-1 text-xs text-white">
+            <span className="flex h-5 min-w-[20px] items-center justify-center rounded-full bg-[#2563eb] px-1 text-xs text-white">
               {conversation.unreadCount}
             </span>
           )}

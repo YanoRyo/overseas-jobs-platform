@@ -5,6 +5,7 @@ import { useTranslations } from "next-intl";
 import { useRouter, usePathname } from "@/i18n/navigation";
 import { useUser } from "@supabase/auth-helpers-react";
 
+import { AuthPromptCard } from "@/components/AuthPromptCard";
 import { useSendMessage } from "../hooks/useSendMessage";
 
 type Props = {
@@ -33,6 +34,10 @@ export const SendMessageModal = ({
   const { sendMessage, loading, error } = useSendMessage();
 
   const isLoggedIn = useMemo(() => !!user, [user]);
+  const redirectParam = useMemo(
+    () => encodeURIComponent(pathname || "/"),
+    [pathname]
+  );
 
   if (!isOpen) return null;
 
@@ -90,38 +95,14 @@ export const SendMessageModal = ({
 
         {/* 未ログイン時の案内 */}
         {!isLoggedIn && (
-          <div className="mb-4 rounded-lg border border-yellow-200 bg-yellow-50 px-3 py-2 text-sm text-yellow-800">
-            {t("notLoggedIn")}
-            <div className="mt-2 flex gap-2">
-              <button
-                type="button"
-                onClick={() =>
-                  router.push(
-                    `/auth/login?redirect=${encodeURIComponent(
-                      pathname
-                    )}`
-                  )
-                }
-                className="px-3 py-1 rounded-md bg-yellow-700 text-white text-xs font-semibold"
-              >
-                {ta("login.submit")}
-              </button>
-
-              <button
-                type="button"
-                onClick={() =>
-                  router.push(
-                    `/auth/signup?redirect=${encodeURIComponent(
-                      pathname
-                    )}`
-                  )
-                }
-                className="px-3 py-1 rounded-md border border-yellow-700 text-yellow-800 text-xs font-semibold"
-              >
-                {ta("signup.submit")}
-              </button>
-            </div>
-          </div>
+          <AuthPromptCard
+            className="mb-4"
+            message={t("notLoggedIn")}
+            loginLabel={ta("login.submit")}
+            signUpLabel={ta("signup.submit")}
+            onLogin={() => router.push(`/auth/login?redirect=${redirectParam}`)}
+            onSignUp={() => router.push(`/auth/signup?redirect=${redirectParam}`)}
+          />
         )}
 
         {/* カテゴリ */}
