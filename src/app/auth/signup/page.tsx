@@ -1,13 +1,17 @@
-import { SignupForm } from "@/features/auth/components/SignupForm";
+import {
+  LocalizedAuthRedirectPage,
+  type RootAuthPageProps,
+} from "../LocalizedAuthRedirectPage";
 
-type SignupPageProps = {
-  searchParams?: Promise<{
-    redirect?: string;
-  }>;
-};
+export const dynamic = "force-dynamic";
 
-export default async function SignupPage({ searchParams }: SignupPageProps) {
-  const params = await searchParams;
-
-  return <SignupForm redirect={params?.redirect} />;
+export default async function SignupPage({
+  searchParams,
+}: RootAuthPageProps) {
+  return (
+    <LocalizedAuthRedirectPage
+      searchParams={searchParams}
+      pathname="/auth/signup"
+    />
+  );
 }

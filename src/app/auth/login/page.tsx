@@ -1,13 +1,17 @@
-import { LoginForm } from "@/features/auth/components/LoginForm";
+import {
+  LocalizedAuthRedirectPage,
+  type RootAuthPageProps,
+} from "../LocalizedAuthRedirectPage";
 
-type LoginPageProps = {
-  searchParams?: Promise<{
-    redirect?: string;
-  }>;
-};
+export const dynamic = "force-dynamic";
 
-export default async function LoginPage({ searchParams }: LoginPageProps) {
-  const params = await searchParams;
-
-  return <LoginForm redirect={params?.redirect} />;
+export default async function LoginPage({
+  searchParams,
+}: RootAuthPageProps) {
+  return (
+    <LocalizedAuthRedirectPage
+      searchParams={searchParams}
+      pathname="/auth/login"
+    />
+  );
 }

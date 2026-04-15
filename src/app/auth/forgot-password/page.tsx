@@ -1,12 +1,17 @@
-"use client";
+import {
+  LocalizedAuthRedirectPage,
+  type RootAuthPageProps,
+} from "../LocalizedAuthRedirectPage";
 
-import { Suspense } from "react";
-import { ForgotPasswordForm } from "@/features/auth/components/ForgotPasswordForm";
+export const dynamic = "force-dynamic";
 
-export default function ForgotPasswordPage() {
+export default async function ForgotPasswordPage({
+  searchParams,
+}: RootAuthPageProps) {
   return (
-    <Suspense fallback={<div className="min-h-screen" />}>
-      <ForgotPasswordForm />
-    </Suspense>
+    <LocalizedAuthRedirectPage
+      searchParams={searchParams}
+      pathname="/auth/forgot-password"
+    />
   );
 }

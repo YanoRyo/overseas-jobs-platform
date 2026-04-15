@@ -1,12 +1,17 @@
-"use client";
+import {
+  LocalizedAuthRedirectPage,
+  type RootAuthPageProps,
+} from "../LocalizedAuthRedirectPage";
 
-import { Suspense } from "react";
-import { ResetPasswordForm } from "@/features/auth/components/ResetPasswordForm";
+export const dynamic = "force-dynamic";
 
-export default function ResetPasswordPage() {
+export default async function ResetPasswordPage({
+  searchParams,
+}: RootAuthPageProps) {
   return (
-    <Suspense fallback={<div className="min-h-screen" />}>
-      <ResetPasswordForm />
-    </Suspense>
+    <LocalizedAuthRedirectPage
+      searchParams={searchParams}
+      pathname="/auth/reset-password"
+    />
   );
 }
