@@ -1,16 +1,15 @@
-'use client';
+import {
+  redirectToLocalizedPage,
+  type RootLocalizedPageProps,
+} from "../../redirectToLocalizedPage";
 
-import { Suspense } from 'react';
-import { MentorRegistration } from '@/features/mentor/components/MentorRegistration';
+export const dynamic = "force-dynamic";
 
-function MentorRegisterContent() {
-  return <MentorRegistration />;
-}
-
-export default function MentorRegisterPage() {
-  return (
-    <Suspense fallback={<div className="min-h-screen" />}>
-      <MentorRegisterContent />
-    </Suspense>
-  );
+export default async function MentorRegisterPage({
+  searchParams,
+}: RootLocalizedPageProps) {
+  return redirectToLocalizedPage({
+    searchParams,
+    pathname: "/mentor/register",
+  });
 }
