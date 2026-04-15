@@ -38,7 +38,7 @@ export function MentorCard({
               <h3 className="truncate text-xl font-semibold text-slate-950">
                 {t(`cards.${mentorKey}.name`)}
               </h3>
-              <p className="mt-1 text-center text-sm leading-6 text-slate-600">
+              <p className="mt-1 text-left text-sm leading-6 text-slate-600">
                 {t(`cards.${mentorKey}.role`)}
               </p>
             </div>
@@ -48,9 +48,11 @@ export function MentorCard({
             <div className="inline-flex items-center justify-center rounded-full border border-sky-100 bg-sky-50 px-3 py-1 text-center text-xs font-semibold text-sky-700">
               {t(`cards.${mentorKey}.badge`)}
             </div>
-            <div className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1 text-sm font-semibold text-amber-600">
-              <Star className="h-4 w-4 fill-current" />
-              {t(`cards.${mentorKey}.rating`)}
+            <div className="flex w-full justify-start">
+              <div className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1 text-sm font-semibold text-amber-600">
+                <Star className="h-4 w-4 fill-current" />
+                {t(`cards.${mentorKey}.rating`)}
+              </div>
             </div>
           </div>
         </div>
