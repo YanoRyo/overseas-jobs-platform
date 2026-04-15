@@ -14,7 +14,7 @@ export function validateImageFile(
   if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
     return {
       valid: false,
-      error: `File type ${file.type} is not allowed. Use JPEG, PNG, or WebP.`,
+      error: `File type ${file.type || "unknown"} is not allowed. Use JPEG, PNG, or WebP.`,
     };
   }
 
