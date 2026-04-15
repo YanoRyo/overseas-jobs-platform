@@ -184,7 +184,7 @@ export function MentorList() {
         title={t("loginToContinue")}
         description={t("loginToBook")}
         redirectOnClose=""
-        redirectAfterAuth="/"
+        redirectAfterAuth="/mentors"
       />
     </div>
   );

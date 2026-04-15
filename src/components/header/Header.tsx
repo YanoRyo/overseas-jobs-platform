@@ -5,6 +5,7 @@ import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
 import type { UserRole } from "@/features/auth/types";
 import { Link, usePathname } from "@/i18n/navigation";
 import FavoritesBox from "./FavoritesBox";
+import { HeaderUnauthenticated } from "./HeaderUnauthenticated";
 import LocaleSelector from "./LocaleSelector";
 import MessageBox from "./MessageBox";
 import UserMenu from "./UserMenu";
@@ -28,7 +29,7 @@ export function Header() {
   const hideRight =
     pathWithoutLocale.startsWith("/auth") ||
     pathWithoutLocale.startsWith("/mentor/register");
-  const hideHeaderActions = !!user && effectiveViewerRole !== "student";
+  const showStudentActions = !!user && effectiveViewerRole === "student";
   const homeHref = effectiveViewerRole === "mentor" ? "/settings" : "/";
 
   useEffect(() => {
@@ -90,24 +91,30 @@ export function Header() {
 
         {/* 右：メッセージ・通知・ユーザー*/}
         {!hideRight && (
-          <div className="flex items-center gap-4">
-            {!hideHeaderActions && (
+          <div className="flex items-center gap-3 sm:gap-4">
+            {!user ? (
+              <HeaderUnauthenticated />
+            ) : (
               <>
-                <MessageBox />
-                <FavoritesBox />
+                {showStudentActions && (
+                  <>
+                    <MessageBox />
+                    <FavoritesBox />
+                  </>
+                )}
+                <LocaleSelector />
+                <Suspense
+                  fallback={
+                    <div
+                      className="h-10 w-10 rounded-xl bg-[#d9dee8]"
+                      aria-hidden="true"
+                    />
+                  }
+                >
+                  <UserMenu viewerRole={effectiveViewerRole} />
+                </Suspense>
               </>
             )}
-            <LocaleSelector />
-            <Suspense
-              fallback={
-                <div
-                  className="h-10 w-10 rounded-xl bg-[#d9dee8]"
-                  aria-hidden="true"
-                />
-              }
-            >
-              <UserMenu viewerRole={effectiveViewerRole} />
-            </Suspense>
           </div>
         )}
       </div>

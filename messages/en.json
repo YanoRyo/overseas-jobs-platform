@@ -677,6 +677,133 @@
       "otherPeople": "Have any other people visible in your video"
     }
   },
+  "landing": {
+    "hero": {
+      "eyebrow": "Career mentorship for your move abroad",
+      "title": "Find the mentor who can turn your overseas plans into a real next step.",
+      "description": "Bridgeee helps you connect with mentors who have already navigated job searches, language challenges, and relocation decisions, so you can move with more clarity and less guesswork.",
+      "primaryCta": "Find Mentors",
+      "secondaryCta": "How it works",
+      "visualAlt": "Illustration of a mentor session dashboard",
+      "highlights": {
+        "careerSwitch": "Career switches with real context",
+        "visaSupport": "Advice in English or Japanese",
+        "firstSession": "Start with one focused first session"
+      },
+      "cards": {
+        "match": {
+          "eyebrow": "Best match",
+          "title": "Design mentor in Toronto",
+          "description": "Aligned with your portfolio and relocation goals."
+        },
+        "review": {
+          "eyebrow": "Recent review",
+          "title": "\"I finally knew what to do next.\"",
+          "description": "Resume, language study, and timing became much clearer."
+        },
+        "availability": {
+          "eyebrow": "Open this week",
+          "title": "Evening sessions available",
+          "description": "Flexible times for English and Japanese learners."
+        }
+      }
+    },
+    "problem": {
+      "eyebrow": "Why people get stuck",
+      "title": "Before Bridgeee, most people piece together advice from scattered places.",
+      "description": "Generic blog posts, social media threads, and secondhand tips rarely match your target country, timeline, or confidence level. That makes the first step feel heavier than it should.",
+      "solution": {
+        "eyebrow": "How Bridgeee works",
+        "title": "Start with mentors who have already been through it.",
+        "description": "Browse mentors by background, compare the kind of support they offer, and book a first conversation when you are ready to turn uncertainty into a plan."
+      },
+      "steps": {
+        "browse": {
+          "title": "Browse by goal",
+          "description": "Look for mentors who match the country, role, or transition you are aiming for."
+        },
+        "compare": {
+          "title": "Compare fit quickly",
+          "description": "Review specialties, language support, and teaching style before you commit."
+        },
+        "book": {
+          "title": "Book your first session",
+          "description": "Use one conversation to clarify your next action, timeline, and blind spots."
+        }
+      },
+      "cards": {
+        "noise": {
+          "eyebrow": "Too much noise",
+          "title": "Advice is everywhere, but it rarely fits your exact situation.",
+          "description": "Hours disappear into forums, videos, and old articles without telling you what matters most for your move."
+        },
+        "uncertainty": {
+          "eyebrow": "Low confidence",
+          "title": "It is hard to know which step should come first.",
+          "description": "Should you fix your resume, improve your language level, or prepare for interviews first? Unclear priorities slow everything down."
+        },
+        "momentum": {
+          "eyebrow": "Slow momentum",
+          "title": "Finding someone with firsthand experience takes too long.",
+          "description": "Even motivated people lose energy when they cannot quickly reach someone who understands the path they want to follow."
+        }
+      }
+    },
+    "mentors": {
+      "eyebrow": "Mentor preview",
+      "title": "A few mentors you could start with.",
+      "description": "Each profile brings a different lens on moving abroad, from portfolio feedback to interview preparation and settling into a new market.",
+      "browseCta": "View all mentors",
+      "priceLabel": "50 min session",
+      "cards": {
+        "aiko": {
+          "initials": "AT",
+          "badge": "Portfolio focus",
+          "name": "Aiko Tanaka",
+          "role": "Product Designer in Amsterdam",
+          "summary": "Supports creative professionals refining portfolios and job search stories for Europe.",
+          "rating": "4.9",
+          "price": "$48",
+          "availability": "Tue evening",
+          "tags": {
+            "first": "Portfolio review",
+            "second": "EU hiring",
+            "third": "English / Japanese"
+          }
+        },
+        "marcus": {
+          "initials": "ML",
+          "badge": "Interview prep",
+          "name": "Marcus Lee",
+          "role": "Software Engineer in Singapore",
+          "summary": "Helps applicants sharpen resumes, technical stories, and interview structure before applying abroad.",
+          "rating": "4.8",
+          "price": "$52",
+          "availability": "Thu night",
+          "tags": {
+            "first": "Resume feedback",
+            "second": "Interview practice",
+            "third": "Career switch"
+          }
+        },
+        "sofia": {
+          "initials": "SR",
+          "badge": "Relocation planning",
+          "name": "Sofia Ramirez",
+          "role": "Marketing Lead in Vancouver",
+          "summary": "Shares practical guidance on building confidence, networking, and settling into a new market.",
+          "rating": "5.0",
+          "price": "$45",
+          "availability": "Sat morning",
+          "tags": {
+            "first": "Networking",
+            "second": "Relocation tips",
+            "third": "First 90 days"
+          }
+        }
+      }
+    }
+  },
   "policy": {
     "metaTitle": "Terms & Privacy Policy | Bridgeee",
     "metaDescription": "Review the Bridgeee Terms of Service and Privacy Policy before using the platform.",

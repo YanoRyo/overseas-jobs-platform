@@ -9,8 +9,11 @@ import {
   useUser,
 } from "@supabase/auth-helpers-react";
 import { MentorList } from "@/features/mentors/components/MentorList";
+import { OnboardingLandingPage } from "@/features/home/components/OnboardingLandingPage";
 
 export const dynamic = "force-dynamic";
+
+type HomeView = "landing" | "mentor-list" | "redirecting";
 
 export default function Home() {
   const tc = useTranslations("common");
@@ -18,7 +21,7 @@ export default function Home() {
   const supabase = useSupabaseClient();
   const user = useUser();
   const { isLoading: authLoading } = useSessionContext();
-  const [shouldShowMentorList, setShouldShowMentorList] = useState(false);
+  const [homeView, setHomeView] = useState<HomeView>("landing");
   const [resolvingRole, setResolvingRole] = useState(true);
 
   useEffect(() => {
@@ -32,7 +35,7 @@ export default function Home() {
     }
 
     if (!user) {
-      setShouldShowMentorList(true);
+      setHomeView("landing");
       setResolvingRole(false);
       return () => {
         cancelled = true;
@@ -42,7 +45,7 @@ export default function Home() {
     const resolveViewerRole = async () => {
       if (!cancelled) {
         setResolvingRole(true);
-        setShouldShowMentorList(false);
+        setHomeView("redirecting");
       }
 
       try {
@@ -68,11 +71,11 @@ export default function Home() {
           return;
         }
 
-        setShouldShowMentorList(true);
+        setHomeView("mentor-list");
       } catch (error) {
         console.error("home viewer role resolve error", error);
         if (!cancelled) {
-          setShouldShowMentorList(true);
+          setHomeView("mentor-list");
         }
       } finally {
         if (!cancelled) {
@@ -92,7 +95,11 @@ export default function Home() {
     return <div className="px-6 py-10 text-sm text-gray-400">{tc("loading")}</div>;
   }
 
-  if (!shouldShowMentorList) {
+  if (homeView === "landing") {
+    return <OnboardingLandingPage />;
+  }
+
+  if (homeView !== "mentor-list") {
     return null;
   }
 
