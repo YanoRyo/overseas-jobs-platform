@@ -9,10 +9,10 @@ type LocalizedAuthRedirectPageProps = RootAuthPageProps & {
   pathname: string;
 };
 
-export async function LocalizedAuthRedirectPage({
+export async function redirectToLocalizedAuthPage({
   searchParams,
   pathname,
-}: LocalizedAuthRedirectPageProps) {
+}: LocalizedAuthRedirectPageProps): Promise<never> {
   const params = await searchParams;
   const nextSearchParams = new URLSearchParams();
 
