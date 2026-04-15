@@ -763,7 +763,7 @@
           "role": "Product Designer in Amsterdam",
           "summary": "Supports creative professionals refining portfolios and job search stories for Europe.",
           "rating": "4.9",
-          "price": "$48",
+          "price": "$18",
           "availability": "Tue evening",
           "tags": {
             "first": "Portfolio review",
@@ -778,7 +778,7 @@
           "role": "Software Engineer in Singapore",
           "summary": "Helps applicants sharpen resumes, technical stories, and interview structure before applying abroad.",
           "rating": "4.8",
-          "price": "$52",
+          "price": "$36",
           "availability": "Thu night",
           "tags": {
             "first": "Resume feedback",
@@ -793,7 +793,7 @@
           "role": "Marketing Lead in Vancouver",
           "summary": "Shares practical guidance on building confidence, networking, and settling into a new market.",
           "rating": "5.0",
-          "price": "$45",
+          "price": "$24",
           "availability": "Sat morning",
           "tags": {
             "first": "Networking",

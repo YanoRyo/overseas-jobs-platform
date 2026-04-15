@@ -31,29 +31,31 @@ export function MentorCard({
               alt={avatarAlt}
               width={56}
               height={56}
-              className="h-14 w-14 rounded-full object-cover"
+              className="h-14 w-14 rounded-full object-cover object-center"
             />
 
             <div className="min-w-0">
               <h3 className="truncate text-xl font-semibold text-slate-950">
                 {t(`cards.${mentorKey}.name`)}
               </h3>
-              <p className="mt-1 text-sm leading-6 text-slate-600">
+              <p className="mt-1 text-center text-sm leading-6 text-slate-600">
                 {t(`cards.${mentorKey}.role`)}
               </p>
-              <div className="mt-2 inline-flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1 text-sm font-semibold text-amber-600">
-                <Star className="h-4 w-4 fill-current" />
-                {t(`cards.${mentorKey}.rating`)}
-              </div>
             </div>
           </div>
 
-          <div className="rounded-full border border-sky-100 bg-sky-50 px-3 py-1 text-xs font-semibold text-sky-700">
-            {t(`cards.${mentorKey}.badge`)}
+          <div className="flex flex-col items-end gap-2">
+            <div className="inline-flex items-center justify-center rounded-full border border-sky-100 bg-sky-50 px-3 py-1 text-center text-xs font-semibold text-sky-700">
+              {t(`cards.${mentorKey}.badge`)}
+            </div>
+            <div className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1 text-sm font-semibold text-amber-600">
+              <Star className="h-4 w-4 fill-current" />
+              {t(`cards.${mentorKey}.rating`)}
+            </div>
           </div>
         </div>
 
-        <div className="mt-5 flex flex-wrap gap-2">
+        <div className="mt-5 flex flex-wrap justify-start gap-2">
           {tagKeys.map((tagKey) => (
             <span
               key={tagKey}
@@ -66,7 +68,7 @@ export function MentorCard({
       </div>
 
       <div className="mt-5">
-        <p className="line-clamp-4 text-sm leading-7 text-slate-600">
+        <p className="line-clamp-4 text-left text-sm leading-7 text-slate-600">
           {t(`cards.${mentorKey}.summary`)}
         </p>
       </div>

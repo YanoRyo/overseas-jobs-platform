@@ -4,26 +4,27 @@ import { ArrowRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { PRIMARY_PILL_BUTTON_LARGE_CLASS_NAME } from "@/components/ui/buttonStyles";
+import { mentorProfilePhotos } from "@/lib/mentorProfilePhotos";
 import { MentorCard } from "./MentorCard";
 
 const mentorCards = [
   {
-    avatarAlt: "Aiko Tanaka",
-    avatarSrc: "/avatars/onboarding-aiko.svg",
+    avatarAlt: mentorProfilePhotos.minaLee.alt,
+    avatarSrc: mentorProfilePhotos.minaLee.src,
     mentorKey: "aiko",
   },
   {
-    avatarAlt: "Marcus Lee",
-    avatarSrc: "/avatars/onboarding-marcus.svg",
+    avatarAlt: mentorProfilePhotos.danielPark.alt,
+    avatarSrc: mentorProfilePhotos.danielPark.src,
     mentorKey: "marcus",
   },
   {
-    avatarAlt: "Sofia Ramirez",
-    avatarSrc: "/avatars/onboarding-sofia.svg",
+    avatarAlt: mentorProfilePhotos.rahulSharma.alt,
+    avatarSrc: mentorProfilePhotos.rahulSharma.src,
     mentorKey: "sofia",
   },
 ] as const;
-const mentorLoginHref = "/auth/login?redirect=%2Fmentors";
+const mentorListHref = "/mentors";
 
 export function MentorPreviewSection() {
   const t = useTranslations("landing.mentors");
@@ -44,7 +45,7 @@ export function MentorPreviewSection() {
         </div>
 
         <Link
-          href={mentorLoginHref}
+          href={mentorListHref}
           className={PRIMARY_PILL_BUTTON_LARGE_CLASS_NAME}
         >
           {t("browseCta")}

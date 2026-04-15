@@ -7,6 +7,7 @@ import { useTranslations } from 'next-intl';
 import { FavoriteToggleButton } from '@/features/favorites/components/FavoriteToggleButton';
 import { PriceDisplay } from '@/features/currency/components/PriceDisplay';
 import type { MentorListItem } from '@/features/mentors/types';
+import { getMentorProfilePhoto } from '@/lib/mentorProfilePhotos';
 
 type MentorCardProps = {
   mentor: MentorListItem;
@@ -18,6 +19,8 @@ export default function MentorCard({ mentor, onBook }: MentorCardProps) {
   const [expanded, setExpanded] = useState(false);
   const [canExpand, setCanExpand] = useState(false);
   const introductionRef = useRef<HTMLParagraphElement>(null);
+  const fallbackPhoto = getMentorProfilePhoto(mentor.id);
+  const avatarSrc = mentor.avatarUrl ?? fallbackPhoto.src;
 
   useEffect(() => {
     const introduction = introductionRef.current;
@@ -61,14 +64,12 @@ export default function MentorCard({ mentor, onBook }: MentorCardProps) {
 
         {/* アバター */}
         <div className="relative w-32 h-32 flex-shrink-0">
-          {mentor.avatarUrl && (
-            <Image
-              src={mentor.avatarUrl}
-              alt={mentor.name}
-              fill
-              className="object-cover rounded-lg"
-            />
-          )}
+          <Image
+            src={avatarSrc}
+            alt={mentor.name}
+            fill
+            className="rounded-lg object-cover object-center"
+          />
         </div>
 
         {/* テキスト情報 */}

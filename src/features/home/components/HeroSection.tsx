@@ -8,24 +8,16 @@ import {
   PRIMARY_PILL_BUTTON_LARGE_CLASS_NAME,
   SECONDARY_PILL_BUTTON_CLASS_NAME,
 } from "@/components/ui/buttonStyles";
+import { mentorProfilePhotos } from "@/lib/mentorProfilePhotos";
 
 const floatingCardKeys = ["match", "review", "availability"] as const;
 const highlightKeys = ["careerSwitch", "visaSupport", "firstSession"] as const;
 const floatingCardAvatars = [
-  {
-    alt: "Aiko Tanaka",
-    src: "/avatars/onboarding-aiko.svg",
-  },
-  {
-    alt: "Sofia Ramirez",
-    src: "/avatars/onboarding-sofia.svg",
-  },
-  {
-    alt: "Marcus Lee",
-    src: "/avatars/onboarding-marcus.svg",
-  },
+  mentorProfilePhotos.kenSato,
+  mentorProfilePhotos.minaLee,
+  mentorProfilePhotos.danielPark,
 ] as const;
-const mentorLoginHref = "/auth/login?redirect=%2Fmentors";
+const mentorListHref = "/mentors";
 
 type FloatingCardProps = {
   avatarAlt: string;
@@ -54,7 +46,7 @@ function FloatingCard({
           alt={avatarAlt}
           width={40}
           height={40}
-          className="h-10 w-10 rounded-full object-cover"
+          className="h-10 w-10 rounded-full object-cover object-center"
         />
         <div className="min-w-0">
           <p className="line-clamp-2 text-sm font-semibold leading-5 text-slate-900">
@@ -115,7 +107,7 @@ export function HeroSection() {
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Link
-              href={mentorLoginHref}
+              href={mentorListHref}
               className={PRIMARY_PILL_BUTTON_LARGE_CLASS_NAME}
             >
               {t("primaryCta")}
