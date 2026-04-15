@@ -70,8 +70,11 @@ export async function POST(request: Request) {
     username: user.email?.split("@")[0] ?? "no-name",
   };
 
-  const roleToPersist =
-    existingUser?.role ?? requestedRole ?? metadataRole ?? null;
+  // 既存ユーザー: DB上のroleを固定（nullでもbody/metadataからの変更を許可しない）
+  // 新規ユーザー: metadataRole優先、OAuth用にrequestedRoleをフォールバック
+  const roleToPersist = existingUser
+    ? existingUser.role
+    : (metadataRole ?? requestedRole ?? null);
 
   if (roleToPersist) {
     payload.role = roleToPersist;
