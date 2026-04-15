@@ -48,7 +48,7 @@ export async function GET(request: Request) {
     .or(`status.eq.confirmed,expires_at.gt.${new Date().toISOString()}`);
 
   if (error) {
-    console.error("available-slots: query error", error);
+    console.error("booked-slots: query error", error);
     return NextResponse.json(
       { error: "Failed to fetch booked slots" },
       { status: 500 }

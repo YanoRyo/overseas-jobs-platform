@@ -39,7 +39,7 @@ export const useBookedSlots = (
       const weekStart = new Date(weekKey);
 
       const res = await fetch(
-        `/api/bookings/available-slots?mentorId=${encodeURIComponent(mentorId)}&weekStart=${encodeURIComponent(weekStart.toISOString())}`
+        `/api/bookings/booked-slots?mentorId=${encodeURIComponent(mentorId)}&weekStart=${encodeURIComponent(weekStart.toISOString())}`
       );
 
       if (!res.ok) {
