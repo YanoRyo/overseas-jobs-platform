@@ -10,6 +10,6 @@ export default async function LoginPage({
 }: RootAuthPageProps) {
   return redirectToLocalizedAuthPage({
     searchParams,
-    pathname="/auth/login",
+    pathname: "/auth/login",
   });
 }

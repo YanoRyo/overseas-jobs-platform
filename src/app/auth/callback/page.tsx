@@ -10,6 +10,6 @@ export default async function AuthCallbackPage({
 }: RootAuthPageProps) {
   return redirectToLocalizedAuthPage({
     searchParams,
-    pathname="/auth/callback",
+    pathname: "/auth/callback",
   });
 }

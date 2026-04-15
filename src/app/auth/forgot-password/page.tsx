@@ -10,6 +10,6 @@ export default async function ForgotPasswordPage({
 }: RootAuthPageProps) {
   return redirectToLocalizedAuthPage({
     searchParams,
-    pathname="/auth/forgot-password",
+    pathname: "/auth/forgot-password",
   });
 }
