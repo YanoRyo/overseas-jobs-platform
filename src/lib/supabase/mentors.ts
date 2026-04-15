@@ -166,7 +166,12 @@ export const createMentorAvailability = async (
 // ========================================
 
 export const uploadAvatar = async (userId: string, file: File) => {
-  const fileExt = file.name.split('.').pop();
+  const validation = validateImageFile(file);
+  if (!validation.valid) {
+    return { url: null, error: new Error(validation.error) };
+  }
+
+  const fileExt = getSafeExtension(file);
   const filePath = `${userId}/avatar.${fileExt}`;
 
   const { error } = await supabase.storage
