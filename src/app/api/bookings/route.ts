@@ -5,6 +5,7 @@ import {
 } from "@/lib/supabase/server";
 
 const BOOKING_EXPIRY_MINUTES = 15;
+const ALLOWED_DURATIONS = [25, 50] as const;
 
 export async function POST(request: Request) {
   const supabase = await createSupabaseServerClient();
@@ -28,13 +29,21 @@ export async function POST(request: Request) {
   const startTimeStr =
     typeof body.startTime === "string" ? body.startTime.trim() : null;
   const duration =
-    typeof body.duration === "number" && body.duration > 0
-      ? body.duration
+    typeof body.duration === "number" &&
+    ALLOWED_DURATIONS.includes(body.duration as (typeof ALLOWED_DURATIONS)[number])
+      ? (body.duration as (typeof ALLOWED_DURATIONS)[number])
       : null;
 
-  if (!mentorId || !startTimeStr || !duration) {
+  if (!mentorId || !startTimeStr) {
     return NextResponse.json(
-      { error: "mentorId, startTime, and duration are required" },
+      { error: "mentorId and startTime are required" },
+      { status: 400 }
+    );
+  }
+
+  if (!duration) {
+    return NextResponse.json(
+      { error: `Invalid duration. Allowed values: ${ALLOWED_DURATIONS.join(", ")} minutes` },
       { status: 400 }
     );
   }
