@@ -43,21 +43,21 @@ export async function middleware(req: NextRequest) {
   );
 
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
 
   const isAuthPage = pathWithoutLocale.startsWith("/auth");
-  const isProtected = ["/checkout", "/dashboard", "/protected", "/admin"].some(
+  const isProtected = ["/checkout", "/dashboard", "/protected", "/admin", "/settings"].some(
     (path) => pathWithoutLocale.startsWith(path)
   );
 
-  if (isProtected && !session) {
+  if (isProtected && !user) {
     const loginUrl = new URL(`/${locale}/auth/login`, req.url);
     loginUrl.searchParams.set("redirect", pathWithoutLocale);
     return NextResponse.redirect(loginUrl);
   }
 
-  if (isAuthPage && session) {
+  if (isAuthPage && user) {
     return NextResponse.redirect(new URL(`/${locale}/`, req.url));
   }
 
