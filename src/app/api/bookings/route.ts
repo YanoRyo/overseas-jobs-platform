@@ -63,9 +63,6 @@ export async function POST(request: Request) {
     );
   }
 
-  const endTime = new Date(startTime);
-  endTime.setMinutes(endTime.getMinutes() + duration);
-
   const adminDb = createSupabaseServiceClient();
 
   // メンターの存在確認（mentorIdはmentors.idを指す）
@@ -90,57 +87,32 @@ export async function POST(request: Request) {
     );
   }
 
-  // 重複予約チェック（pending期限内 or confirmed の予約と時間が重複していないか）
-  const { data: overlapping, error: overlapError } = await adminDb
-    .from("bookings")
-    .select("id")
-    .eq("mentor_id", mentor.id)
-    .in("status", ["pending", "confirmed"])
-    .lt("start_time", endTime.toISOString())
-    .gt("end_time", startTime.toISOString())
-    .or(`status.eq.confirmed,expires_at.gt.${new Date().toISOString()}`)
-    .limit(1);
+  // TOCTOU を避けるため、重複確認と予約作成は DB 側 RPC で原子的に実行する
+  const { data: result, error: rpcError } = await adminDb.rpc(
+    "create_booking_atomic",
+    {
+      p_user_id: user.id,
+      p_mentor_id: mentor.id,
+      p_start_time: startTime.toISOString(),
+      p_duration_minutes: duration,
+      p_expiry_minutes: BOOKING_EXPIRY_MINUTES,
+    }
+  );
 
-  if (overlapError) {
-    console.error("bookings: overlap check error", overlapError);
-    return NextResponse.json(
-      { error: "Failed to check availability" },
-      { status: 500 }
-    );
-  }
-
-  if (overlapping && overlapping.length > 0) {
-    return NextResponse.json(
-      { error: "This time slot is already booked" },
-      { status: 409 }
-    );
-  }
-
-  // サーバー側でexpires_atとstatusを固定
-  const expiresAt = new Date(
-    Date.now() + BOOKING_EXPIRY_MINUTES * 60 * 1000
-  ).toISOString();
-
-  const { data: booking, error: insertError } = await adminDb
-    .from("bookings")
-    .insert({
-      user_id: user.id,
-      mentor_id: mentor.id,
-      start_time: startTime.toISOString(),
-      end_time: endTime.toISOString(),
-      status: "pending",
-      expires_at: expiresAt,
-    })
-    .select("id")
-    .single();
-
-  if (insertError) {
-    console.error("bookings: insert error", insertError);
+  if (rpcError) {
+    console.error("bookings: atomic create error", rpcError);
     return NextResponse.json(
       { error: "Failed to create booking" },
       { status: 500 }
     );
   }
 
-  return NextResponse.json({ bookingId: booking.id });
+  if (!result || result.conflict) {
+    return NextResponse.json(
+      { error: "This time slot is already booked" },
+      { status: 409 }
+    );
+  }
+
+  return NextResponse.json({ bookingId: result.booking_id });
 }
