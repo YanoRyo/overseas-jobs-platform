@@ -1,6 +1,8 @@
-"use client";
-import { CheckoutLayout } from "@/features/checkout/components/CheckoutLayout";
+import { redirect } from "next/navigation";
+import { defaultLocale } from "@/i18n/config";
+
+export const dynamic = "force-dynamic";
 
 export default function CheckoutPage() {
-  return <CheckoutLayout />;
+  redirect(`/${defaultLocale}/checkout`);
 }
