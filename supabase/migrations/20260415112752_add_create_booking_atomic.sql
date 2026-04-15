@@ -48,6 +48,7 @@ BEGIN
 END;
 $$;
 
--- service_role からのみ呼び出し可能にする（PUBLIC のデフォルト権限も剥奪）
-REVOKE EXECUTE ON FUNCTION create_booking_atomic FROM PUBLIC;
+-- service_role からのみ呼び出し可能にする
+-- PUBLIC のデフォルト権限と ALTER DEFAULT PRIVILEGES による anon/authenticated への自動付与も剥奪
+REVOKE EXECUTE ON FUNCTION create_booking_atomic FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION create_booking_atomic TO service_role;
