@@ -44,15 +44,13 @@ export function MentorCard({
             </div>
           </div>
 
-          <div className="flex flex-col items-end gap-2">
-            <div className="inline-flex items-center justify-center rounded-full border border-sky-100 bg-sky-50 px-3 py-1 text-center text-xs font-semibold text-sky-700">
+          <div className="flex flex-col gap-2">
+            <div className="flex items-center justify-center rounded-full border border-sky-100 bg-sky-50 px-3 py-1 text-center text-xs font-semibold text-sky-700">
               {t(`cards.${mentorKey}.badge`)}
             </div>
-            <div className="flex w-full justify-start">
-              <div className="inline-flex items-center gap-1 rounded-full bg-amber-50 px-3 py-1 text-sm font-semibold text-amber-600">
-                <Star className="h-4 w-4 fill-current" />
-                {t(`cards.${mentorKey}.rating`)}
-              </div>
+            <div className="flex items-center justify-center gap-1 rounded-full bg-amber-50 px-3 py-1 text-sm font-semibold text-amber-600">
+              <Star className="h-4 w-4 fill-current" />
+              {t(`cards.${mentorKey}.rating`)}
             </div>
           </div>
         </div>
