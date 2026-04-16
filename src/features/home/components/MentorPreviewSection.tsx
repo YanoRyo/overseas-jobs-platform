@@ -4,7 +4,6 @@ import { ArrowRight } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { PRIMARY_PILL_BUTTON_LARGE_CLASS_NAME } from "@/components/ui/buttonStyles";
-import { useCurrency } from "@/features/currency/context/CurrencyContext";
 import { mentorProfilePhotos } from "@/lib/mentorProfilePhotos";
 import { MentorCard } from "./MentorCard";
 
@@ -12,19 +11,19 @@ const mentorCards = [
   {
     avatarAlt: mentorProfilePhotos.minaLee.alt,
     avatarSrc: mentorProfilePhotos.minaLee.src,
-    basePrice: 18,
+    hourlyRate: 18,
     mentorKey: "aiko",
   },
   {
     avatarAlt: mentorProfilePhotos.danielPark.alt,
     avatarSrc: mentorProfilePhotos.danielPark.src,
-    basePrice: 36,
+    hourlyRate: 36,
     mentorKey: "marcus",
   },
   {
     avatarAlt: mentorProfilePhotos.rahulSharma.alt,
     avatarSrc: mentorProfilePhotos.rahulSharma.src,
-    basePrice: 24,
+    hourlyRate: 24,
     mentorKey: "sofia",
   },
 ] as const;
@@ -32,7 +31,6 @@ const mentorListHref = "/mentors";
 
 export function MentorPreviewSection() {
   const t = useTranslations("landing.mentors");
-  const { currency } = useCurrency();
 
   return (
     <section className="py-4 sm:py-6">
@@ -64,8 +62,7 @@ export function MentorPreviewSection() {
             key={mentor.mentorKey}
             avatarAlt={mentor.avatarAlt}
             avatarSrc={mentor.avatarSrc}
-            basePrice={mentor.basePrice}
-            currency={currency}
+            hourlyRate={mentor.hourlyRate}
             mentorKey={mentor.mentorKey}
           />
         ))}
