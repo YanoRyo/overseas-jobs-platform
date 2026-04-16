@@ -3,12 +3,16 @@
 import Image from "next/image";
 import { CalendarDays, Star } from "lucide-react";
 import { useTranslations } from "next-intl";
+import type { CurrencyCode } from "@/features/currency/constants";
+import { formatLocalizedPrice } from "@/features/currency/utils/formatLocalizedPrice";
 
 type MentorCardKey = "aiko" | "marcus" | "sofia";
 
 export type MentorPreviewCardProps = {
   avatarAlt: string;
   avatarSrc: string;
+  basePrice: number;
+  currency: CurrencyCode;
   mentorKey: MentorCardKey;
 };
 
@@ -17,9 +21,12 @@ const tagKeys = ["first", "second", "third"] as const;
 export function MentorCard({
   avatarAlt,
   avatarSrc,
+  basePrice,
+  currency,
   mentorKey,
 }: MentorPreviewCardProps) {
   const t = useTranslations("landing.mentors");
+  const formattedPrice = formatLocalizedPrice(basePrice, currency);
 
   return (
     <article className="flex h-full flex-col rounded-[1.9rem] border border-slate-200/80 bg-white/80 p-5 shadow-[0_24px_70px_-52px_rgba(15,23,42,0.45)] backdrop-blur sm:p-6">
@@ -76,9 +83,7 @@ export function MentorCard({
       <div className="mt-auto pt-6">
         <div className="flex items-center justify-between gap-4 border-t border-slate-200 pt-5">
           <div>
-            <p className="text-lg font-semibold text-slate-950">
-              {t(`cards.${mentorKey}.price`)}
-            </p>
+            <p className="text-lg font-semibold text-slate-950">{formattedPrice}</p>
             <p className="text-xs uppercase tracking-[0.18em] text-slate-500">
               {t("priceLabel")}
             </p>
