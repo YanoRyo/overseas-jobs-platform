@@ -1,4 +1,5 @@
 "use client";
+import Image from "next/image";
 import { useState } from "react";
 import { Dialog } from "@headlessui/react";
 import { X, Sunrise, Sun, Sunset, Moon } from "lucide-react";
@@ -192,11 +193,15 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             {mentor.avatarUrl && (
-              <img
-                src={mentor.avatarUrl}
-                alt={mentor.name}
-                className="w-12 h-12 rounded-lg object-cover"
-              />
+              <div className="relative h-12 w-12 overflow-hidden rounded-lg">
+                <Image
+                  src={mentor.avatarUrl}
+                  alt={mentor.name}
+                  fill
+                  className="object-cover"
+                  sizes="48px"
+                />
+              </div>
             )}
             <div>
               <h2 className="text-xl font-semibold">

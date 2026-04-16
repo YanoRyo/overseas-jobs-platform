@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useMentorSearch } from "../hooks/useMentorSearch";
 import SearchFilters from "@/components/SearchFilters";
@@ -43,7 +43,7 @@ export function MentorList() {
   const [bookingError, setBookingError] = useState<string | null>(null);
 
   // メンター詳細を取得して BookingModal を開く
-  const fetchAndOpenBooking = async (mentorId: string) => {
+  const fetchAndOpenBooking = useCallback(async (mentorId: string) => {
     setBookingLoading(true);
     setBookingError(null);
     try {
@@ -74,7 +74,7 @@ export function MentorList() {
     } finally {
       setBookingLoading(false);
     }
-  };
+  }, [t]);
 
   // 予約ボタンクリック時の処理
   const handleBook = async (mentor: MentorListItem) => {
@@ -97,19 +97,19 @@ export function MentorList() {
       localStorage.removeItem(PENDING_BOOKING_KEY);
       setIsAuthModalOpen(false);
       setPendingMentorId(null);
-      fetchAndOpenBooking(storedMentorId);
+      void fetchAndOpenBooking(storedMentorId);
     }
-  }, [user]);
+  }, [user, fetchAndOpenBooking]);
 
   // メール認証でのログイン成功後、AuthModal を閉じて BookingModal を開く
   useEffect(() => {
     if (user && pendingMentorId && isAuthModalOpen) {
       localStorage.removeItem(PENDING_BOOKING_KEY);
       setIsAuthModalOpen(false);
-      fetchAndOpenBooking(pendingMentorId);
+      void fetchAndOpenBooking(pendingMentorId);
       setPendingMentorId(null);
     }
-  }, [user, pendingMentorId, isAuthModalOpen]);
+  }, [user, pendingMentorId, isAuthModalOpen, fetchAndOpenBooking]);
 
   return (
     <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">

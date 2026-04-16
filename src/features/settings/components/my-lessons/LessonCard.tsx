@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import type { LessonItem } from "../../types/myLessons";
 import type { BookingStatus } from "@/features/payment/types/payment";
 import { ExternalLink } from "lucide-react";
@@ -62,12 +63,14 @@ export function LessonCard({ lesson }: Props) {
   return (
     <div className="rounded-xl border border-border bg-white p-4 shadow-sm">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center">
-        <div className="h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-slate-200">
+        <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-lg bg-slate-200">
           {lesson.participantAvatarUrl ? (
-            <img
+            <Image
               src={lesson.participantAvatarUrl}
               alt={lesson.participantName}
-              className="h-full w-full object-cover"
+              fill
+              className="object-cover"
+              sizes="48px"
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center text-sm font-semibold text-slate-600">

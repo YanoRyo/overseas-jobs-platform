@@ -72,7 +72,7 @@ export const useCheckout = () => {
     };
 
     createPaymentIntent();
-  }, [router]);
+  }, [router, t]);
 
   return {
     reservation,

@@ -16,7 +16,8 @@ export function SignupAgreementField({
   id,
 }: SignupAgreementFieldProps) {
   const t = useTranslations("auth");
-  const checkboxId = id ?? useId();
+  const generatedId = useId();
+  const checkboxId = id ?? generatedId;
   const descriptionId = `${checkboxId}-description`;
 
   return (

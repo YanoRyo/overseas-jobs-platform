@@ -99,7 +99,7 @@ function SettingsPageContent() {
     return () => {
       cancelled = true;
     };
-  }, [authLoading, router, session, supabase]);
+  }, [authLoading, router, session, supabase, t]);
 
   if (loading) {
     return <div className="px-6 py-10 text-sm text-gray-400">{tc("loading")}</div>;

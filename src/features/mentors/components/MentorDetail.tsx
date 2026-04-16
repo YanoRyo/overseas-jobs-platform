@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Flag from "react-world-flags";
 import {
@@ -422,10 +423,13 @@ export const MentorDetail = ({
               <div className="flex flex-col gap-6 sm:flex-row">
                 <div className="w-28 h-28 sm:w-32 sm:h-32 shrink-0">
                   {mentor.avatarUrl ? (
-                    <img
+                    <Image
                       src={mentor.avatarUrl}
                       alt={mentor.name}
+                      width={128}
+                      height={128}
                       className="w-full h-full object-cover rounded-2xl shadow-sm"
+                      sizes="(min-width: 640px) 128px, 112px"
                     />
                   ) : (
                     <div className="w-full h-full rounded-2xl bg-slate-100 border border-border" />

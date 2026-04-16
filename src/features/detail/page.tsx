@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useState } from "react";
 import Flag from "react-world-flags";
 
@@ -51,9 +52,11 @@ export default function MentorDetail({ mentor, onBook }: MentorDetailProps) {
       {/* ヘッダー部分 */}
       <div className="flex flex-col md:flex-row gap-6">
         {mentor.avatarUrl && (
-          <img
+          <Image
             src={mentor.avatarUrl}
             alt={mentor.name}
+            width={160}
+            height={160}
             className="w-40 h-40 rounded-lg object-cover mx-auto md:mx-0"
           />
         )}

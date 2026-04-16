@@ -61,7 +61,7 @@ function CheckoutCompleteContent() {
     };
 
     checkPayment();
-  }, [searchParams]);
+  }, [searchParams, t]);
 
   if (!result) {
     return (

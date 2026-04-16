@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useCallback, useRef, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Upload, Check, User } from "lucide-react";
@@ -55,7 +56,7 @@ export const PhotoStep = ({
         avatarUrl: previewUrl,
       });
     },
-    [onUpdate]
+    [onUpdate, t]
   );
 
   const handleUploadClick = useCallback(() => {
@@ -89,16 +90,19 @@ export const PhotoStep = ({
         <div className="flex flex-col items-center gap-4">
           <div
             className={`
-            w-48 h-48 rounded-xl overflow-hidden bg-surface border-2
+            relative w-48 h-48 rounded-xl overflow-hidden bg-surface border-2
             ${errors.avatar ? "border-error" : "border-border"}
             flex items-center justify-center
           `}
           >
             {previewUrl ? (
-              <img
+              <Image
                 src={previewUrl}
                 alt="Profile preview"
-                className="w-full h-full object-cover"
+                fill
+                className="object-cover"
+                sizes="192px"
+                unoptimized
               />
             ) : (
               <User className="w-24 h-24 text-muted" />
