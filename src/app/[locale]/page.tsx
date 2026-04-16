@@ -6,7 +6,6 @@ import { useRouter } from "@/i18n/navigation";
 import {
   useSessionContext,
   useSupabaseClient,
-  useUser,
 } from "@supabase/auth-helpers-react";
 import { MentorList } from "@/features/mentors/components/MentorList";
 import { OnboardingLandingPage } from "@/features/home/components/OnboardingLandingPage";
@@ -19,8 +18,11 @@ export default function Home() {
   const tc = useTranslations("common");
   const router = useRouter();
   const supabase = useSupabaseClient();
-  const user = useUser();
-  const { isLoading: authLoading } = useSessionContext();
+  const {
+    isLoading: authLoading,
+    session,
+  } = useSessionContext();
+  const user = session?.user ?? null;
   const [homeView, setHomeView] = useState<HomeView>("landing");
   const [resolvingRole, setResolvingRole] = useState(true);
 

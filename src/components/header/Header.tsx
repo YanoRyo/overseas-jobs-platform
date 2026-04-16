@@ -1,6 +1,9 @@
 "use client";
 import { Suspense, useEffect, useState } from "react";
-import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
+import {
+  useSessionContext,
+  useSupabaseClient,
+} from "@supabase/auth-helpers-react";
 
 import type { UserRole } from "@/features/auth/types";
 import { Link, usePathname } from "@/i18n/navigation";
@@ -16,7 +19,8 @@ const isUserRole = (value: unknown): value is UserRole =>
 export function Header() {
   const pathname = usePathname();
   const supabase = useSupabaseClient();
-  const user = useUser();
+  const { isLoading: authLoading, session } = useSessionContext();
+  const user = session?.user ?? null;
   const [viewerRole, setViewerRole] = useState<UserRole | null>(null);
 
   const metadataRole = isUserRole(user?.user_metadata?.role)
@@ -34,6 +38,13 @@ export function Header() {
 
   useEffect(() => {
     let cancelled = false;
+
+    if (authLoading) {
+      setViewerRole(null);
+      return () => {
+        cancelled = true;
+      };
+    }
 
     const resolveViewerRole = async () => {
       if (!user) {
@@ -79,7 +90,7 @@ export function Header() {
     return () => {
       cancelled = true;
     };
-  }, [metadataRole, supabase, user]);
+  }, [authLoading, metadataRole, supabase, user]);
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b">
@@ -92,7 +103,15 @@ export function Header() {
         {/* 右：メッセージ・通知・ユーザー*/}
         {!hideRight && (
           <div className="flex items-center gap-3 sm:gap-4">
-            {!user ? (
+            {authLoading ? (
+              <>
+                <LocaleSelector />
+                <div
+                  className="h-10 w-10 rounded-xl bg-[#d9dee8]"
+                  aria-hidden="true"
+                />
+              </>
+            ) : !user ? (
               <HeaderUnauthenticated />
             ) : (
               <>

@@ -1,4 +1,6 @@
 "use client";
+
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Link } from "@/i18n/navigation";
 import { useSignup } from "../hooks/useSignup";
@@ -7,6 +9,7 @@ import { AuthShell } from "./AuthShell";
 import { AuthDivider } from "./AuthDivider";
 import { PasswordField } from "./PasswordField";
 import { RoleSelector } from "./RoleSelector";
+import { SignupAgreementField } from "./SignupAgreementField";
 import { SocialAuthButtons } from "./SocialAuthButtons";
 
 type SignupFormProps = {
@@ -15,6 +18,7 @@ type SignupFormProps = {
 
 export const SignupForm = ({ redirect }: SignupFormProps) => {
   const t = useTranslations("auth.signup");
+  const [hasAgreedToPolicies, setHasAgreedToPolicies] = useState(false);
   const loginHref = redirect
     ? `/auth/login?redirect=${encodeURIComponent(redirect)}`
     : "/auth/login";
@@ -60,7 +64,7 @@ export const SignupForm = ({ redirect }: SignupFormProps) => {
           <SocialAuthButtons
             onGoogle={handleGoogleSignup}
             onFacebook={handleFacebookSignup}
-            disabled={loading || !role}
+            disabled={loading || !role || !hasAgreedToPolicies}
           />
 
           <AuthDivider />
@@ -93,21 +97,18 @@ export const SignupForm = ({ redirect }: SignupFormProps) => {
               className={inputClassName}
             />
 
+            <SignupAgreementField
+              checked={hasAgreedToPolicies}
+              onChange={setHasAgreedToPolicies}
+            />
+
             <button
-              disabled={loading || !role}
+              disabled={loading || !role || !hasAgreedToPolicies}
               className="w-full rounded-xl bg-accent py-3 text-sm font-semibold text-white transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loading ? t("creatingAccount") : t("submit")}
             </button>
           </form>
-
-          <p className="text-center text-xs text-muted">
-            {t("termsNotice").split(t("termsLinkText"))[0]}
-            <Link href="/policy" className="text-accent hover:underline">
-              {t("termsLinkText")}
-            </Link>
-            {t("termsNotice").split(t("termsLinkText"))[1]}
-          </p>
         </div>
       </AuthShell>
 

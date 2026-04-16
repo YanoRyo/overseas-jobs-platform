@@ -9,6 +9,7 @@ import {
 import { ShieldCheck } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
+import { Link } from "@/i18n/navigation";
 
 export const PaymentSection = ({
   amountCents,
@@ -16,6 +17,7 @@ export const PaymentSection = ({
   amountCents: number | null;
 }) => {
   const t = useTranslations("checkout");
+  const tp = useTranslations("payment");
   const locale = useLocale();
   const stripe = useStripe();
   const elements = useElements();
@@ -73,6 +75,15 @@ export const PaymentSection = ({
       >
         {processing ? t("processing") : t("pay", { amount: displayAmount })}
       </button>
+
+      <p className="text-center text-xs leading-5 text-secondary">
+        <Link
+          href="/cancellation-policy"
+          className="font-medium text-accent underline-offset-2 hover:underline"
+        >
+          {tp("agreeCancellation")}
+        </Link>
+      </p>
     </form>
   );
 };

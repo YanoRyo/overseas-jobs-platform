@@ -9,6 +9,7 @@ import { useSignup } from "../hooks/useSignup";
 import { useLogin } from "../hooks/useLogin";
 import { SocialAuthButtons } from "./SocialAuthButtons";
 import { AuthDivider } from "./AuthDivider";
+import { SignupAgreementField } from "./SignupAgreementField";
 import type { UserRole } from "../types";
 
 type AuthModalProps = {
@@ -37,6 +38,7 @@ export const AuthModal = ({
   const tSignup = useTranslations("auth.signup");
   const tc = useTranslations("common");
   const [mode, setMode] = useState<"signup" | "login">(defaultMode);
+  const [hasAgreedToPolicies, setHasAgreedToPolicies] = useState(false);
 
   const signup = useSignup({ initialRole, redirect: redirectAfterAuth });
   const login = useLogin({ initialRole, redirect: redirectAfterAuth });
@@ -77,6 +79,7 @@ export const AuthModal = ({
             type="button"
             onClick={handleClose}
             className="text-muted hover:text-primary transition-colors"
+            aria-label={tc("close")}
           >
             <X className="w-6 h-6" />
           </button>
@@ -110,7 +113,7 @@ export const AuthModal = ({
             <SocialAuthButtons
               onGoogle={signup.handleGoogleSignup}
               onFacebook={signup.handleFacebookSignup}
-              disabled={signup.loading}
+              disabled={signup.loading || !hasAgreedToPolicies}
             />
 
             <div className="my-6">
@@ -148,9 +151,13 @@ export const AuthModal = ({
                   required
                 />
               </div>
+              <SignupAgreementField
+                checked={hasAgreedToPolicies}
+                onChange={setHasAgreedToPolicies}
+              />
               <button
                 type="submit"
-                disabled={signup.loading}
+                disabled={signup.loading || !hasAgreedToPolicies}
                 className="w-full rounded-xl bg-accent py-3 text-sm font-semibold text-white transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {signup.loading ? tSignup("creatingAccount") : tSignup("submit")}
@@ -205,13 +212,15 @@ export const AuthModal = ({
           </>
         )}
 
-        <p className="mt-6 text-center text-xs text-muted">
-          {tLogin("termsNotice").split(tLogin("termsLinkText"))[0]}
-          <Link href="/policy" className="text-accent hover:underline">
-            {tLogin("termsLinkText")}
-          </Link>
-          {tLogin("termsNotice").split(tLogin("termsLinkText"))[1]}
-        </p>
+        {mode === "login" ? (
+          <p className="mt-6 text-center text-xs text-muted">
+            {tLogin("termsNotice").split(tLogin("termsLinkText"))[0]}
+            <Link href="/policy" className="text-accent hover:underline">
+              {tLogin("termsLinkText")}
+            </Link>
+            {tLogin("termsNotice").split(tLogin("termsLinkText"))[1]}
+          </p>
+        ) : null}
       </Dialog.Panel>
     </Dialog>
   );

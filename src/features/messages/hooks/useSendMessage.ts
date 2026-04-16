@@ -1,12 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { useTranslations } from "next-intl";
 import { useUser } from "@supabase/auth-helpers-react";
 import type { SendMessageInput } from "../types/sendMessageInput";
 import { sendMessageRequest } from "../lib/sendMessageRequest";
 
 export const useSendMessage = () => {
   const user = useUser();
+  const t = useTranslations("messages");
+  const ts = useTranslations("messages.sendModal");
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -17,7 +20,7 @@ export const useSendMessage = () => {
     message,
   }: SendMessageInput): Promise<boolean> => {
     if (!user) {
-      setError("Please log in.");
+      setError(ts("loginRequired"));
       return false;
     }
 
@@ -48,7 +51,7 @@ export const useSendMessage = () => {
       } else {
         console.error("Send error (non-object):", err);
       }
-      setError("Failed to send the message.");
+      setError(t("sendFailed"));
       return false;
     } finally {
       setLoading(false);

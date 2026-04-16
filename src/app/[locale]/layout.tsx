@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getTranslations } from "next-intl/server";
 import { SetHtmlLang } from "@/components/SetHtmlLang";
+import { Footer } from "@/components/footer/Footer";
 import { Header } from "@/components/header/Header";
 import { FavoritesProvider } from "@/features/favorites/context/FavoritesContext";
 import { SupabaseProvider } from "@/components/SupabaseProvider";
@@ -38,8 +39,11 @@ export default async function LocaleLayout({
       <CurrencyProvider>
         <SupabaseProvider>
           <FavoritesProvider>
-            <Header />
-            {children}
+            <div className="flex min-h-screen flex-col bg-background">
+              <Header />
+              <div className="flex-1">{children}</div>
+              <Footer />
+            </div>
           </FavoritesProvider>
         </SupabaseProvider>
       </CurrencyProvider>

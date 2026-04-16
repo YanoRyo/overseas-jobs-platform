@@ -11,7 +11,6 @@ import {
 import {
   useSessionContext,
   useSupabaseClient,
-  useUser,
 } from "@supabase/auth-helpers-react";
 
 import { mapMentorList } from "@/features/mentors/mapper/mapMentorList";
@@ -71,27 +70,14 @@ export function FavoritesProvider({
   children: React.ReactNode;
 }) {
   const supabase = useSupabaseClient();
-  const user = useUser();
-  const { isLoading: authLoading } = useSessionContext();
+  const {
+    isLoading: authLoading,
+    session,
+  } = useSessionContext();
   const [favoriteMentors, setFavoriteMentors] = useState<MentorListItem[]>([]);
   const [favoriteIds, setFavoriteIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const resolveUserId = useCallback(async () => {
-    if (user?.id) return user.id;
-
-    const {
-      data: { user: authUser },
-      error,
-    } = await supabase.auth.getUser();
-
-    if (error) {
-      console.error("resolveUserId error", error);
-      return null;
-    }
-
-    return authUser?.id ?? null;
-  }, [supabase, user?.id]);
+  const currentUserId = session?.user?.id ?? null;
 
   const refreshFavorites = useCallback(async () => {
     if (authLoading) {
@@ -99,9 +85,7 @@ export function FavoritesProvider({
       return;
     }
 
-    const userId = await resolveUserId();
-
-    if (!userId) {
+    if (!currentUserId) {
       setFavoriteMentors([]);
       setFavoriteIds([]);
       setLoading(false);
@@ -113,7 +97,7 @@ export function FavoritesProvider({
     const { data: favorites, error: favoritesError } = await supabase
       .from("mentor_favorites")
       .select("mentor_id, created_at")
-      .eq("user_id", userId)
+      .eq("user_id", currentUserId)
       .order("created_at", { ascending: false });
 
     if (favoritesError) {
@@ -160,7 +144,7 @@ export function FavoritesProvider({
         .filter((mentor): mentor is MentorListItem => Boolean(mentor))
     );
     setLoading(false);
-  }, [authLoading, resolveUserId, supabase]);
+  }, [authLoading, currentUserId, supabase]);
 
   useEffect(() => {
     void refreshFavorites();
@@ -168,9 +152,7 @@ export function FavoritesProvider({
 
   const toggleFavorite = useCallback(
     async (mentorId: string) => {
-      const userId = await resolveUserId();
-
-      if (!userId) {
+      if (!currentUserId) {
         return { ok: false, error: "Login required" };
       }
 
@@ -180,7 +162,7 @@ export function FavoritesProvider({
         const { error } = await supabase
           .from("mentor_favorites")
           .delete()
-          .eq("user_id", userId)
+          .eq("user_id", currentUserId)
           .eq("mentor_id", mentorId);
 
         if (error) {
@@ -190,7 +172,7 @@ export function FavoritesProvider({
       } else {
         const { error } = await supabase
           .from("mentor_favorites")
-          .insert({ user_id: userId, mentor_id: mentorId });
+          .insert({ user_id: currentUserId, mentor_id: mentorId });
 
         if (error) {
           console.error("toggleFavorite insert error", error);
@@ -201,7 +183,7 @@ export function FavoritesProvider({
       await refreshFavorites();
       return { ok: true };
     },
-    [favoriteIds, refreshFavorites, resolveUserId, supabase]
+    [currentUserId, favoriteIds, refreshFavorites, supabase]
   );
 
   const value = useMemo<FavoritesContextValue>(

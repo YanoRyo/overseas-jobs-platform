@@ -12,6 +12,7 @@ import { ConversationDetail } from "./ConversationDetail";
 
 export function MessagesPanel({ onClose }: { onClose: () => void }) {
   const t = useTranslations("messages");
+  const tc = useTranslations("common");
   const [activeTab, setActiveTab] = useState<MessageTab>("all");
   const [activeConversation, setActiveConversation] =
     useState<ConversationItemType | null>(null);
@@ -33,7 +34,7 @@ export function MessagesPanel({ onClose }: { onClose: () => void }) {
           {activeConversation ? activeConversation.partnerName : t("title")}
         </h2>
 
-        <button aria-label="close" onClick={onClose}>
+        <button aria-label={tc("close")} onClick={onClose}>
           <X className="w-5 h-5 text-gray-500" />
         </button>
       </div>

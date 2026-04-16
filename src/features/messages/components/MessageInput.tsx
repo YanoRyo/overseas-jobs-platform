@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { Link } from "@/i18n/navigation";
 
 export function MessageInput({
   onSend,
@@ -11,6 +12,8 @@ export function MessageInput({
   sending: boolean;
 }) {
   const t = useTranslations("messages");
+  const tMessage = useTranslations("message");
+  const tFooter = useTranslations("footer");
   const [text, setText] = useState("");
 
   const submit = async () => {
@@ -35,6 +38,15 @@ export function MessageInput({
         >
           {t("send")}
         </button>
+      </div>
+      <div className="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs leading-5 text-muted">
+        <span>{tMessage("guideline")}</span>
+        <Link
+          href="/terms"
+          className="font-medium text-accent underline-offset-2 hover:underline"
+        >
+          {tFooter("terms")}
+        </Link>
       </div>
     </div>
   );

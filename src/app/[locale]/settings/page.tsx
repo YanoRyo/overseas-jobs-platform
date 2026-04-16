@@ -4,7 +4,10 @@ import { Suspense, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import {
+  useSessionContext,
+  useSupabaseClient,
+} from "@supabase/auth-helpers-react";
 import {
   MentorSettingsLayout,
   MessagesLayout,
@@ -21,6 +24,10 @@ function SettingsPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const supabase = useSupabaseClient();
+  const {
+    isLoading: authLoading,
+    session,
+  } = useSessionContext();
   const topTab = searchParams.get("tab");
 
   const [loading, setLoading] = useState(true);
@@ -38,15 +45,12 @@ function SettingsPageContent() {
         setNeedsMentorRegistration(false);
       }
 
-      try {
-        const {
-          data: { user },
-          error: userError,
-        } = await supabase.auth.getUser();
+      if (authLoading) {
+        return;
+      }
 
-        if (userError) {
-          throw userError;
-        }
+      try {
+        const user = session?.user ?? null;
 
         if (!user) {
           if (!cancelled) {
@@ -95,7 +99,7 @@ function SettingsPageContent() {
     return () => {
       cancelled = true;
     };
-  }, [router, supabase]);
+  }, [authLoading, router, session, supabase]);
 
   if (loading) {
     return <div className="px-6 py-10 text-sm text-gray-400">{tc("loading")}</div>;
