@@ -307,7 +307,6 @@ export const MentorDetail = ({
   onTimeSlotClick,
 }: Props) => {
   const t = useTranslations("mentors");
-  const td = useTranslations("mentor");
   const locale = useLocale();
   const user = useUser();
   const [bioExpanded, setBioExpanded] = useState(false);
@@ -464,9 +463,6 @@ export const MentorDetail = ({
                     {mentor.subjects.length === 0
                       ? t("detail.notRegistered")
                       : mentor.subjects.join(", ")}
-                  </p>
-                  <p className="rounded-xl border border-border bg-[#fafafb] px-3 py-2 text-xs leading-6 text-secondary">
-                    {td("disclaimer")}
                   </p>
                 </div>
               </div>
