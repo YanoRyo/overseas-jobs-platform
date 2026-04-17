@@ -30,9 +30,8 @@ export function Header() {
 
   // locale prefix付きパス（/en/auth, /ja/mentor/register）に対応
   const pathWithoutLocale = pathname?.replace(/^\/[a-z]{2}(?=\/|$)/, "") || "";
-  const hideRight =
-    pathWithoutLocale.startsWith("/auth") ||
-    pathWithoutLocale.startsWith("/mentor/register");
+  const isAuthPage = pathWithoutLocale.startsWith("/auth");
+  const hideRight = pathWithoutLocale.startsWith("/mentor/register");
   const showStudentActions = !!user && effectiveViewerRole === "student";
   const homeHref = effectiveViewerRole === "mentor" ? "/settings" : "/";
 
@@ -103,7 +102,9 @@ export function Header() {
         {/* 右：メッセージ・通知・ユーザー*/}
         {!hideRight && (
           <div className="flex items-center gap-3 sm:gap-4">
-            {authLoading ? (
+            {isAuthPage ? (
+              <LocaleSelector />
+            ) : authLoading ? (
               <>
                 <LocaleSelector />
                 <div

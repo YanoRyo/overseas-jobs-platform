@@ -5,11 +5,11 @@ import { useMentorSearch } from "../hooks/useMentorSearch";
 import SearchFilters from "@/components/SearchFilters";
 import MentorCard from "@/components/MentorCard";
 import BookingModal from "@/components/BookingModal";
+import { useAuthModal } from "@/features/auth/context/AuthModalProvider";
 import { MentorDetailModel, MentorListItem } from "../types";
 import { fetchMentorById } from "@/lib/supabase/mentors";
 import { mapMentorDetail } from "../mapper/mapMentorDetail";
 import { useUser } from "@supabase/auth-helpers-react";
-import { AuthModal } from "@/features/auth/components/AuthModal";
 
 const PENDING_BOOKING_KEY = "pendingBookingMentorId";
 
@@ -28,11 +28,10 @@ export function MentorList() {
   } = useMentorSearch();
 
   const user = useUser();
+  const { openAuthModal } = useAuthModal();
   const [selectedMentor, setSelectedMentor] =
     useState<MentorDetailModel | null>(null);
   const [bookingLoading, setBookingLoading] = useState(false);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [pendingMentorId, setPendingMentorId] = useState<string | null>(null);
 
   // 初回マウント時に全件取得
   useEffect(() => {
@@ -79,10 +78,12 @@ export function MentorList() {
   // 予約ボタンクリック時の処理
   const handleBook = async (mentor: MentorListItem) => {
     if (!user) {
-      // 未ログイン: AuthModal を表示し、メンターIDを localStorage に保存
       localStorage.setItem(PENDING_BOOKING_KEY, mentor.id);
-      setPendingMentorId(mentor.id);
-      setIsAuthModalOpen(true);
+      openAuthModal({
+        defaultMode: "login",
+        initialRole: "student",
+        variant: "booking",
+      });
       return;
     }
 
@@ -95,21 +96,9 @@ export function MentorList() {
     const storedMentorId = localStorage.getItem(PENDING_BOOKING_KEY);
     if (user && storedMentorId) {
       localStorage.removeItem(PENDING_BOOKING_KEY);
-      setIsAuthModalOpen(false);
-      setPendingMentorId(null);
       void fetchAndOpenBooking(storedMentorId);
     }
   }, [user, fetchAndOpenBooking]);
-
-  // メール認証でのログイン成功後、AuthModal を閉じて BookingModal を開く
-  useEffect(() => {
-    if (user && pendingMentorId && isAuthModalOpen) {
-      localStorage.removeItem(PENDING_BOOKING_KEY);
-      setIsAuthModalOpen(false);
-      void fetchAndOpenBooking(pendingMentorId);
-      setPendingMentorId(null);
-    }
-  }, [user, pendingMentorId, isAuthModalOpen, fetchAndOpenBooking]);
 
   return (
     <div className="mx-auto flex w-full max-w-[1120px] flex-col gap-6 px-4 py-8 sm:px-6 lg:px-8">
@@ -172,20 +161,6 @@ export function MentorList() {
           onClose={() => setSelectedMentor(null)}
         />
       )}
-
-      <AuthModal
-        open={isAuthModalOpen}
-        onClose={() => {
-          setIsAuthModalOpen(false);
-          setPendingMentorId(null);
-        }}
-        defaultMode="login"
-        initialRole="student"
-        title={t("loginToContinue")}
-        description={t("loginToBook")}
-        redirectOnClose=""
-        redirectAfterAuth="/mentors"
-      />
     </div>
   );
 }

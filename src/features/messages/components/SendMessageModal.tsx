@@ -2,10 +2,11 @@
 
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { Link, useRouter, usePathname } from "@/i18n/navigation";
+import { Link } from "@/i18n/navigation";
 import { useUser } from "@supabase/auth-helpers-react";
 
 import { AuthPromptCard } from "@/components/AuthPromptCard";
+import { useAuthModal } from "@/features/auth/context/AuthModalProvider";
 import { useSendMessage } from "../hooks/useSendMessage";
 
 type Props = {
@@ -26,9 +27,8 @@ export const SendMessageModal = ({
   const tc = useTranslations("common");
   const tm = useTranslations("message");
   const tf = useTranslations("footer");
-  const router = useRouter();
-  const pathname = usePathname();
   const user = useUser();
+  const { openAuthModal } = useAuthModal();
 
   const [category, setCategory] = useState("");
   const [message, setMessage] = useState("");
@@ -37,10 +37,6 @@ export const SendMessageModal = ({
   const { sendMessage, loading, error } = useSendMessage();
 
   const isLoggedIn = useMemo(() => !!user, [user]);
-  const redirectParam = useMemo(
-    () => encodeURIComponent(pathname || "/"),
-    [pathname]
-  );
 
   if (!isOpen) return null;
 
@@ -49,11 +45,12 @@ export const SendMessageModal = ({
 
     // 0) ログイン必須
     if (!isLoggedIn) {
-      setLocalError(t("loginRequired"));
+      openAuthModal({
+        defaultMode: "login",
+        initialRole: "student",
+        variant: "message",
+      });
       return;
-      // すぐログインに飛ばしたいなら下を使う
-      // router.push("/auth/login");
-      // return;
     }
 
     // 1) 入力バリデーション
@@ -103,8 +100,20 @@ export const SendMessageModal = ({
             message={t("notLoggedIn")}
             loginLabel={ta("login.submit")}
             signUpLabel={ta("signup.submit")}
-            onLogin={() => router.push(`/auth/login?redirect=${redirectParam}`)}
-            onSignUp={() => router.push(`/auth/signup?redirect=${redirectParam}`)}
+            onLogin={() =>
+              openAuthModal({
+                defaultMode: "login",
+                initialRole: "student",
+                variant: "message",
+              })
+            }
+            onSignUp={() =>
+              openAuthModal({
+                defaultMode: "signup",
+                initialRole: "student",
+                variant: "message",
+              })
+            }
           />
         )}
 

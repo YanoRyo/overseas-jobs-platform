@@ -3,10 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { MessageSquare } from "lucide-react";
-import { usePathname, useRouter } from "@/i18n/navigation";
-import { useSearchParams } from "next/navigation";
-
 import { AuthPromptCard } from "@/components/AuthPromptCard";
+import { useAuthModal } from "@/features/auth/context/AuthModalProvider";
 import { ConversationDetail } from "@/features/messages/components/ConversationDetail";
 import { ConversationItem as ConversationListItem } from "@/features/messages/components/ConversationItem";
 import { useMessageThreads } from "@/features/messages/hooks/useMessageThreads";
@@ -50,20 +48,7 @@ function MessagesContent({
     useState<ConversationItem | null>(null);
   const { unreadCount } = useUnreadCount();
   const { items, loading, emptyReason } = useMessageThreads(activeTab);
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-
-  const redirectTarget = useMemo(() => {
-    const query = searchParams.toString();
-    if (!pathname) return "/settings?tab=messages";
-    return `${pathname}${query ? `?${query}` : ""}`;
-  }, [pathname, searchParams]);
-
-  const redirectParam = useMemo(
-    () => encodeURIComponent(redirectTarget),
-    [redirectTarget]
-  );
+  const { openAuthModal } = useAuthModal();
 
   const conversations = useMemo(
     () =>
@@ -123,10 +108,16 @@ function MessagesContent({
                     loginLabel={t("loginButton")}
                     signUpLabel={t("signUpButton")}
                     onLogin={() =>
-                      router.push(`/auth/login?redirect=${redirectParam}`)
+                      openAuthModal({
+                        defaultMode: "login",
+                        initialRole: "student",
+                      })
                     }
                     onSignUp={() =>
-                      router.push(`/auth/signup?redirect=${redirectParam}`)
+                      openAuthModal({
+                        defaultMode: "signup",
+                        initialRole: "student",
+                      })
                     }
                   />
                 </div>

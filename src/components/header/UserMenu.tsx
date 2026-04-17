@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { usePathname, useRouter } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
 import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
+import { useAuthModal } from "@/features/auth/context/AuthModalProvider";
 
 import type { UserRole } from "@/features/auth/types";
 import { getSettingsTopTabs } from "@/features/settings/constants/topTabs";
@@ -82,6 +83,7 @@ export default function UserMenu({ viewerRole = null }: Props) {
   const searchParams = useSearchParams();
   const supabase = useSupabaseClient();
   const user = useUser();
+  const { openAuthModal } = useAuthModal();
   const tNav = useTranslations("navigation");
   const tTabs = useTranslations("settings.topTabs");
 
@@ -177,11 +179,6 @@ export default function UserMenu({ viewerRole = null }: Props) {
     () => (menuRole ? getMenuItems(menuRole, tTabs, tNav) : []),
     [menuRole, tTabs, tNav]
   );
-  const currentHref = useMemo(
-    () => `${pathname || "/"}${searchKey ? `?${searchKey}` : ""}`,
-    [pathname, searchKey]
-  );
-
   const isActiveItem = (href: string) => {
     if (href === "/") {
       return pathname === "/";
@@ -210,7 +207,7 @@ export default function UserMenu({ viewerRole = null }: Props) {
 
   const goLogin = () => {
     setOpen(false);
-    router.push(`/auth/login?redirect=${encodeURIComponent(currentHref)}`);
+    openAuthModal({ defaultMode: "login" });
   };
 
   const logout = async () => {

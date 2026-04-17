@@ -5,6 +5,7 @@ import { getTranslations } from "next-intl/server";
 import { SetHtmlLang } from "@/components/SetHtmlLang";
 import { Footer } from "@/components/footer/Footer";
 import { Header } from "@/components/header/Header";
+import { AuthModalProvider } from "@/features/auth/context/AuthModalProvider";
 import { FavoritesProvider } from "@/features/favorites/context/FavoritesContext";
 import { SupabaseProvider } from "@/components/SupabaseProvider";
 import { CurrencyProvider } from "@/features/currency/context/CurrencyContext";
@@ -38,13 +39,15 @@ export default async function LocaleLayout({
       <SetHtmlLang />
       <CurrencyProvider>
         <SupabaseProvider>
-          <FavoritesProvider>
-            <div className="flex min-h-screen flex-col bg-background">
-              <Header />
-              <div className="flex-1">{children}</div>
-              <Footer />
-            </div>
-          </FavoritesProvider>
+          <AuthModalProvider>
+            <FavoritesProvider>
+              <div className="flex min-h-screen flex-col bg-background">
+                <Header />
+                <div className="flex-1">{children}</div>
+                <Footer />
+              </div>
+            </FavoritesProvider>
+          </AuthModalProvider>
         </SupabaseProvider>
       </CurrencyProvider>
     </NextIntlClientProvider>

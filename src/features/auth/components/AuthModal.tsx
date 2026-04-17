@@ -1,24 +1,26 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Dialog } from "@headlessui/react";
+import { useSessionContext } from "@supabase/auth-helpers-react";
 import { X } from "lucide-react";
-import { Link, useRouter } from "@/i18n/navigation";
+import { Link } from "@/i18n/navigation";
 import { useSignup } from "../hooks/useSignup";
 import { useLogin } from "../hooks/useLogin";
 import { SocialAuthButtons } from "./SocialAuthButtons";
 import { AuthDivider } from "./AuthDivider";
+import { AuthNoticeDialog } from "./AuthNoticeDialog";
 import { SignupAgreementField } from "./SignupAgreementField";
-import type { UserRole } from "../types";
+import type { AuthModalVariant, UserRole } from "../types";
 
 type AuthModalProps = {
   open: boolean;
   onClose: () => void;
   initialRole?: UserRole;
+  variant?: AuthModalVariant;
   title?: string;
   description?: string;
-  redirectOnClose?: string;
   redirectAfterAuth?: string;
   defaultMode?: "signup" | "login";
 };
@@ -27,27 +29,75 @@ export const AuthModal = ({
   open,
   onClose,
   initialRole,
+  variant,
   title,
   description,
-  redirectOnClose = "/",
   redirectAfterAuth,
   defaultMode = "signup",
 }: AuthModalProps) => {
-  const router = useRouter();
   const tLogin = useTranslations("auth.login");
   const tSignup = useTranslations("auth.signup");
+  const tAuthModal = useTranslations("authModal");
   const tc = useTranslations("common");
+  const { session } = useSessionContext();
   const [mode, setMode] = useState<"signup" | "login">(defaultMode);
   const [hasAgreedToPolicies, setHasAgreedToPolicies] = useState(false);
+  const resolvedRole = useMemo<UserRole>(
+    () => (initialRole === "mentor" ? "mentor" : "student"),
+    [initialRole]
+  );
 
-  const signup = useSignup({ initialRole, redirect: redirectAfterAuth });
-  const login = useLogin({ initialRole, redirect: redirectAfterAuth });
+  const {
+    email: signupEmail,
+    password: signupPassword,
+    confirmPassword,
+    loading: signupLoading,
+    successMessage,
+    setEmail: setSignupEmail,
+    setPassword: setSignupPassword,
+    setConfirmPassword,
+    setRole: setSignupRole,
+    handleEmailSignup,
+    handleSuccessClose,
+    handleGoogleSignup,
+    handleFacebookSignup,
+  } = useSignup({
+    initialRole: resolvedRole,
+    redirect: redirectAfterAuth,
+    onSuccessClose: () => setMode("login"),
+  });
+  const {
+    email: loginEmail,
+    password: loginPassword,
+    loading: loginLoading,
+    error: loginError,
+    setEmail: setLoginEmail,
+    setPassword: setLoginPassword,
+    setRole: setLoginRole,
+    handleSubmit,
+    handleGoogleLogin,
+    handleFacebookLogin,
+  } = useLogin({ initialRole: resolvedRole, redirect: redirectAfterAuth });
+
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    setMode(defaultMode);
+    setHasAgreedToPolicies(false);
+    setSignupRole(resolvedRole);
+    setLoginRole(resolvedRole);
+  }, [defaultMode, open, resolvedRole, setLoginRole, setSignupRole]);
+
+  useEffect(() => {
+    if (open && session?.user) {
+      onClose();
+    }
+  }, [onClose, open, session]);
 
   const handleClose = () => {
     onClose();
-    if (redirectOnClose) {
-      router.push(redirectOnClose);
-    }
   };
 
   const inputClassName =
@@ -58,8 +108,15 @@ export const AuthModal = ({
   const inactiveTabClass =
     "flex-1 py-2 text-sm font-medium text-muted border-b-2 border-transparent hover:text-primary";
 
+  const contextualTitle = variant ? tAuthModal(`${variant}.title`) : undefined;
+  const contextualDescription = variant
+    ? tAuthModal(`${variant}.description`)
+    : undefined;
   const displayTitle =
-    title || (mode === "signup" ? tSignup("title") : tLogin("title"));
+    title
+    ?? contextualTitle
+    ?? (mode === "signup" ? tSignup("title") : tLogin("title"));
+  const displayDescription = description ?? contextualDescription;
 
   return (
     <Dialog
@@ -85,8 +142,8 @@ export const AuthModal = ({
           </button>
         </div>
 
-        {description && (
-          <p className="text-secondary text-sm mb-4">{description}</p>
+        {displayDescription && (
+          <p className="text-secondary text-sm mb-4">{displayDescription}</p>
         )}
 
         {/* Tab switcher */}
@@ -111,23 +168,23 @@ export const AuthModal = ({
           /* Signup form */
           <>
             <SocialAuthButtons
-              onGoogle={signup.handleGoogleSignup}
-              onFacebook={signup.handleFacebookSignup}
-              disabled={signup.loading || !hasAgreedToPolicies}
+              onGoogle={handleGoogleSignup}
+              onFacebook={handleFacebookSignup}
+              disabled={signupLoading || !hasAgreedToPolicies}
             />
 
             <div className="my-6">
               <AuthDivider label={tc("or")} />
             </div>
 
-            <form onSubmit={signup.handleEmailSignup} className="space-y-4">
+            <form onSubmit={handleEmailSignup} className="space-y-4">
               <div>
                 <input
                   type="email"
                   placeholder={tSignup("email")}
                   className={inputClassName}
-                  value={signup.email}
-                  onChange={(e) => signup.setEmail(e.target.value)}
+                  value={signupEmail}
+                  onChange={(e) => setSignupEmail(e.target.value)}
                   required
                 />
               </div>
@@ -136,8 +193,8 @@ export const AuthModal = ({
                   type="password"
                   placeholder={tSignup("password")}
                   className={inputClassName}
-                  value={signup.password}
-                  onChange={(e) => signup.setPassword(e.target.value)}
+                  value={signupPassword}
+                  onChange={(e) => setSignupPassword(e.target.value)}
                   required
                 />
               </div>
@@ -146,8 +203,8 @@ export const AuthModal = ({
                   type="password"
                   placeholder={tSignup("confirmPassword")}
                   className={inputClassName}
-                  value={signup.confirmPassword}
-                  onChange={(e) => signup.setConfirmPassword(e.target.value)}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                   required
                 />
               </div>
@@ -157,10 +214,10 @@ export const AuthModal = ({
               />
               <button
                 type="submit"
-                disabled={signup.loading || !hasAgreedToPolicies}
+                disabled={signupLoading || !hasAgreedToPolicies}
                 className="w-full rounded-xl bg-accent py-3 text-sm font-semibold text-white transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {signup.loading ? tSignup("creatingAccount") : tSignup("submit")}
+                {signupLoading ? tSignup("creatingAccount") : tSignup("submit")}
               </button>
             </form>
           </>
@@ -168,26 +225,26 @@ export const AuthModal = ({
           /* Login form */
           <>
             <SocialAuthButtons
-              onGoogle={login.handleGoogleLogin}
-              onFacebook={login.handleFacebookLogin}
-              disabled={login.loading}
+              onGoogle={handleGoogleLogin}
+              onFacebook={handleFacebookLogin}
+              disabled={loginLoading}
             />
 
             <div className="my-6">
               <AuthDivider label={tc("or")} />
             </div>
 
-            <form onSubmit={login.handleSubmit} className="space-y-4">
-              {login.error && (
-                <p className="text-sm text-error">{login.error}</p>
+            <form onSubmit={handleSubmit} className="space-y-4">
+              {loginError && (
+                <p className="text-sm text-error">{loginError}</p>
               )}
               <div>
                 <input
                   type="email"
                   placeholder={tLogin("email")}
                   className={inputClassName}
-                  value={login.email}
-                  onChange={(e) => login.setEmail(e.target.value)}
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
                   required
                 />
               </div>
@@ -196,17 +253,17 @@ export const AuthModal = ({
                   type="password"
                   placeholder={tLogin("password")}
                   className={inputClassName}
-                  value={login.password}
-                  onChange={(e) => login.setPassword(e.target.value)}
+                  value={loginPassword}
+                  onChange={(e) => setLoginPassword(e.target.value)}
                   required
                 />
               </div>
               <button
                 type="submit"
-                disabled={login.loading}
+                disabled={loginLoading}
                 className="w-full rounded-xl bg-accent py-3 text-sm font-semibold text-white transition hover:bg-accent-hover disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {login.loading ? tLogin("loggingIn") : tLogin("submit")}
+                {loginLoading ? tLogin("loggingIn") : tLogin("submit")}
               </button>
             </form>
           </>
@@ -222,6 +279,14 @@ export const AuthModal = ({
           </p>
         ) : null}
       </Dialog.Panel>
+
+      <AuthNoticeDialog
+        open={!!successMessage}
+        title={tSignup("checkInbox")}
+        description={successMessage ?? tSignup("confirmationSent")}
+        primaryLabel={tSignup("backToLogin")}
+        onPrimary={handleSuccessClose}
+      />
     </Dialog>
   );
 };

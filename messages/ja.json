@@ -161,6 +161,20 @@
       "confirmationSent": "確認メールを送信しました。受信トレイのリンクを開いてアカウント作成を完了してください。"
     }
   },
+  "authModal": {
+    "booking": {
+      "title": "予約を続けるにはログインが必要です",
+      "description": "レッスンを予約するにはログインが必要です。"
+    },
+    "message": {
+      "title": "メッセージを送るにはログインが必要です",
+      "description": "メッセージを送信するにはログインが必要です。"
+    },
+    "favorite": {
+      "title": "お気に入りに保存するにはログインが必要です",
+      "description": "お気に入りに保存するにはログインが必要です。"
+    }
+  },
   "mentors": {
     "filterByCountry": "国で絞り込む",
     "filterByLanguage": "言語で絞り込む",

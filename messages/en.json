@@ -161,6 +161,20 @@
       "confirmationSent": "We've sent a confirmation email. Please open the link in your inbox to finish creating your account."
     }
   },
+  "authModal": {
+    "booking": {
+      "title": "Log in to continue booking",
+      "description": "You need to log in to book a lesson."
+    },
+    "message": {
+      "title": "Log in to send a message",
+      "description": "You need to log in to send a message."
+    },
+    "favorite": {
+      "title": "Log in to save favorites",
+      "description": "You need to log in to save this mentor to your favorites."
+    }
+  },
   "mentors": {
     "filterByCountry": "Filter by country",
     "filterByLanguage": "Filter by language",

@@ -14,6 +14,7 @@ import {
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
 import { useUser } from "@supabase/auth-helpers-react";
+import { useAuthModal } from "@/features/auth/context/AuthModalProvider";
 import { PriceDisplay } from "@/features/currency/components/PriceDisplay";
 import BookingModal from "@/components/BookingModal";
 import { useBookedSlots } from "@/features/checkout/hooks/useBookedSlots";
@@ -309,6 +310,7 @@ export const MentorDetail = ({
   const t = useTranslations("mentors");
   const locale = useLocale();
   const user = useUser();
+  const { openAuthModal } = useAuthModal();
   const [bioExpanded, setBioExpanded] = useState(false);
   const [canExpandBio, setCanExpandBio] = useState(false);
   const [reviewExpanded, setReviewExpanded] = useState(false);
@@ -920,7 +922,18 @@ export const MentorDetail = ({
 
               <button
                 className="w-full border border-border py-2.5 rounded-lg hover:bg-surface-hover transition flex items-center justify-center gap-2"
-                onClick={() => setIsMessageOpen(true)}
+                onClick={() => {
+                  if (!user) {
+                    openAuthModal({
+                      defaultMode: "login",
+                      initialRole: "student",
+                      variant: "message",
+                    });
+                    return;
+                  }
+
+                  setIsMessageOpen(true);
+                }}
               >
                 <MessageCircle className="w-5 h-5" />
                 {t("detail.sendMessage")}

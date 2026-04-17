@@ -6,8 +6,9 @@ import { X, Sunrise, Sun, Sunset, Moon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
 import type { MentorDetailModel } from "@/features/mentors/types";
-import { Link, useRouter } from "@/i18n/navigation";
+import { Link } from "@/i18n/navigation";
 import { useUser } from "@supabase/auth-helpers-react";
+import { useAuthModal } from "@/features/auth/context/AuthModalProvider";
 import { useBookedSlots } from "@/features/checkout/hooks/useBookedSlots";
 import { useCreateBooking } from "@/features/checkout/hooks/useCreateBooking";
 
@@ -22,11 +23,11 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
   const tc = useTranslations("common");
   const locale = useLocale();
   const user = useUser();
+  const { openAuthModal } = useAuthModal();
   const { createBookingAndCheckout } = useCreateBooking();
   const [duration, setDuration] = useState(25);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
-  const router = useRouter();
   const { isSlotBooked, loading: bookingsLoading } = useBookedSlots(
     mentor.id,
     selectedDate,
@@ -42,8 +43,11 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
     }
 
     if (!user || !user.id) {
-      alert(t("loginRequired"));
-      router.push("/auth/login?redirect=/checkout");
+      openAuthModal({
+        defaultMode: "login",
+        initialRole: "student",
+        variant: "booking",
+      });
       return;
     }
 

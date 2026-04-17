@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { useRouter } from "@/i18n/navigation";
+import { useAuthModal } from "@/features/auth/context/AuthModalProvider";
 import { useProfile } from "../hooks/useProfile";
 import { SettingsNav } from "./SettingsNav";
 import type { SettingsTab } from "./SettingsNav";
@@ -12,9 +12,9 @@ import { SettingsTopTabs } from "./SettingsTopTabs";
 import { isEmailProvider } from "@/features/auth/utils/authProvider";
 
 export function SettingsLayout() {
-  const router = useRouter();
   const t = useTranslations("settings");
   const tc = useTranslations("common");
+  const { openAuthModal } = useAuthModal();
   const { user, loading } = useProfile();
 
   const [active, setActive] = useState<SettingsTab>("account");
@@ -28,9 +28,9 @@ export function SettingsLayout() {
   useEffect(() => {
     if (!authChecked) return;
     if (!user) {
-      router.replace("/auth/login?redirect=/settings");
+      openAuthModal({ defaultMode: "login" });
     }
-  }, [authChecked, user, router]);
+  }, [authChecked, openAuthModal, user]);
 
   // authChecked になるまでは何も判定しない（チラつき防止）
   // NOTE: loading を条件に含めると、パスワード変更などで

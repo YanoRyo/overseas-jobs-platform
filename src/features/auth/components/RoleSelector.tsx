@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { UserRole } from "../types";
 
 type RoleSelectorProps = {
@@ -12,12 +13,18 @@ type RoleSelectorProps = {
 export const RoleSelector = ({
   value,
   onChange,
-  label = "Choose your role",
-  hint = "Required for social sign-in.",
+  label,
+  hint,
 }: RoleSelectorProps) => {
+  const t = useTranslations("auth.role");
+  const resolvedLabel = label ?? t("chooseRole");
+  const resolvedHint = hint ?? t("requiredHint");
+
   return (
     <fieldset className="space-y-2">
-      <legend className="text-sm font-semibold text-primary">{label}</legend>
+      <legend className="text-sm font-semibold text-primary">
+        {resolvedLabel}
+      </legend>
       <div className="grid grid-cols-2 gap-3" role="radiogroup">
         <label
           className={`flex cursor-pointer items-center justify-center rounded-xl border px-4 py-3 text-sm font-medium transition ${
@@ -34,7 +41,7 @@ export const RoleSelector = ({
             onChange={() => onChange("student")}
             className="sr-only"
           />
-          Student
+          {t("student")}
         </label>
         <label
           className={`flex cursor-pointer items-center justify-center rounded-xl border px-4 py-3 text-sm font-medium transition ${
@@ -51,10 +58,10 @@ export const RoleSelector = ({
             onChange={() => onChange("mentor")}
             className="sr-only"
           />
-          Mentor
+          {t("mentor")}
         </label>
       </div>
-      <p className="text-xs text-muted">{hint}</p>
+      <p className="text-xs text-muted">{resolvedHint}</p>
     </fieldset>
   );
 };
