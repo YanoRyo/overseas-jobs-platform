@@ -56,60 +56,91 @@ export default function MentorCard({ mentor, onBook }: MentorCardProps) {
 
   return (
     <Link href={`/mentors/${mentor.id}`} className="block">
-      <div className="relative flex min-h-[220px] flex-col items-stretch gap-8 rounded-xl border-border bg-surface p-8 shadow transition-colors hover:bg-surface-hover md:flex-row">
+      <div className="relative flex flex-col items-stretch gap-4 rounded-xl border-border bg-surface p-4 shadow transition-colors hover:bg-surface-hover sm:p-5 md:min-h-[220px] md:flex-row md:gap-8 md:p-8">
         <FavoriteToggleButton
           mentorId={mentor.id}
-          className="absolute right-4 top-4 z-10 h-10 w-10 rounded-full bg-white/95 shadow-sm hover:bg-white"
+          className="absolute right-3 top-3 z-10 h-10 w-10 rounded-full bg-white/95 shadow-sm hover:bg-white md:right-4 md:top-4"
         />
 
-        {/* アバター */}
-        <div className="relative w-32 h-32 flex-shrink-0">
-          <Image
-            src={avatarSrc}
-            alt={mentor.name}
-            fill
-            className="rounded-lg object-cover object-center"
-          />
-        </div>
-
-        {/* テキスト情報 */}
-        <div className="flex flex-1 min-w-0 flex-col">
-          <div>
-            <h2 className="text-2xl font-semibold flex items-center gap-2">
-              <div className="hover:underline text-accent">{mentor.name}</div>
-              <div className="border border-border rounded px-0.5 py-0.5 inline-flex items-center">
-                <Flag
-                  code={mentor.countryCode}
-                  style={{ width: 28, height: 18 }}
-                />
-              </div>
-            </h2>
-            <p className="break-words text-base text-secondary">
-              💼 {mentor.headline}
-            </p>
+        <div className="flex min-w-0 gap-4 pr-12 md:contents">
+          <div className="relative h-24 w-24 flex-shrink-0 sm:h-28 sm:w-28 md:h-32 md:w-32">
+            <Image
+              src={avatarSrc}
+              alt={mentor.name}
+              fill
+              className="rounded-lg object-cover object-center"
+              sizes="(min-width: 768px) 128px, (min-width: 640px) 112px, 96px"
+            />
           </div>
 
-          {/* introduction */}
-          <div className="mt-3 min-w-0 text-base text-primary">
-            <p
-              ref={introductionRef}
-              className={`break-all ${!expanded ? 'line-clamp-4' : ''}`}
-              style={{ whiteSpace: 'pre-wrap' }}
-            >
-              {mentor.introduction}
-            </p>
-            {canExpand && (
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  setExpanded(!expanded);
-                }}
-                className="text-accent hover:underline mt-1 text-base font-medium"
+          <div className="flex min-w-0 flex-1 flex-col">
+            <div>
+              <h2 className="flex items-center gap-2 text-xl font-semibold md:text-2xl">
+                <div className="break-words text-accent">{mentor.name}</div>
+                <div className="inline-flex items-center rounded border border-border px-0.5 py-0.5">
+                  <Flag
+                    code={mentor.countryCode}
+                    style={{ width: 28, height: 18 }}
+                  />
+                </div>
+              </h2>
+              <p className="break-words text-sm text-secondary sm:text-base md:text-base">
+                💼 {mentor.headline}
+              </p>
+            </div>
+
+            <div className="mt-4 grid grid-cols-3 gap-2 border-t border-border pt-3 md:hidden">
+              <div className="min-w-0">
+                <div className="flex items-center gap-1 text-sm font-semibold text-primary">
+                  <svg
+                    className="h-4 w-4 flex-shrink-0 fill-current text-yellow-500"
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 20 20"
+                  >
+                    <path d="M10 15l-5.878 3.09 1.122-6.545L.488 6.91l6.567-.955L10 0l2.945 5.955 6.567.955-4.756 4.635 1.122 6.545z" />
+                  </svg>
+                  <span>{mentor.rating}</span>
+                </div>
+                <p className="mt-0.5 break-words text-xs leading-4 text-muted">
+                  {t('reviews', { count: mentor.reviewCount })}
+                </p>
+              </div>
+              <div className="min-w-0">
+                <p className="break-words text-sm font-semibold leading-5 text-primary">
+                  {t('lessonDuration')}
+                </p>
+              </div>
+              <div className="min-w-0 text-right">
+                <PriceDisplay
+                  amountUSD={mentor.hourlyRate}
+                  className="text-sm font-bold text-primary sm:text-base"
+                  showHelper={false}
+                />
+              </div>
+            </div>
+
+            {/* introduction */}
+            <div className="mt-3 min-w-0 text-sm text-primary sm:text-base md:text-base">
+              <p
+                ref={introductionRef}
+                className={`${!expanded ? 'line-clamp-4' : ''} break-words md:break-all`}
+                style={{ whiteSpace: 'pre-wrap' }}
               >
-                {expanded ? t('showLess') : t('readMore')}
-              </button>
-            )}
+                {mentor.introduction}
+              </p>
+              {canExpand && (
+                <button
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    setExpanded(!expanded);
+                  }}
+                  className="mt-1 text-sm font-medium text-accent hover:underline sm:text-base"
+                >
+                  {expanded ? t('showLess') : t('readMore')}
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
@@ -156,7 +187,7 @@ export default function MentorCard({ mentor, onBook }: MentorCardProps) {
             e.stopPropagation();
             onBook();
           }}
-          className="mt-4 flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-4 py-2.5 text-base font-semibold text-white transition-colors hover:bg-accent-hover md:hidden"
+          className="mt-1 flex w-full items-center justify-center gap-2 rounded-lg bg-accent px-4 py-3 text-base font-semibold text-white transition-colors hover:bg-accent-hover md:hidden"
         >
           <Zap className="h-5 w-5" />
           {t('bookLesson')}
