@@ -46,6 +46,8 @@ export async function middleware(req: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  // /auth/callback はセッション確立後も sync/リダイレクト復元を実行する必要があるため除外
+  const isAuthCallback = pathWithoutLocale.startsWith("/auth/callback");
   const isAuthPage = pathWithoutLocale.startsWith("/auth");
   const isProtected = ["/checkout", "/dashboard", "/protected", "/admin", "/settings"].some(
     (path) => pathWithoutLocale.startsWith(path)
@@ -57,7 +59,7 @@ export async function middleware(req: NextRequest) {
     return NextResponse.redirect(loginUrl);
   }
 
-  if (isAuthPage && user) {
+  if (isAuthPage && !isAuthCallback && user) {
     return NextResponse.redirect(new URL(`/${locale}/`, req.url));
   }
 
