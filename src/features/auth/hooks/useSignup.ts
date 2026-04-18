@@ -10,6 +10,7 @@ import { syncUserProfile } from "../utils/syncUserProfile";
 type UseSignupOptions = {
   initialRole?: UserRole;
   redirect?: string;
+  onSuccessClose?: () => void;
 };
 
 export const useSignup = (options?: UseSignupOptions) => {
@@ -97,6 +98,11 @@ export const useSignup = (options?: UseSignupOptions) => {
 
   const handleSuccessClose = () => {
     setSuccessMessage(null);
+    if (options?.onSuccessClose) {
+      options.onSuccessClose();
+      return;
+    }
+
     router.push("/auth/login");
   };
 

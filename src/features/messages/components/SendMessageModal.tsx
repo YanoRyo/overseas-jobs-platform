@@ -2,10 +2,11 @@
 
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { useRouter, usePathname } from "@/i18n/navigation";
+import { Link } from "@/i18n/navigation";
 import { useUser } from "@supabase/auth-helpers-react";
 
 import { AuthPromptCard } from "@/components/AuthPromptCard";
+import { useAuthModal } from "@/features/auth/context/AuthModalProvider";
 import { useSendMessage } from "../hooks/useSendMessage";
 
 type Props = {
@@ -23,9 +24,11 @@ export const SendMessageModal = ({
 }: Props) => {
   const t = useTranslations("messages.sendModal");
   const ta = useTranslations("auth");
-  const router = useRouter();
-  const pathname = usePathname();
+  const tc = useTranslations("common");
+  const tm = useTranslations("message");
+  const tf = useTranslations("footer");
   const user = useUser();
+  const { openAuthModal } = useAuthModal();
 
   const [category, setCategory] = useState("");
   const [message, setMessage] = useState("");
@@ -34,10 +37,6 @@ export const SendMessageModal = ({
   const { sendMessage, loading, error } = useSendMessage();
 
   const isLoggedIn = useMemo(() => !!user, [user]);
-  const redirectParam = useMemo(
-    () => encodeURIComponent(pathname || "/"),
-    [pathname]
-  );
 
   if (!isOpen) return null;
 
@@ -46,11 +45,12 @@ export const SendMessageModal = ({
 
     // 0) ログイン必須
     if (!isLoggedIn) {
-      setLocalError(t("loginRequired"));
+      openAuthModal({
+        defaultMode: "login",
+        initialRole: "student",
+        variant: "message",
+      });
       return;
-      // すぐログインに飛ばしたいなら下を使う
-      // router.push("/auth/login");
-      // return;
     }
 
     // 1) 入力バリデーション
@@ -82,7 +82,7 @@ export const SendMessageModal = ({
         <button
           onClick={onClose}
           className="absolute top-3 right-3 text-gray-400 hover:text-gray-600"
-          aria-label="close"
+          aria-label={tc("close")}
         >
           ✕
         </button>
@@ -100,8 +100,20 @@ export const SendMessageModal = ({
             message={t("notLoggedIn")}
             loginLabel={ta("login.submit")}
             signUpLabel={ta("signup.submit")}
-            onLogin={() => router.push(`/auth/login?redirect=${redirectParam}`)}
-            onSignUp={() => router.push(`/auth/signup?redirect=${redirectParam}`)}
+            onLogin={() =>
+              openAuthModal({
+                defaultMode: "login",
+                initialRole: "student",
+                variant: "message",
+              })
+            }
+            onSignUp={() =>
+              openAuthModal({
+                defaultMode: "signup",
+                initialRole: "student",
+                variant: "message",
+              })
+            }
           />
         )}
 
@@ -132,6 +144,16 @@ export const SendMessageModal = ({
           placeholder={t("messagePlaceholder")}
           disabled={!isLoggedIn || loading}
         />
+
+        <div className="mb-4 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs leading-5 text-muted">
+          <span>{tm("guideline")}</span>
+          <Link
+            href="/terms"
+            className="font-medium text-accent underline-offset-2 hover:underline"
+          >
+            {tf("terms")}
+          </Link>
+        </div>
 
         {/* エラー表示（local → hookの順で出す） */}
         {(localError || error) && (

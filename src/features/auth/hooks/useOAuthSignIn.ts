@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useLocale } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import type { UserRole } from "../types";
 
@@ -17,6 +17,7 @@ const isUserRole = (value: UserRole | null): value is UserRole =>
 export const useOAuthSignIn = (options: UseOAuthSignInOptions) => {
   const supabase = useSupabaseClient();
   const locale = useLocale();
+  const t = useTranslations("auth");
   const [role, setRole] = useState<UserRole | null>(
     options.initialRole ?? null
   );
@@ -24,7 +25,7 @@ export const useOAuthSignIn = (options: UseOAuthSignInOptions) => {
 
   const ensureRole = () => {
     if (requireRole && !role) {
-      alert("Please select a role.");
+      alert(t("selectRole"));
       return null;
     }
     return role;

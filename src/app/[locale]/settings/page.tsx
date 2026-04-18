@@ -2,9 +2,12 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
-import { useRouter } from "@/i18n/navigation";
 import { useSearchParams } from "next/navigation";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
+import {
+  useSessionContext,
+  useSupabaseClient,
+} from "@supabase/auth-helpers-react";
+import { useAuthModal } from "@/features/auth/context/AuthModalProvider";
 import {
   MentorSettingsLayout,
   MessagesLayout,
@@ -18,9 +21,13 @@ type ViewerRole = UserRole | null;
 function SettingsPageContent() {
   const t = useTranslations("settings");
   const tc = useTranslations("common");
-  const router = useRouter();
+  const { openAuthModal } = useAuthModal();
   const searchParams = useSearchParams();
   const supabase = useSupabaseClient();
+  const {
+    isLoading: authLoading,
+    session,
+  } = useSessionContext();
   const topTab = searchParams.get("tab");
 
   const [loading, setLoading] = useState(true);
@@ -38,19 +45,17 @@ function SettingsPageContent() {
         setNeedsMentorRegistration(false);
       }
 
-      try {
-        const {
-          data: { user },
-          error: userError,
-        } = await supabase.auth.getUser();
+      if (authLoading) {
+        return;
+      }
 
-        if (userError) {
-          throw userError;
-        }
+      try {
+        const user = session?.user ?? null;
 
         if (!user) {
           if (!cancelled) {
-            router.replace("/auth/login?redirect=/settings");
+            openAuthModal({ defaultMode: "login" });
+            setLoading(false);
           }
           return;
         }
@@ -95,7 +100,7 @@ function SettingsPageContent() {
     return () => {
       cancelled = true;
     };
-  }, [router, supabase]);
+  }, [authLoading, openAuthModal, session, supabase, t]);
 
   if (loading) {
     return <div className="px-6 py-10 text-sm text-gray-400">{tc("loading")}</div>;

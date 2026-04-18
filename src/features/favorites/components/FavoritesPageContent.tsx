@@ -2,8 +2,9 @@
 
 import { Heart } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { usePathname, useRouter } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { useSessionContext, useUser } from "@supabase/auth-helpers-react";
+import { useAuthModal } from "@/features/auth/context/AuthModalProvider";
 
 import MentorCard from "@/components/MentorCard";
 
@@ -12,7 +13,7 @@ import { useFavorites } from "../context/FavoritesContext";
 export function FavoritesPageContent() {
   const t = useTranslations("favorites");
   const router = useRouter();
-  const pathname = usePathname();
+  const { openAuthModal } = useAuthModal();
   const user = useUser();
   const { isLoading: authLoading } = useSessionContext();
   const { favoriteMentors, loading } = useFavorites();
@@ -49,10 +50,13 @@ export function FavoritesPageContent() {
             </p>
             <button
               type="button"
-              onClick={() => {
-                const redirectTo = encodeURIComponent(pathname || "/favorites");
-                router.push(`/auth/login?redirect=${redirectTo}`);
-              }}
+              onClick={() =>
+                openAuthModal({
+                  defaultMode: "login",
+                  initialRole: "student",
+                  variant: "favorite",
+                })
+              }
               className="mt-5 rounded-full bg-accent px-5 py-2 text-sm font-semibold text-white transition-colors hover:bg-accent-hover"
             >
               {t("loginButton")}

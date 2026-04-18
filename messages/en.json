@@ -16,6 +16,14 @@
     "submitting": "Submitting...",
     "siteDescription": "Find mentors for your overseas career"
   },
+  "footer": {
+    "terms": "Terms of Service",
+    "privacy": "Privacy Policy",
+    "legal": "Legal Notice"
+  },
+  "legal": {
+    "operator": "Operator: Ryo Yano (Will be disclosed without delay upon request)"
+  },
   "navigation": {
     "logo": "Bridgeee",
     "home": "Home",
@@ -132,6 +140,11 @@
       "termsPrefix": "By continuing, you agree to our",
       "termsLink": "Terms & Privacy Policy"
     },
+    "agreePrefix": "By signing up, you agree to the ",
+    "terms": "Terms of Service",
+    "and": " and ",
+    "privacy": "Privacy Policy",
+    "agreeSuffix": "",
     "selectRole": "Please select a role.",
     "signingIn": "Signing you in...",
     "errors": {
@@ -146,6 +159,20 @@
       "profileFailed": "Failed to prepare your profile.",
       "resetRequestMessage": "If an account exists for this email, you'll receive a password reset link shortly.",
       "confirmationSent": "We've sent a confirmation email. Please open the link in your inbox to finish creating your account."
+    }
+  },
+  "authModal": {
+    "booking": {
+      "title": "Log in to continue booking",
+      "description": "You need to log in to book a lesson."
+    },
+    "message": {
+      "title": "Log in to send a message",
+      "description": "You need to log in to send a message."
+    },
+    "favorite": {
+      "title": "Log in to save favorites",
+      "description": "You need to log in to save this mentor to your favorites."
     }
   },
   "mentors": {
@@ -239,7 +266,8 @@
     "previousWeek": "Previous week",
     "nextWeek": "Next week",
     "min25": "25 min",
-    "min50": "50 min"
+    "min50": "50 min",
+    "cancellationNotice": "Please review our cancellation policy before booking"
   },
   "checkout": {
     "paymentMethod": "Payment method",
@@ -430,7 +458,26 @@
       "messagePlaceholder": "Hello! I would like to consult about working abroad.",
       "sending": "Sending...",
       "submit": "Send Message"
-    }
+    },
+    "sendFailed": "Failed to send the message."
+  },
+  "message": {
+    "guideline": "Please follow community guidelines and avoid inappropriate content"
+  },
+  "mentor": {
+    "disclaimer": "Information provided is by the mentor and is not verified by the platform"
+  },
+  "payment": {
+    "agreeCancellation": "By completing the payment, you agree to our cancellation policy"
+  },
+  "about": {
+    "eyebrow": "About Bridgeee",
+    "metaTitle": "About Bridgeee",
+    "metaDescription": "Learn what Bridgeee does and the scope of the service.",
+    "pageTitle": "About Bridgeee",
+    "pageDescription": "Bridgeee helps students connect with mentors for informational support and structured mentoring sessions.",
+    "serviceScopeTitle": "Service scope",
+    "notJobService": "Bridgeee is not a job placement or recruitment service. It provides informational mentoring only"
   },
   "mentorRegistration": {
     "accountRequired": "Create your account",
@@ -677,21 +724,418 @@
       "otherPeople": "Have any other people visible in your video"
     }
   },
+  "landing": {
+    "hero": {
+      "eyebrow": "Career mentorship for your move abroad",
+      "title": "Find the mentor who can turn your overseas plans into a real next step.",
+      "description": "Bridgeee helps you connect with mentors who have already navigated job searches, language challenges, and relocation decisions, so you can move with more clarity and less guesswork.",
+      "primaryCta": "Find Mentors",
+      "secondaryCta": "How it works",
+      "visualAlt": "Illustration of a mentor session dashboard",
+      "highlights": {
+        "careerSwitch": "Career switches with real context",
+        "visaSupport": "Advice in English or Japanese",
+        "firstSession": "Start with one focused first session"
+      },
+      "cards": {
+        "match": {
+          "eyebrow": "Best match",
+          "title": "Design mentor in Toronto",
+          "description": "Aligned with your portfolio and relocation goals."
+        },
+        "review": {
+          "eyebrow": "Recent review",
+          "title": "\"I finally knew what to do next.\"",
+          "description": "Resume, language study, and timing became much clearer."
+        },
+        "availability": {
+          "eyebrow": "Open this week",
+          "title": "Evening sessions available",
+          "description": "Flexible times for English and Japanese learners."
+        }
+      }
+    },
+    "problem": {
+      "eyebrow": "Why people get stuck",
+      "title": "Before Bridgeee, most people piece together advice from scattered places.",
+      "description": "Generic blog posts, social media threads, and secondhand tips rarely match your target country, timeline, or confidence level. That makes the first step feel heavier than it should.",
+      "solution": {
+        "eyebrow": "How Bridgeee works",
+        "title": "Start with mentors who have already been through it.",
+        "description": "Browse mentors by background, compare the kind of support they offer, and book a first conversation when you are ready to turn uncertainty into a plan."
+      },
+      "steps": {
+        "browse": {
+          "title": "Browse by goal",
+          "description": "Look for mentors who match the country, role, or transition you are aiming for."
+        },
+        "compare": {
+          "title": "Compare fit quickly",
+          "description": "Review specialties, language support, and teaching style before you commit."
+        },
+        "book": {
+          "title": "Book your first session",
+          "description": "Use one conversation to clarify your next action, timeline, and blind spots."
+        }
+      },
+      "cards": {
+        "noise": {
+          "eyebrow": "Too much noise",
+          "title": "Advice is everywhere, but it rarely fits your exact situation.",
+          "description": "Hours disappear into forums, videos, and old articles without telling you what matters most for your move."
+        },
+        "uncertainty": {
+          "eyebrow": "Low confidence",
+          "title": "It is hard to know which step should come first.",
+          "description": "Should you fix your resume, improve your language level, or prepare for interviews first? Unclear priorities slow everything down."
+        },
+        "momentum": {
+          "eyebrow": "Slow momentum",
+          "title": "Finding someone with firsthand experience takes too long.",
+          "description": "Even motivated people lose energy when they cannot quickly reach someone who understands the path they want to follow."
+        }
+      }
+    },
+    "mentors": {
+      "eyebrow": "Mentor preview",
+      "title": "A few mentors you could start with.",
+      "description": "Each profile brings a different lens on moving abroad, from portfolio feedback to interview preparation and settling into a new market.",
+      "browseCta": "View all mentors",
+      "priceLabel": "50 min session",
+      "cards": {
+        "aiko": {
+          "badge": "Portfolio focus",
+          "name": "Aiko Tanaka",
+          "role": "Product Designer in Amsterdam",
+          "summary": "Supports creative professionals refining portfolios and job search stories for Europe.",
+          "rating": "4.9",
+          "price": "$18",
+          "availability": "Tue evening",
+          "tags": {
+            "first": "Portfolio review",
+            "second": "EU hiring",
+            "third": "English / Japanese"
+          }
+        },
+        "marcus": {
+          "badge": "Interview prep",
+          "name": "Marcus Lee",
+          "role": "Software Engineer in Singapore",
+          "summary": "Helps applicants sharpen resumes, technical stories, and interview structure before applying abroad.",
+          "rating": "4.8",
+          "price": "$36",
+          "availability": "Thu night",
+          "tags": {
+            "first": "Resume feedback",
+            "second": "Interview practice",
+            "third": "Career switch"
+          }
+        },
+        "sofia": {
+          "badge": "Relocation planning",
+          "name": "Sofia Ramirez",
+          "role": "Marketing Lead in Vancouver",
+          "summary": "Shares practical guidance on building confidence, networking, and settling into a new market.",
+          "rating": "5.0",
+          "price": "$24",
+          "availability": "Sat morning",
+          "tags": {
+            "first": "Networking",
+            "second": "Relocation tips",
+            "third": "First 90 days"
+          }
+        }
+      }
+    }
+  },
   "policy": {
-    "metaTitle": "Terms & Privacy Policy | Bridgeee",
-    "metaDescription": "Review the Bridgeee Terms of Service and Privacy Policy before using the platform.",
-    "legalLabel": "Bridgeee Legal",
-    "pageTitle": "Terms & Privacy Policy",
-    "pageDescription": "This page explains the main rules for using Bridgeee and how we handle personal information across accounts, mentor profiles, messages, booking requests, bookings, reviews, and payments.",
-    "lastUpdated": "Last updated: {date}",
-    "draftNotice": "This is a product-ready policy draft for Bridgeee and should be reviewed by your legal advisor before production launch.",
-    "termsTitle": "Terms of Service",
-    "termsDescription": "Covers who can use Bridgeee, how lessons and payments work, and the rules for messages, profiles, and reviews.",
-    "termsSubDescription": "These terms describe the rules for using Bridgeee as a student, mentor, or other account holder.",
-    "privacyTitle": "Privacy Policy",
-    "privacyDescription": "Explains what information Bridgeee collects, how it is used, when it is shared, and what choices users may have.",
-    "privacySubDescription": "This policy explains how Bridgeee collects, uses, stores, and shares information when people use the platform.",
-    "jumpToTerms": "Jump to Terms",
-    "jumpToPrivacy": "Jump to Privacy"
+    "metaTitle": "Policy Center | Bridgeee",
+    "metaDescription": "Review Bridgeee terms, privacy, legal notice, and cancellation policy.",
+    "pageTitle": "Policy Center",
+    "pageDescription": "Review the policies and notices that apply when you use Bridgeee.",
+    "cards": {
+      "terms": {
+        "title": "Terms of Service",
+        "description": "Read the rules for accounts, bookings, payments, messaging, and platform use."
+      },
+      "privacy": {
+        "title": "Privacy Policy",
+        "description": "See what information Bridgeee collects, how it is used, and when it may be shared."
+      },
+      "legal": {
+        "title": "Legal Notice",
+        "description": "Review the commercial disclosure information prepared for the service."
+      },
+      "cancellation": {
+        "title": "Cancellation Policy",
+        "description": "Understand how cancellations, rescheduling, and refunds are handled."
+      }
+    }
+  },
+  "legalPages": {
+    "shared": {
+      "label": "Bridgeee Legal",
+      "lastUpdated": "Last updated: {date}",
+      "draftNotice": "This is a product-ready policy draft for Bridgeee and should be reviewed by your legal advisor before production launch."
+    },
+    "terms": {
+      "metaTitle": "Terms of Service | Bridgeee",
+      "metaDescription": "Read the rules for using Bridgeee.",
+      "pageTitle": "Terms of Service",
+      "pageDescription": "These terms explain how Bridgeee may be used by students, mentors, and other account holders.",
+      "sections": {
+        "overview": {
+          "title": "1. Overview",
+          "paragraphs": {
+            "1": "Bridgeee connects students with mentors for informational mentoring, lesson scheduling, messaging, and payments.",
+            "2": "By creating an account or using any part of Bridgeee, you agree to these Terms of Service."
+          }
+        },
+        "accounts": {
+          "title": "2. Accounts and Eligibility",
+          "paragraphs": {
+            "1": "You are responsible for keeping your account information accurate, current, and secure.",
+            "2": "If you join as a mentor, you are also responsible for the accuracy of your profile, pricing, availability, and other information you publish on the platform."
+          },
+          "bullets": {
+            "1": "Use your real identity and contact information.",
+            "2": "Choose the correct role when signing up or using mentor features.",
+            "3": "Do not create accounts for fraud, harassment, spam, or other abusive conduct."
+          }
+        },
+        "bookings": {
+          "title": "3. Bookings, Lessons, and Payments",
+          "paragraphs": {
+            "1": "Lessons are arranged through the booking and checkout tools provided by Bridgeee.",
+            "2": "A booking is not fully confirmed until the applicable scheduling and payment steps shown in the product have been completed. Payment processing is handled by third-party providers, and any disputes or delays related to payments shall be governed by the terms of those providers."
+          },
+          "bullets": {
+            "1": "Prices shown on the platform may change over time.",
+            "2": "Payment processing may be handled by third-party providers such as Stripe.",
+            "3": "Refunds, cancellations, and rescheduling are handled according to the published cancellation policy and any provider requirements."
+          }
+        },
+        "conduct": {
+          "title": "4. Messaging, Reviews, and Conduct",
+          "paragraphs": {
+            "1": "Bridgeee may provide messaging, reviews, favorites, and related communication features to help mentors and students coordinate.",
+            "2": "You are responsible for the content you send or publish and must not post illegal, misleading, abusive, infringing, or spam content."
+          },
+          "bullets": {
+            "1": "Do not harass, threaten, exploit, or impersonate other users.",
+            "2": "Do not submit fake reviews or misleading claims.",
+            "3": "Do not attempt to bypass platform safeguards, payment flows, or abuse-detection systems."
+          }
+        },
+        "platform": {
+          "title": "5. Platform Role and Service Scope",
+          "paragraphs": {
+            "1": "Bridgeee provides software and coordination tools for informational mentoring and does not guarantee lesson quality, hiring outcomes, visa results, or any specific personal or business result.",
+            "2": "Bridgeee is not a job placement or recruitment service and does not verify every statement made by users. Users shall use this service at their own risk and responsibility."
+          }
+        },
+        "updates": {
+          "title": "6. Suspension, Termination, and Updates",
+          "paragraphs": {
+            "1": "Bridgeee may suspend access or remove content when necessary to protect users, comply with law, or respond to safety, fraud, or policy concerns.",
+            "2": "These terms may be updated from time to time, and continued use of the service after an update means you accept the revised version."
+          }
+        },
+        "liability": {
+          "title": "7. Limitation of Liability",
+          "paragraphs": {
+            "1": "Bridgeee shall not be liable for any damages arising from the use of this service, except in cases of willful misconduct or gross negligence.",
+            "2": "If liability is recognized, the maximum liability shall be limited to the total amount paid by the user to Bridgeee."
+          }
+        },
+        "governingLaw": {
+          "title": "8. Governing Law and Jurisdiction",
+          "paragraphs": {
+            "1": "These Terms shall be governed by the laws of Japan.",
+            "2": "Any disputes arising in connection with this service shall be subject to the exclusive jurisdiction of the court having jurisdiction over the location of the operator."
+          }
+        }
+      }
+    },
+    "privacy": {
+      "metaTitle": "Privacy Policy | Bridgeee",
+      "metaDescription": "Learn how Bridgeee collects, uses, stores, and shares information.",
+      "pageTitle": "Privacy Policy",
+      "pageDescription": "This policy explains how Bridgeee handles personal information when people use the platform.",
+      "sections": {
+        "collection": {
+          "title": "1. Information We Collect",
+          "paragraphs": {
+            "1": "We collect information you provide directly, information created through your use of the service, and technical data needed to operate the platform."
+          },
+          "bullets": {
+            "1": "Account details such as email address, role, profile photo, and login-related information.",
+            "2": "Mentor profile information such as country, timezone, rates, availability, introduction, education, languages, and specialties.",
+            "3": "Student and mentor activity such as favorites, messages, booking requests, bookings, reviews, and lesson history.",
+            "4": "Payment-related records such as booking amounts, payout status, and payment provider identifiers.",
+            "5": "Technical data such as session information, browser context, and service logs used for security and reliability."
+          }
+        },
+        "use": {
+          "title": "2. How We Use Information",
+          "paragraphs": {
+            "1": "We use personal information to operate, improve, secure, and support Bridgeee."
+          },
+          "bullets": {
+            "1": "Create and maintain accounts.",
+            "2": "Display mentor listings and profile information.",
+            "3": "Enable messaging, booking, scheduling, payments, reviews, and support.",
+            "4": "Send transactional emails and service notifications.",
+            "5": "Detect fraud, abuse, security issues, and policy violations.",
+            "6": "Comply with legal, tax, accounting, and regulatory obligations."
+          }
+        },
+        "sharing": {
+          "title": "3. How We Share Information",
+          "paragraphs": {
+            "1": "We share information only when needed to run the platform, complete transactions, comply with law, or protect users and the service."
+          },
+          "bullets": {
+            "1": "With other users where needed for the service experience, such as mentor profiles, booking details, reviews, and messages.",
+            "2": "With service providers such as Supabase, Stripe, email providers, and meeting-link providers where applicable.",
+            "3": "With regulators, law enforcement, courts, or advisors when required by law or necessary to protect rights, safety, or platform integrity."
+          }
+        },
+        "retention": {
+          "title": "4. Data Retention",
+          "paragraphs": {
+            "1": "We keep information for as long as needed to operate the service, resolve disputes, prevent abuse, enforce agreements, and meet legal or accounting obligations.",
+            "2": "Different categories of information may be retained for different periods depending on their purpose and applicable legal requirements."
+          }
+        },
+        "rights": {
+          "title": "5. Your Choices and Rights",
+          "paragraphs": {
+            "1": "You may be able to update some profile information from your account settings and request support if you need corrections or account help.",
+            "2": "Depending on where you live, you may have legal rights to access, correct, delete, or limit certain uses of your personal information."
+          }
+        },
+        "security": {
+          "title": "6. Security and Policy Updates",
+          "paragraphs": {
+            "1": "We use reasonable administrative, technical, and organizational measures to protect information, but no online system can be guaranteed to be perfectly secure.",
+            "2": "We may update this Privacy Policy over time, and the latest version will be posted on this page with a new effective date."
+          }
+        }
+      }
+    },
+    "legal": {
+      "metaTitle": "Legal Notice | Bridgeee",
+      "metaDescription": "Review the commercial disclosure notice for Bridgeee.",
+      "pageTitle": "Legal Notice",
+      "pageDescription": "This page provides the commercial disclosure information prepared for Bridgeee.",
+      "sections": {
+        "seller": {
+          "title": "1. Service Operator",
+          "paragraphs": {
+            "1": "Business Name: Bridgeee",
+            "2": "Operator Name: Disclosed without delay upon request",
+            "3": "Address: Disclosed without delay upon request",
+            "4": "Email Address: noreply@bridgeee.com",
+            "5": "Alternative Contact Method: Please contact us by email"
+          }
+        },
+        "pricing": {
+          "title": "2. Service Pricing",
+          "paragraphs": {
+            "1": "The price of each mentoring session is shown on the relevant mentor profile and checkout screen before payment is completed.",
+            "2": "Displayed prices may vary by mentor, duration, currency display, promotional settings, or later product updates."
+          }
+        },
+        "fees": {
+          "title": "3. Additional Fees",
+          "paragraphs": {
+            "1": "Users are responsible for any internet connection charges, mobile carrier fees, bank charges, or similar costs required to access the service.",
+            "2": "If third-party payment providers or card issuers apply separate fees, those fees are outside the direct control of Bridgeee."
+          }
+        },
+        "payment": {
+          "title": "4. Payment Timing and Method",
+          "paragraphs": {
+            "1": "Payment is collected through the checkout flow using the payment methods supported by the platform at that time.",
+            "2": "A charge is initiated when the user completes the checkout flow and the payment provider confirms the transaction."
+          }
+        },
+        "delivery": {
+          "title": "5. Service Delivery",
+          "paragraphs": {
+            "1": "Access to the booked service is provided through the Bridgeee product after the relevant booking and payment steps are completed.",
+            "2": "Session details, timing, and any meeting information are delivered through the user interface, related notifications, or connected service providers."
+          }
+        },
+        "cancellation": {
+          "title": "6. Cancellations and Refunds",
+          "paragraphs": {
+            "1": "Cancellations, rescheduling, and refunds are handled according to the published cancellation policy and any requirements imposed by the payment provider.",
+            "2": "Bridgeee should review and update this notice whenever commercial terms, operators, or payment practices materially change."
+          }
+        }
+      }
+    },
+    "cancellation": {
+      "metaTitle": "Cancellation Policy | Bridgeee",
+      "metaDescription": "Review Bridgeee's cancellation, rescheduling, and refund policy.",
+      "pageTitle": "Cancellation Policy",
+      "pageDescription": "This policy explains how Bridgeee handles cancellations, rescheduling requests, and refund decisions.",
+      "sections": {
+        "overview": {
+          "title": "1. Overview",
+          "paragraphs": {
+            "1": "Bridgeee uses this policy to set user expectations around cancellations, rescheduling, missed sessions, and refund handling.",
+            "2": "Specific outcomes may depend on the timing of the request, mentor availability, payment status, and any provider rules that apply to the transaction."
+          }
+        },
+        "studentChanges": {
+          "title": "2. Student Cancellations and Rescheduling",
+          "paragraphs": {
+            "1": "Students should review session details carefully before booking and contact the mentor promptly if a change is needed.",
+            "2": "Bridgeee may take the timing of a cancellation request into account when deciding whether a reschedule or refund is appropriate."
+          },
+          "bullets": {
+            "1": "Earlier requests are more likely to be handled through rescheduling where possible.",
+            "2": "Last-minute cancellations may lead to limited refund options.",
+            "3": "No-shows or repeated misuse of scheduling features may affect future access to the service.",
+            "4": "Cancellations made at least 24 hours before the scheduled session may be eligible for a full refund.",
+            "5": "Cancellations made within 24 hours may not be eligible for a refund."
+          }
+        },
+        "mentorChanges": {
+          "title": "3. Mentor Cancellations and Rescheduling",
+          "paragraphs": {
+            "1": "Mentors are expected to keep availability accurate and communicate quickly if a session can no longer be delivered as booked.",
+            "2": "If a mentor cancels or must reschedule, Bridgeee may support a new booking time or another appropriate resolution."
+          },
+          "bullets": {
+            "1": "Mentors should provide as much advance notice as possible.",
+            "2": "Repeated mentor-side cancellations may lead to account review or feature limits.",
+            "3": "Users should confirm any updated booking details within the product before the new session time."
+          }
+        },
+        "refunds": {
+          "title": "4. Refund Handling",
+          "paragraphs": {
+            "1": "Refund decisions are evaluated case by case based on booking status, cancellation timing, platform records, and applicable payment-provider rules.",
+            "2": "Where a refund is approved, the timing of the returned funds depends on the payment provider and the user's financial institution."
+          },
+          "bullets": {
+            "1": "A completed charge does not automatically guarantee a refund.",
+            "2": "Approved refunds may be partial or full depending on the circumstances.",
+            "3": "Bridgeee may request supporting details when reviewing a dispute or refund request."
+          }
+        },
+        "exceptions": {
+          "title": "5. Exceptions and Updates",
+          "paragraphs": {
+            "1": "Bridgeee may make exceptions where needed to address fraud, technical issues, service errors, safety concerns, or legal obligations.",
+            "2": "This policy may be updated from time to time, and the latest version posted on this page will apply going forward."
+          }
+        }
+      }
+    }
   }
 }

@@ -1,11 +1,11 @@
 "use client";
 
-import { use, useState, useEffect, useCallback } from "react";
+import { use, useEffect, useCallback } from "react";
 import { useTranslations } from "next-intl";
 import { useMentorDetail } from "@/features/mentors/hooks/useMentorDetail";
 import { MentorDetail } from "@/features/mentors/components/MentorDetail";
 import { useUser } from "@supabase/auth-helpers-react";
-import { AuthModal } from "@/features/auth/components/AuthModal";
+import { useAuthModal } from "@/features/auth/context/AuthModalProvider";
 import { useCreateBooking } from "@/features/checkout/hooks/useCreateBooking";
 
 const PENDING_BOOKING_KEY = "pendingBookingMentorId";
@@ -21,8 +21,8 @@ export default function MentorDetailPage({
   const t = useTranslations("mentors");
   const tc = useTranslations("common");
   const user = useUser();
+  const { openAuthModal } = useAuthModal();
   const { createBookingAndCheckout } = useCreateBooking();
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   const { mentor, loading, error, isBookingOpen, openBooking, closeBooking } =
     useMentorDetail(id);
@@ -58,15 +58,6 @@ export default function MentorDetailPage({
     }
   }, [user, id, openBooking]);
 
-  // メール認証でのログイン成功後、AuthModalを閉じてBookingModalを開く
-  useEffect(() => {
-    if (user && isAuthModalOpen) {
-      localStorage.removeItem(PENDING_BOOKING_KEY);
-      setIsAuthModalOpen(false);
-      openBooking();
-    }
-  }, [user, isAuthModalOpen, openBooking]);
-
   // 認証後の復帰: Scheduleの時間リンク経由の予約を再開
   useEffect(() => {
     if (!user || !mentor) return;
@@ -83,9 +74,12 @@ export default function MentorDetailPage({
     if (user) {
       openBooking();
     } else {
-      // OAuth認証でページがリロードされても予約を続行できるよう保存
       localStorage.setItem(PENDING_BOOKING_KEY, id);
-      setIsAuthModalOpen(true);
+      openAuthModal({
+        defaultMode: "login",
+        initialRole: "student",
+        variant: "booking",
+      });
     }
   };
 
@@ -98,7 +92,11 @@ export default function MentorDetailPage({
         PENDING_TIME_SLOT_KEY,
         JSON.stringify({ dateKey, time, mentorId: id })
       );
-      setIsAuthModalOpen(true);
+      openAuthModal({
+        defaultMode: "login",
+        initialRole: "student",
+        variant: "booking",
+      });
     }
   };
 
@@ -114,16 +112,6 @@ export default function MentorDetailPage({
         onOpenBooking={handleBookLesson}
         onCloseBooking={closeBooking}
         onTimeSlotClick={handleTimeSlotClick}
-      />
-      <AuthModal
-        open={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        defaultMode="login"
-        initialRole="student"
-        title={t("loginToContinue")}
-        description={t("loginToBook")}
-        redirectOnClose=""
-        redirectAfterAuth={`/mentors/${id}`}
       />
     </>
   );

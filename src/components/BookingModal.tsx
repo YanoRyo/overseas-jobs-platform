@@ -1,12 +1,14 @@
 "use client";
+import Image from "next/image";
 import { useState } from "react";
 import { Dialog } from "@headlessui/react";
 import { X, Sunrise, Sun, Sunset, Moon } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
 import type { MentorDetailModel } from "@/features/mentors/types";
-import { useRouter } from "@/i18n/navigation";
+import { Link } from "@/i18n/navigation";
 import { useUser } from "@supabase/auth-helpers-react";
+import { useAuthModal } from "@/features/auth/context/AuthModalProvider";
 import { useBookedSlots } from "@/features/checkout/hooks/useBookedSlots";
 import { useCreateBooking } from "@/features/checkout/hooks/useCreateBooking";
 
@@ -18,13 +20,14 @@ type Props = {
 
 export default function BookingModal({ isOpen, onClose, mentor }: Props) {
   const t = useTranslations("booking");
+  const tc = useTranslations("common");
   const locale = useLocale();
   const user = useUser();
+  const { openAuthModal } = useAuthModal();
   const { createBookingAndCheckout } = useCreateBooking();
   const [duration, setDuration] = useState(25);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
-  const router = useRouter();
   const { isSlotBooked, loading: bookingsLoading } = useBookedSlots(
     mentor.id,
     selectedDate,
@@ -40,8 +43,11 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
     }
 
     if (!user || !user.id) {
-      alert(t("loginRequired"));
-      router.push("/auth/login?redirect=/checkout");
+      openAuthModal({
+        defaultMode: "login",
+        initialRole: "student",
+        variant: "booking",
+      });
       return;
     }
 
@@ -191,11 +197,15 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-4">
             {mentor.avatarUrl && (
-              <img
-                src={mentor.avatarUrl}
-                alt={mentor.name}
-                className="w-12 h-12 rounded-lg object-cover"
-              />
+              <div className="relative h-12 w-12 overflow-hidden rounded-lg">
+                <Image
+                  src={mentor.avatarUrl}
+                  alt={mentor.name}
+                  fill
+                  className="object-cover"
+                  sizes="48px"
+                />
+              </div>
             )}
             <div>
               <h2 className="text-xl font-semibold">
@@ -206,7 +216,7 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
               </p>
             </div>
           </div>
-          <button onClick={onClose}>
+          <button type="button" onClick={onClose} aria-label={tc("close")}>
             <X className="w-6 h-6 text-muted hover:text-primary transition-colors" />
           </button>
         </div>
@@ -259,7 +269,7 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
                 return selectedWeekStart <= thisWeekStart ? true : false;
               })()}
               className="p-2 rounded-lg border border-border text-secondary hover:bg-surface-hover disabled:text-muted disabled:cursor-not-allowed transition-colors"
-              aria-label="Previous week"
+              aria-label={t("previousWeek")}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -287,7 +297,7 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
                 handleDateChange(newDate);
               }}
               className="p-2 rounded-lg border border-border text-secondary hover:bg-surface-hover transition-colors"
-              aria-label="Next week"
+              aria-label={t("nextWeek")}
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -409,6 +419,15 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
             });
           })()}
         </div>
+
+        <p className="rounded-lg border border-border bg-[#fafafb] px-3 py-2 text-xs leading-5 text-secondary">
+          <Link
+            href="/cancellation-policy"
+            className="font-medium text-accent underline-offset-2 hover:underline"
+          >
+            {t("cancellationNotice")}
+          </Link>
+        </p>
 
         {/* ⑤ 続けるボタン */}
         <button

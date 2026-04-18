@@ -1,5 +1,7 @@
 "use client";
 
+import { useEffect, useRef } from "react";
+
 import type { Message } from "../types/message";
 
 export function MessageThread({
@@ -11,8 +13,20 @@ export function MessageThread({
   currentUserId: string | null;
   onRetry?: (clientId: string) => void;
 }) {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const container = containerRef.current;
+
+    if (!container) {
+      return;
+    }
+
+    container.scrollTop = container.scrollHeight;
+  }, [messages]);
+
   return (
-    <div className="flex-1 min-h-0 overflow-y-auto px-4 py-3 space-y-3">
+    <div ref={containerRef} className="h-full overflow-y-auto px-4 py-3 space-y-3">
       {messages.map((m) => {
         const isMe = currentUserId === m.sender_id;
 

@@ -1,11 +1,8 @@
 "use client";
 
-import { useMemo } from "react";
 import { useTranslations } from "next-intl";
-import { useRouter, usePathname } from "@/i18n/navigation";
-import { useSearchParams } from "next/navigation";
-
 import { AuthPromptCard } from "@/components/AuthPromptCard";
+import { useAuthModal } from "@/features/auth/context/AuthModalProvider";
 import { ConversationItem } from "./ConversationItem";
 import { useMessageThreads } from "../hooks/useMessageThreads";
 import type { MessageTab } from "@/features/messages/types/messageTab";
@@ -18,24 +15,10 @@ export function ConversationList({
   tab: MessageTab;
   onSelectConversation: (c: ConversationItemType) => void;
 }) {
-  const router = useRouter();
-  const pathname = usePathname();
-  const searchParams = useSearchParams();
-
   const t = useTranslations("messages");
   const tc = useTranslations("common");
+  const { openAuthModal } = useAuthModal();
   const { items, loading, emptyReason } = useMessageThreads(tab);
-
-  const redirectTarget = useMemo(() => {
-    const query = searchParams.toString();
-    if (!pathname) return "/";
-    return `${pathname}${query ? `?${query}` : ""}`;
-  }, [pathname, searchParams]);
-
-  const redirectParam = useMemo(
-    () => encodeURIComponent(redirectTarget),
-    [redirectTarget]
-  );
 
   // 未ログイン時：ログイン/新規登録導線を表示
   if (emptyReason === "not_logged_in") {
@@ -45,8 +28,18 @@ export function ConversationList({
           message={t("loginRequired")}
           loginLabel={t("loginButton")}
           signUpLabel={t("signUpButton")}
-          onLogin={() => router.push(`/auth/login?redirect=${redirectParam}`)}
-          onSignUp={() => router.push(`/auth/signup?redirect=${redirectParam}`)}
+          onLogin={() =>
+            openAuthModal({
+              defaultMode: "login",
+              initialRole: "student",
+            })
+          }
+          onSignUp={() =>
+            openAuthModal({
+              defaultMode: "signup",
+              initialRole: "student",
+            })
+          }
         />
       </div>
     );

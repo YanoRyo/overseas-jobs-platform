@@ -3,9 +3,8 @@
 import { useState } from "react";
 import { Heart } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { usePathname, useRouter } from "@/i18n/navigation";
 import { useSessionContext } from "@supabase/auth-helpers-react";
-
+import { useAuthModal } from "@/features/auth/context/AuthModalProvider";
 import { useFavorites } from "../context/FavoritesContext";
 
 type Props = {
@@ -25,8 +24,7 @@ export function FavoriteToggleButton({
   const activeLabel = t("saved");
   const inactiveLabel = t("save");
   const { isLoading: authLoading } = useSessionContext();
-  const router = useRouter();
-  const pathname = usePathname();
+  const { openAuthModal } = useAuthModal();
   const { isFavorite, toggleFavorite } = useFavorites();
   const [saving, setSaving] = useState(false);
 
@@ -45,8 +43,11 @@ export function FavoriteToggleButton({
     setSaving(false);
 
     if (!result.ok && result.error === "Login required") {
-      const redirectTo = encodeURIComponent(pathname || "/");
-      router.push(`/auth/login?redirect=${redirectTo}`);
+      openAuthModal({
+        defaultMode: "login",
+        initialRole: "student",
+        variant: "favorite",
+      });
     }
   };
 

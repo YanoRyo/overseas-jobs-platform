@@ -48,15 +48,16 @@ export function ConversationDetail({
 
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
-      <div className="shrink-0 flex items-center gap-3 border-b px-4 py-3">
+      <div className="flex shrink-0 items-center gap-3 border-b px-4 py-3">
         <button
+          type="button"
           onClick={onBack}
           className="text-sm text-gray-600 hover:text-gray-900"
         >
           ←
         </button>
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex min-w-0 items-center gap-2">
           <div className="relative w-7 h-7 rounded-lg overflow-hidden">
             <Image
               src={avatarUrl ?? "/avatar-placeholder.png"}
@@ -66,7 +67,7 @@ export function ConversationDetail({
               sizes="28px"
             />
           </div>
-          <div className="text-sm font-medium">{conversation.partnerName}</div>
+          <div className="truncate text-sm font-medium">{conversation.partnerName}</div>
         </div>
       </div>
 

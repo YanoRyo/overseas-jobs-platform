@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
 import { ReservationData } from "../types/reservation";
@@ -25,11 +26,15 @@ export const ReservationSummary = ({
     <div className="space-y-6">
       <div className="flex items-start gap-4">
         {mentorAvatarUrl && (
-          <img
-            src={mentorAvatarUrl}
-            alt={mentorName}
-            className="w-20 h-20 rounded-xl object-cover"
-          />
+          <div className="relative h-20 w-20 overflow-hidden rounded-xl">
+            <Image
+              src={mentorAvatarUrl}
+              alt={mentorName}
+              fill
+              className="object-cover"
+              sizes="80px"
+            />
+          </div>
         )}
         <div className="flex flex-col gap-1">
           <div className="flex items-center gap-2">

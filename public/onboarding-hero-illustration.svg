@@ -1,0 +1,59 @@
+<svg width="1200" height="1068" viewBox="0 0 1200 1068" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="1200" height="1068" rx="64" fill="#EAF3FB"/>
+
+  <!-- soft background clouds -->
+  <ellipse cx="280" cy="150" rx="170" ry="62" fill="#F7F7F6"/>
+  <ellipse cx="850" cy="210" rx="260" ry="78" fill="#F7F7F6"/>
+  <ellipse cx="1030" cy="820" rx="210" ry="56" fill="#F7F7F6"/>
+
+  <!-- main board -->
+  <rect x="190" y="150" width="760" height="700" rx="44" fill="#F6F7F6"/>
+  <rect x="225" y="205" width="730" height="650" rx="44" fill="#EAF3FB"/>
+
+  <!-- left mobile card -->
+  <rect x="230" y="190" width="320" height="560" rx="48" fill="#EEF1F4"/>
+  <rect x="275" y="255" width="230" height="105" rx="36" fill="#C9E4F8"/>
+  <circle cx="315" cy="307" r="16" fill="#66B8F2"/>
+  <rect x="355" y="292" width="110" height="22" rx="11" fill="#F6F7F6"/>
+
+  <!-- fixed front-facing avatar -->
+  <rect x="320" y="405" width="160" height="150" rx="32" fill="#F7F7F6"/>
+  <circle cx="400" cy="450" r="34" fill="#B7D9F5"/>
+  <path d="M330 555c7-58 51-92 70-92s63 34 70 92H330Z" fill="#B7D9F5"/>
+  <path d="M352 555c4-32 28-52 48-52s44 20 48 52H352Z" fill="#B7D9F5" opacity="0.95"/>
+
+  <rect x="328" y="607" width="145" height="18" rx="9" fill="#BFE1F7"/>
+  <rect x="335" y="645" width="130" height="16" rx="8" fill="#D0E7F8"/>
+  <rect x="340" y="680" width="95" height="16" rx="8" fill="#D0E7F8"/>
+
+  <!-- right large profile card -->
+  <rect x="610" y="165" width="345" height="620" rx="48" fill="#EEF1F4"/>
+  <rect x="612" y="145" width="205" height="46" rx="23" fill="#DDEAF7"/>
+  <circle cx="656" cy="168" r="11" fill="#5A9EEF"/>
+  <rect x="683" y="156" width="93" height="20" rx="10" fill="#F6F7F6"/>
+
+  <rect x="630" y="250" width="245" height="260" rx="42" fill="#A9D6F2"/>
+  <!-- fixed main front-facing avatar -->
+  <circle cx="753" cy="322" r="54" fill="#EAF3FB"/>
+  <path d="M640 509c10-94 77-154 113-154s103 60 113 154H640Z" fill="#EAF3FB"/>
+  <path d="M682 509c8-55 42-92 71-92s63 37 71 92H682Z" fill="#EAF3FB" opacity="0.98"/>
+
+  <rect x="640" y="555" width="240" height="24" rx="12" fill="#BFE1F7"/>
+  <rect x="650" y="610" width="200" height="22" rx="11" fill="#BFE1F7"/>
+  <rect x="650" y="660" width="140" height="22" rx="11" fill="#BFE1F7"/>
+
+  <!-- floating right avatar: made symmetric/front-facing -->
+  <circle cx="1035" cy="322" r="52" fill="#F6F7F6"/>
+  <circle cx="1035" cy="300" r="22" fill="#B7D9F5"/>
+  <path d="M986 393c6-48 34-76 49-76s43 28 49 76H986Z" fill="#B7D9F5"/>
+  <path d="M1006 393c4-26 18-43 29-43s25 17 29 43H1006Z" fill="#B7D9F5" opacity="0.96"/>
+
+  <!-- floating note card -->
+  <rect x="100" y="690" width="215" height="140" rx="30" fill="#F6F7F6"/>
+  <rect x="135" y="730" width="120" height="16" rx="8" fill="#BFE1F7"/>
+  <rect x="135" y="765" width="90" height="14" rx="7" fill="#BFE1F7"/>
+  <rect x="135" y="805" width="60" height="14" rx="7" fill="#D0E7F8"/>
+
+  <!-- bottom right cloud overlap -->
+  <ellipse cx="1115" cy="835" rx="85" ry="34" fill="#F7F7F6"/>
+</svg>

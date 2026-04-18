@@ -1,10 +1,10 @@
 'use client';
 
+import { useCallback, useEffect } from 'react';
 import { useTranslations } from 'next-intl';
 import { useUser } from '@supabase/auth-helpers-react';
-import { useRouter } from '@/i18n/navigation';
 import { useMentorRegistration } from '../hooks/useMentorRegistration';
-import { AuthModal } from '@/features/auth/components/AuthModal';
+import { useAuthModal } from '@/features/auth/context/AuthModalProvider';
 import { ProgressIndicator } from './ProgressIndicator';
 import { AboutStep } from './steps/AboutStep';
 import { PhotoStep } from './steps/PhotoStep';
@@ -17,7 +17,7 @@ import { PricingStep } from './steps/PricingStep';
 export const MentorRegistration = () => {
   const t = useTranslations('mentorRegistration');
   const user = useUser();
-  const router = useRouter();
+  const { openAuthModal } = useAuthModal();
 
   const {
     currentStep,
@@ -46,11 +46,48 @@ export const MentorRegistration = () => {
   // 未ログインの場合、サインアップモーダルを表示
   const isLoggedOut = !user;
 
+  const openMentorAuthModal = useCallback(() => {
+    openAuthModal({
+      defaultMode: 'signup',
+      initialRole: 'mentor',
+      title: t('accountRequired'),
+      description: t('accountRequiredDescription'),
+    });
+  }, [openAuthModal, t]);
+
+  useEffect(() => {
+    if (isLoggedOut) {
+      openMentorAuthModal();
+    }
+  }, [isLoggedOut, openMentorAuthModal]);
+
   // 登録済みチェック中はローディング表示
   if (isCheckingRegistration) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600" />
+      </div>
+    );
+  }
+
+  if (isLoggedOut) {
+    return (
+      <div className="min-h-screen bg-background">
+        <main className="mx-auto flex min-h-screen max-w-xl flex-col items-center justify-center px-6 text-center">
+          <h1 className="text-3xl font-bold text-primary">
+            {t('accountRequired')}
+          </h1>
+          <p className="mt-3 text-sm leading-6 text-secondary">
+            {t('accountRequiredDescription')}
+          </p>
+          <button
+            type="button"
+            onClick={openMentorAuthModal}
+            className="mt-6 rounded-xl bg-accent px-5 py-3 text-sm font-semibold text-white transition hover:bg-accent-hover"
+          >
+            {t('accountRequired')}
+          </button>
+        </main>
       </div>
     );
   }
@@ -167,14 +204,6 @@ export const MentorRegistration = () => {
       <main className="max-w-4xl mx-auto px-4 py-8">{renderCurrentStep()}</main>
 
       {/* Signup modal for unauthenticated users */}
-      <AuthModal
-        open={isLoggedOut}
-        onClose={() => router.push('/')}
-        initialRole="mentor"
-        title={t('accountRequired')}
-        description={t('accountRequiredDescription')}
-        redirectOnClose="/"
-      />
     </div>
   );
 };

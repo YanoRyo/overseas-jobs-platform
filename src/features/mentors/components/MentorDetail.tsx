@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Flag from "react-world-flags";
 import {
@@ -13,6 +14,7 @@ import {
 import { useTranslations } from "next-intl";
 import { useLocale } from "next-intl";
 import { useUser } from "@supabase/auth-helpers-react";
+import { useAuthModal } from "@/features/auth/context/AuthModalProvider";
 import { PriceDisplay } from "@/features/currency/components/PriceDisplay";
 import BookingModal from "@/components/BookingModal";
 import { useBookedSlots } from "@/features/checkout/hooks/useBookedSlots";
@@ -308,6 +310,7 @@ export const MentorDetail = ({
   const t = useTranslations("mentors");
   const locale = useLocale();
   const user = useUser();
+  const { openAuthModal } = useAuthModal();
   const [bioExpanded, setBioExpanded] = useState(false);
   const [canExpandBio, setCanExpandBio] = useState(false);
   const [reviewExpanded, setReviewExpanded] = useState(false);
@@ -409,9 +412,21 @@ export const MentorDetail = ({
     mentor.spokenLanguages.length > 0
       ? mentor.spokenLanguages
       : [{ name: t("detail.notRegistered"), level: "" }];
+  const openMessageComposer = () => {
+    if (!user) {
+      openAuthModal({
+        defaultMode: "login",
+        initialRole: "student",
+        variant: "message",
+      });
+      return;
+    }
+
+    setIsMessageOpen(true);
+  };
 
   return (
-    <div className="bg-surface">
+    <div className="bg-surface pb-[calc(6.5rem+env(safe-area-inset-bottom))] lg:pb-0">
       <div className="mx-auto max-w-6xl px-6 py-10">
         <div className="grid grid-cols-1 gap-8 items-start lg:grid-cols-[minmax(0,1fr)_320px]">
           {/* ================= Left Column ================= */}
@@ -421,10 +436,13 @@ export const MentorDetail = ({
               <div className="flex flex-col gap-6 sm:flex-row">
                 <div className="w-28 h-28 sm:w-32 sm:h-32 shrink-0">
                   {mentor.avatarUrl ? (
-                    <img
+                    <Image
                       src={mentor.avatarUrl}
                       alt={mentor.name}
+                      width={128}
+                      height={128}
                       className="w-full h-full object-cover rounded-2xl shadow-sm"
+                      sizes="(min-width: 640px) 128px, 112px"
                     />
                   ) : (
                     <div className="w-full h-full rounded-2xl bg-slate-100 border border-border" />
@@ -879,7 +897,7 @@ export const MentorDetail = ({
           </div>
 
           {/* ================= Right Column (Card) ================= */}
-          <aside className="lg:sticky lg:top-24 lg:self-start">
+          <aside className="hidden lg:sticky lg:top-24 lg:block lg:self-start">
             <div className="space-y-5 rounded-2xl border border-border bg-white p-6 shadow-md lg:max-h-[calc(100vh-7rem)] lg:overflow-y-auto">
               {/* 3 columns: Rating, Lessons, Price */}
               <div className="flex items-baseline justify-between gap-2">
@@ -916,7 +934,7 @@ export const MentorDetail = ({
 
               <button
                 className="w-full border border-border py-2.5 rounded-lg hover:bg-surface-hover transition flex items-center justify-center gap-2"
-                onClick={() => setIsMessageOpen(true)}
+                onClick={openMessageComposer}
               >
                 <MessageCircle className="w-5 h-5" />
                 {t("detail.sendMessage")}
@@ -929,6 +947,32 @@ export const MentorDetail = ({
               />
             </div>
           </aside>
+        </div>
+      </div>
+
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-border bg-white/95 shadow-[0_-8px_24px_rgba(15,23,42,0.08)] backdrop-blur lg:hidden">
+        <div className="mx-auto flex max-w-6xl items-center gap-3 px-4 pb-[calc(env(safe-area-inset-bottom)+0.875rem)] pt-3 sm:px-6">
+          <button
+            type="button"
+            onClick={openMessageComposer}
+            aria-label={t("detail.sendMessage")}
+            className="inline-flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-border bg-white text-primary shadow-sm transition hover:bg-surface-hover"
+          >
+            <MessageCircle className="h-5 w-5" />
+          </button>
+          <FavoriteToggleButton
+            mentorId={mentor.id}
+            className="h-12 w-12 shrink-0 rounded-xl border border-border bg-white shadow-sm hover:bg-surface-hover"
+            iconClassName="h-5 w-5"
+          />
+          <button
+            type="button"
+            className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-xl bg-accent px-4 py-3 text-base font-semibold text-white transition-colors hover:bg-accent-hover"
+            onClick={onOpenBooking}
+          >
+            <Zap className="h-5 w-5" />
+            {t("bookLesson")}
+          </button>
         </div>
       </div>
 
