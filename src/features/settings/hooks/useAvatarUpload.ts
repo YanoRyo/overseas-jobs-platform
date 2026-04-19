@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
+import { validateImageFile, getSafeExtension } from "@/lib/validation/fileUpload";
 
 export function useAvatarUpload() {
   const supabase = useSupabaseClient();
@@ -11,10 +12,16 @@ export function useAvatarUpload() {
   const uploadAvatar = async (file: File) => {
     if (!user) return { ok: false };
 
+    const validation = validateImageFile(file);
+    if (!validation.valid) {
+      console.error("uploadAvatar: invalid file:", validation.error);
+      return { ok: false };
+    }
+
     try {
       setUploading(true);
 
-      const ext = file.name.split(".").pop() ?? "png";
+      const ext = getSafeExtension(file);
       const path = `${user.id}/profile.${ext}`;
 
       const { error: uploadError } = await supabase.storage

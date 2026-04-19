@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
 
 type BookedSlot = {
   startTime: Date;
@@ -18,7 +17,6 @@ export const useBookedSlots = (
   isOpen: boolean,
   userId: string | undefined
 ) => {
-  const supabase = useSupabaseClient();
   const [bookedSlots, setBookedSlots] = useState<BookedSlot[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -39,29 +37,21 @@ export const useBookedSlots = (
       setLoading(true);
 
       const weekStart = new Date(weekKey);
-      const weekEnd = new Date(weekStart);
-      weekEnd.setDate(weekEnd.getDate() + 7);
 
-      // 全ユーザーの有効な予約でスロットをブロック
-      // pending（期限内）とconfirmedが対象。期限切れのpendingは除外されるため再予約可能
-      const { data, error } = await supabase
-        .from("bookings")
-        .select("start_time, end_time")
-        .eq("mentor_id", mentorId)
-        .in("status", ["pending", "confirmed"])
-        .gte("start_time", weekStart.toISOString())
-        .lt("start_time", weekEnd.toISOString())
-        .or(`status.eq.confirmed,expires_at.gt.${new Date().toISOString()}`);
+      const res = await fetch(
+        `/api/bookings/booked-slots?mentorId=${encodeURIComponent(mentorId)}&weekStart=${encodeURIComponent(weekStart.toISOString())}`
+      );
 
-      if (error) {
-        console.error("Failed to fetch booked slots:", error);
+      if (!res.ok) {
+        console.error("Failed to fetch booked slots:", res.status);
         setBookedSlots([]);
       } else {
+        const { slots } = await res.json();
         setBookedSlots(
-          (data ?? []).map((row) => ({
+          (slots ?? []).map((row: { startTime: string; endTime: string }) => ({
             // DBには timestamp without time zone だがUTC値が入っているため、Zを付与してUTCとして解釈
-            startTime: new Date(row.start_time + "Z"),
-            endTime: new Date(row.end_time + "Z"),
+            startTime: new Date(row.startTime + "Z"),
+            endTime: new Date(row.endTime + "Z"),
           }))
         );
       }
@@ -70,7 +60,7 @@ export const useBookedSlots = (
     };
 
     fetchBookings();
-  }, [isOpen, mentorId, weekKey, userId, supabase]);
+  }, [isOpen, mentorId, weekKey, userId]);
 
   // 区間重複チェック: slotStart < booking.endTime AND slotEnd > booking.startTime
   const isSlotBooked = useCallback(
