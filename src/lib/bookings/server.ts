@@ -144,19 +144,6 @@ function throwUnavailableChangeRequestsFeature() {
   );
 }
 
-function hasTimezone(value: string) {
-  return /[zZ]$|[+-]\d{2}:\d{2}$/.test(value);
-}
-
-function parseStoredDate(value: string | null | undefined) {
-  if (!value) return null;
-  return new Date(hasTimezone(value) ? value : `${value}Z`);
-}
-
-function toIsoString(value: string | Date) {
-  return (typeof value === "string" ? new Date(value) : value).toISOString();
-}
-
 function isBookingCancellationRequestable(status: BookingStatus | null) {
   return status === "pending" || status === "confirmed";
 }

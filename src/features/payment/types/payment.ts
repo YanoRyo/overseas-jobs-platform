@@ -1,7 +1,4 @@
-import type {
-  BookingStatus,
-  PaymentStatus,
-} from "@/features/bookings/types";
+import type { PaymentStatus } from "@/features/bookings/types";
 export type {
   BookingStatus,
   PaymentStatus,
