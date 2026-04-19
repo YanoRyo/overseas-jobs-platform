@@ -9,6 +9,7 @@ import { AuthModalProvider } from "@/features/auth/context/AuthModalProvider";
 import { FavoritesProvider } from "@/features/favorites/context/FavoritesContext";
 import { SupabaseProvider } from "@/components/SupabaseProvider";
 import { CurrencyProvider } from "@/features/currency/context/CurrencyContext";
+import { getMessages } from "@/i18n/messages";
 import { routing } from "@/i18n/routing";
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -32,7 +33,7 @@ export default async function LocaleLayout({
     notFound();
   }
 
-  const messages = (await import(`../../../messages/${locale}.json`)).default;
+  const messages = getMessages(locale);
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>

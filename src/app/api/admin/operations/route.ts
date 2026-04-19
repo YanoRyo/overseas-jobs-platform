@@ -1,11 +1,18 @@
 import { NextResponse } from "next/server";
 import {
+  isMissingBookingChangeRequestsTableError,
+  isMissingPaymentRefundColumnsError,
+  warnForMissingBookingChangeRequestsTable,
+  warnForMissingPaymentRefundColumns,
+} from "@/lib/bookings/server";
+import {
   createSupabaseServerClient,
   createSupabaseServiceClient,
 } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/auth/admin";
 import type {
   AdminCaseFlag,
+  AdminBookingChangeRequest,
   AdminMentorCase,
   AdminOperationsResponse,
   AdminReservationCase,
@@ -18,7 +25,14 @@ type BookingRow = {
   user_id: string | null;
   start_time: string | null;
   end_time: string | null;
-  status: string | null;
+  status:
+    | "pending"
+    | "cancellation_requested"
+    | "confirmed"
+    | "completed"
+    | "cancelled"
+    | "cancelled_by_mentor"
+    | null;
   created_at: string | null;
   expires_at: string | null;
   meeting_provider: string | null;
@@ -63,8 +77,11 @@ type PaymentRow = {
   mentor_id: string;
   amount: number;
   currency: string;
-  status: string;
+  status: "pending" | "refund_pending" | "succeeded" | "failed" | "refunded";
   paid_at: string | null;
+  refund_amount: number | null;
+  refunded_at: string | null;
+  refund_reason: string | null;
   created_at: string | null;
   student_confirmation_email_sent_at: string | null;
   mentor_booking_email_sent_at: string | null;
@@ -77,6 +94,18 @@ type PayoutRow = {
   amount: number;
   status: string;
   created_at: string | null;
+};
+
+type ChangeRequestRow = {
+  id: string;
+  booking_id: number;
+  requester_user_id: string;
+  type: "cancel";
+  status: "pending" | "approved" | "rejected";
+  reason: string | null;
+  review_note: string | null;
+  reviewed_at: string | null;
+  created_at: string;
 };
 
 function getTimestamp(value: string | null | undefined) {
@@ -132,7 +161,8 @@ function buildReservationFlags(
   booking: BookingRow,
   mentor: MentorRow | null,
   payment: PaymentRow | null,
-  payout: PayoutRow | null
+  payout: PayoutRow | null,
+  changeRequests: AdminBookingChangeRequest[]
 ) {
   const now = Date.now();
   const flags: AdminCaseFlag[] = [];
@@ -153,6 +183,14 @@ function buildReservationFlags(
     });
   }
 
+  if (payment?.status === "refund_pending") {
+    flags.push({
+      type: "refund_pending",
+      label: "Refund pending",
+      tone: "warning",
+    });
+  }
+
   if (
     booking.status === "pending" &&
     booking.expires_at &&
@@ -162,6 +200,22 @@ function buildReservationFlags(
       type: "expired_pending_booking",
       label: "Expired pending booking",
       tone: "warning",
+    });
+  }
+
+  if (changeRequests.some((request) => request.status === "pending")) {
+    flags.push({
+      type: "change_request_pending",
+      label: "Cancellation request pending",
+      tone: "warning",
+    });
+  }
+
+  if (booking.status === "cancelled_by_mentor") {
+    flags.push({
+      type: "mentor_cancelled",
+      label: "Mentor cancelled lesson",
+      tone: "danger",
     });
   }
 
@@ -267,8 +321,71 @@ export async function GET() {
   }
 
   const adminDb = createSupabaseServiceClient();
-  const [bookingsResult, usersResult, mentorsResult, paymentsResult, payoutsResult] =
-    await Promise.all([
+  async function fetchPaymentsForAdminOperations() {
+    const paymentsResult = await adminDb
+      .from("payments")
+      .select(
+        "id, booking_id, user_id, mentor_id, amount, currency, status, paid_at, refund_amount, refunded_at, refund_reason, created_at, student_confirmation_email_sent_at, mentor_booking_email_sent_at"
+      )
+      .order("created_at", { ascending: false });
+
+    if (!isMissingPaymentRefundColumnsError(paymentsResult.error)) {
+      return paymentsResult;
+    }
+
+    warnForMissingPaymentRefundColumns(paymentsResult.error);
+
+    const fallbackResult = await adminDb
+      .from("payments")
+      .select(
+        "id, booking_id, user_id, mentor_id, amount, currency, status, paid_at, created_at, student_confirmation_email_sent_at, mentor_booking_email_sent_at"
+      )
+      .order("created_at", { ascending: false });
+
+    if (fallbackResult.error) {
+      return fallbackResult;
+    }
+
+    return {
+      data: (fallbackResult.data ?? []).map((payment) => ({
+        ...payment,
+        refund_amount: null,
+        refunded_at: null,
+        refund_reason: null,
+      })),
+      error: null,
+    };
+  }
+
+  async function fetchChangeRequestsForAdminOperations() {
+    const changeRequestsResult = await adminDb
+      .from("booking_change_requests")
+      .select(
+        "id, booking_id, requester_user_id, type, status, reason, review_note, reviewed_at, created_at"
+      )
+      .eq("type", "cancel")
+      .order("created_at", { ascending: false });
+
+    if (!isMissingBookingChangeRequestsTableError(changeRequestsResult.error)) {
+      return changeRequestsResult;
+    }
+
+    warnForMissingBookingChangeRequestsTable(changeRequestsResult.error);
+
+    return {
+      data: [],
+      error: null,
+    };
+  }
+
+  const [
+    bookingsResult,
+    usersResult,
+    mentorsResult,
+    paymentsResult,
+    payoutsResult,
+    changeRequestsResult,
+  ] = await Promise.all([
       adminDb
         .from("bookings")
         .select(
@@ -287,16 +404,12 @@ export async function GET() {
           "id, user_id, first_name, last_name, email, avatar_url, country_code, phone_country_code, phone_number, timezone, hourly_rate, stripe_account_id, stripe_onboarding_completed, created_at"
         )
         .order("created_at", { ascending: false }),
-      adminDb
-        .from("payments")
-        .select(
-          "id, booking_id, user_id, mentor_id, amount, currency, status, paid_at, created_at, student_confirmation_email_sent_at, mentor_booking_email_sent_at"
-        )
-        .order("created_at", { ascending: false }),
+      fetchPaymentsForAdminOperations(),
       adminDb
         .from("payouts")
         .select("id, payment_id, mentor_id, amount, status, created_at")
         .order("created_at", { ascending: false }),
+      fetchChangeRequestsForAdminOperations(),
     ]);
 
   if (bookingsResult.error) {
@@ -339,17 +452,54 @@ export async function GET() {
     );
   }
 
+  if (changeRequestsResult.error) {
+    console.error(
+      "Admin operations change requests fetch error:",
+      changeRequestsResult.error
+    );
+    return NextResponse.json(
+      { error: "Failed to fetch admin change requests" },
+      { status: 500 }
+    );
+  }
+
   const bookings = (bookingsResult.data ?? []) as BookingRow[];
   const users = (usersResult.data ?? []) as UserRow[];
   const mentors = (mentorsResult.data ?? []) as MentorRow[];
   const payments = (paymentsResult.data ?? []) as PaymentRow[];
   const payouts = (payoutsResult.data ?? []) as PayoutRow[];
+  const changeRequests = (changeRequestsResult.data ?? []) as ChangeRequestRow[];
 
   const userMap = new Map(users.map((row) => [row.id, row]));
   const mentorMap = new Map(mentors.map((row) => [row.id, row]));
   const mentorByUserIdMap = new Map(mentors.map((row) => [row.user_id, row]));
   const paymentByBookingIdMap = new Map(payments.map((row) => [row.booking_id, row]));
   const latestPayoutByPaymentIdMap = getLatestPayoutByPaymentId(payouts);
+  const changeRequestsByBookingId = new Map<number, AdminBookingChangeRequest[]>();
+
+  for (const request of changeRequests) {
+    const requester = userMap.get(request.requester_user_id);
+    const mappedRequest: AdminBookingChangeRequest = {
+      id: request.id,
+      requesterUserId: request.requester_user_id,
+      requesterDisplayName: buildDisplayName(
+        requester?.first_name,
+        requester?.last_name,
+        requester?.username
+      ),
+      requesterRole: requester?.role ?? null,
+      type: request.type,
+      status: request.status,
+      reason: request.reason,
+      reviewNote: request.review_note,
+      reviewedAt: request.reviewed_at,
+      createdAt: request.created_at,
+    };
+
+    const current = changeRequestsByBookingId.get(request.booking_id) ?? [];
+    current.push(mappedRequest);
+    changeRequestsByBookingId.set(request.booking_id, current);
+  }
 
   const reservations: AdminReservationCase[] = bookings
     .map((booking) => {
@@ -362,7 +512,14 @@ export async function GET() {
       const payout = payment
         ? latestPayoutByPaymentIdMap.get(payment.id) ?? null
         : null;
-      const flags = buildReservationFlags(booking, mentor, payment, payout);
+      const bookingChangeRequests = changeRequestsByBookingId.get(booking.id) ?? [];
+      const flags = buildReservationFlags(
+        booking,
+        mentor,
+        payment,
+        payout,
+        bookingChangeRequests
+      );
 
       return {
         id: String(booking.id),
@@ -423,6 +580,9 @@ export async function GET() {
               currency: payment.currency,
               paidAt: payment.paid_at,
               createdAt: payment.created_at,
+              refundAmount: payment.refund_amount,
+              refundedAt: payment.refunded_at,
+              refundReason: payment.refund_reason,
               studentConfirmationEmailSentAt:
                 payment.student_confirmation_email_sent_at,
               mentorBookingEmailSentAt: payment.mentor_booking_email_sent_at,
@@ -436,6 +596,7 @@ export async function GET() {
               createdAt: payout.created_at,
             }
           : null,
+        changeRequests: bookingChangeRequests,
         flags,
       };
     })

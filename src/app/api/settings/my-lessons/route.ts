@@ -1,4 +1,10 @@
 import { NextResponse } from "next/server";
+import type { BookingChangeRequestSummary } from "@/features/bookings/types";
+import {
+  getBookingChangeRequestsByBookingIds,
+  isMissingPaymentRefundColumnsError,
+  warnForMissingPaymentRefundColumns,
+} from "@/lib/bookings/server";
 import {
   createSupabaseServerClient,
   createSupabaseServiceClient,
@@ -12,7 +18,14 @@ type BookingRow = {
   mentor_id: string;
   start_time: string;
   end_time: string;
-  status: "pending" | "confirmed" | "completed";
+  status:
+    | "pending"
+    | "cancellation_requested"
+    | "confirmed"
+    | "completed"
+    | "expired"
+    | "cancelled"
+    | "cancelled_by_mentor";
   meeting_provider: string | null;
   meeting_join_url: string | null;
   meeting_host_url: string | null;
@@ -37,7 +50,9 @@ type PaymentRow = {
   booking_id: string;
   amount: number;
   currency: string;
-  status: "pending" | "succeeded" | "failed" | "refunded";
+  status: "pending" | "refund_pending" | "succeeded" | "failed" | "refunded";
+  refund_amount: number | null;
+  refunded_at: string | null;
 };
 
 function normalizeName(firstName?: string | null, lastName?: string | null) {
@@ -87,7 +102,15 @@ export async function GET(request: Request) {
     .select(
       "id, user_id, mentor_id, start_time, end_time, status, meeting_provider, meeting_join_url, meeting_host_url"
     )
-    .in("status", ["confirmed", "pending", "completed"]);
+    .in("status", [
+      "confirmed",
+      "pending",
+      "cancellation_requested",
+      "completed",
+      "expired",
+      "cancelled",
+      "cancelled_by_mentor",
+    ]);
 
   if (viewerRole === "mentor") {
     bookingsQuery = bookingsQuery.eq("mentor_id", mentorId);
@@ -114,20 +137,50 @@ export async function GET(request: Request) {
   const mentorIds = [...new Set(bookingRows.map((booking) => booking.mentor_id))];
   const userIds = [...new Set(bookingRows.map((booking) => booking.user_id))];
 
-  const [mentorsResult, usersResult, paymentsResult] = await Promise.all([
-    adminDb
-      .from("mentors")
-      .select("id, user_id, first_name, last_name, avatar_url")
-      .in("id", mentorIds),
-    adminDb
-      .from("users")
-      .select("id, first_name, last_name, avatar_url")
-      .in("id", userIds),
-    adminDb
+  async function fetchPaymentsForLessons() {
+    const paymentsResult = await adminDb
+      .from("payments")
+      .select("booking_id, amount, currency, status, refund_amount, refunded_at")
+      .in("booking_id", bookingIds);
+
+    if (!isMissingPaymentRefundColumnsError(paymentsResult.error)) {
+      return paymentsResult;
+    }
+
+    warnForMissingPaymentRefundColumns(paymentsResult.error);
+
+    const fallbackResult = await adminDb
       .from("payments")
       .select("booking_id, amount, currency, status")
-      .in("booking_id", bookingIds),
-  ]);
+      .in("booking_id", bookingIds);
+
+    if (fallbackResult.error) {
+      return fallbackResult;
+    }
+
+    return {
+      data: (fallbackResult.data ?? []).map((payment) => ({
+        ...payment,
+        refund_amount: null,
+        refunded_at: null,
+      })),
+      error: null,
+    };
+  }
+
+  const [mentorsResult, usersResult, paymentsResult, changeRequestsMap] =
+    await Promise.all([
+      adminDb
+        .from("mentors")
+        .select("id, user_id, first_name, last_name, avatar_url")
+        .in("id", mentorIds),
+      adminDb
+        .from("users")
+        .select("id, first_name, last_name, avatar_url")
+        .in("id", userIds),
+      fetchPaymentsForLessons(),
+      getBookingChangeRequestsByBookingIds(bookingIds, adminDb),
+    ]);
 
   if (mentorsResult.error) {
     console.error("Failed to fetch mentors for My Lessons:", mentorsResult.error);
@@ -172,6 +225,11 @@ export async function GET(request: Request) {
     const mentor = mentorMap.get(booking.mentor_id);
     const student = userMap.get(booking.user_id);
     const payment = paymentMap.get(booking.id);
+    const relatedRequests = changeRequestsMap.get(String(booking.id)) ?? [];
+    const changeRequest =
+      relatedRequests.find((request) => request.status === "pending") ??
+      relatedRequests[0] ??
+      null;
 
     return {
       id: booking.id,
@@ -190,11 +248,14 @@ export async function GET(request: Request) {
       amount: payment?.amount ?? null,
       currency: payment?.currency ?? "usd",
       paymentStatus: payment?.status ?? null,
+      refundAmount: payment?.refund_amount ?? null,
+      refundedAt: payment?.refunded_at ?? null,
       meetingUrl:
         viewerRole === "mentor"
           ? booking.meeting_host_url ?? booking.meeting_join_url
           : booking.meeting_join_url,
       meetingProvider: booking.meeting_provider,
+      changeRequest: changeRequest as BookingChangeRequestSummary | null,
     };
   });
 

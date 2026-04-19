@@ -227,7 +227,10 @@ async function createMeetingForBooking(
   }
 }
 
-export async function issueMeetingLinksForBooking(bookingId: string) {
+export async function issueMeetingLinksForBooking(
+  bookingId: string,
+  options?: { force?: boolean }
+) {
   const adminDb = createSupabaseServiceClient();
 
   const { data: booking, error: bookingError } = await adminDb
@@ -245,7 +248,7 @@ export async function issueMeetingLinksForBooking(bookingId: string) {
 
   const bookingRow = booking as BookingMeetingRow | null;
 
-  if (!bookingRow || bookingRow.meeting_join_url) {
+  if (!bookingRow || (bookingRow.meeting_join_url && !options?.force)) {
     return;
   }
 

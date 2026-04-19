@@ -5,6 +5,7 @@ import { RefreshCcw, Search } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { Link, useRouter } from "@/i18n/navigation";
 import type {
+  AdminBookingChangeRequest,
   AdminCaseFlag,
   AdminFlagTone,
   AdminMentorCase,
@@ -17,6 +18,15 @@ import type {
 type PaymentReservationCase = AdminReservationCase & {
   payment: NonNullable<AdminReservationCase["payment"]>;
 };
+
+type ReservationActionTarget =
+  | { kind: "cancel"; reservation: AdminReservationCase }
+  | { kind: "refund"; reservation: PaymentReservationCase }
+  | {
+      kind: "approve_request";
+      reservation: AdminReservationCase;
+      request: AdminBookingChangeRequest;
+    };
 
 type Tone = AdminFlagTone | "success" | "neutral";
 
@@ -105,10 +115,14 @@ function bookingStatusTone(status: string | null | undefined): Tone {
   switch (status) {
     case "confirmed":
       return "info";
+    case "cancellation_requested":
+      return "warning";
     case "completed":
       return "success";
     case "pending":
       return "warning";
+    case "cancelled_by_mentor":
+      return "danger";
     case "cancelled":
     case "expired":
       return "danger";
@@ -121,6 +135,8 @@ function paymentStatusTone(status: string | null | undefined): Tone {
   switch (status) {
     case "succeeded":
       return "success";
+    case "refund_pending":
+      return "warning";
     case "pending":
       return "warning";
     case "failed":
@@ -153,6 +169,14 @@ function humanizeToken(value: string | null | undefined) {
 
 function searchMatches(value: string, query: string) {
   return value.toLowerCase().includes(query.toLowerCase());
+}
+
+function isReservationMutable(status: string | null | undefined) {
+  return (
+    status === "pending" ||
+    status === "confirmed" ||
+    status === "cancellation_requested"
+  );
 }
 
 function renderFlagBadges(flags: AdminCaseFlag[]) {
@@ -204,6 +228,57 @@ function DetailRow({
     <div className="flex items-start justify-between gap-4 text-sm">
       <span className="text-[#606579]">{label}</span>
       <span className="text-right font-medium text-[#1f1f2d]">{value}</span>
+    </div>
+  );
+}
+
+function ChangeRequestCard({
+  request,
+  onApprove,
+}: {
+  request: AdminBookingChangeRequest;
+  onApprove: (request: AdminBookingChangeRequest) => void;
+}) {
+  return (
+    <div className="rounded-2xl border border-[#e5e7eb] bg-white p-4">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <p className="text-sm font-semibold text-[#1f1f2d]">
+            Cancellation request
+          </p>
+          <p className="mt-1 text-xs text-[#606579]">
+            Requested by {request.requesterDisplayName}
+            {request.requesterRole ? ` · ${request.requesterRole}` : ""} ·{" "}
+            {formatDateTime(request.createdAt)}
+          </p>
+        </div>
+        <Badge
+          label={humanizeToken(request.status)}
+          tone={request.status === "approved" ? "success" : request.status === "rejected" ? "danger" : "warning"}
+        />
+      </div>
+
+      {request.reason ? (
+        <p className="mt-3 text-sm text-[#1f1f2d]">{request.reason}</p>
+      ) : null}
+
+      {request.reviewNote ? (
+        <p className="mt-2 text-xs text-[#606579]">
+          Review note: {request.reviewNote}
+        </p>
+      ) : null}
+
+      {request.status === "pending" ? (
+        <div className="mt-4 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() => onApprove(request)}
+            className="rounded-lg bg-[#2563eb] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#1d4ed8]"
+          >
+            Approve cancellation
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -584,8 +659,17 @@ function PaymentList({
 
 function ReservationDetail({
   reservation,
+  onCancel,
+  onRefund,
+  onApproveRequest,
 }: {
   reservation: AdminReservationCase | null;
+  onCancel: (reservation: AdminReservationCase) => void;
+  onRefund: (reservation: PaymentReservationCase) => void;
+  onApproveRequest: (
+    reservation: AdminReservationCase,
+    request: AdminBookingChangeRequest
+  ) => void;
 }) {
   if (!reservation) {
     return (
@@ -625,6 +709,27 @@ function ReservationDetail({
             />
           )}
           {renderFlagBadges(reservation.flags)}
+        </div>
+        <div className="mt-4 flex flex-wrap gap-2">
+          {isReservationMutable(reservation.status) ? (
+            <button
+              type="button"
+              onClick={() => onCancel(reservation)}
+              className="rounded-lg border border-[#fecaca] bg-[#fff1f2] px-3 py-2 text-sm font-medium text-[#be123c] hover:bg-[#ffe4e6]"
+            >
+              Cancel booking
+            </button>
+          ) : null}
+          {isPaymentReservationCase(reservation) &&
+          reservation.payment.status === "succeeded" ? (
+            <button
+              type="button"
+              onClick={() => onRefund(reservation)}
+              className="rounded-lg bg-[#1f1f2d] px-3 py-2 text-sm font-medium text-white hover:bg-[#11111b]"
+            >
+              Refund payment
+            </button>
+          ) : null}
         </div>
       </div>
 
@@ -704,6 +809,25 @@ function ReservationDetail({
           value={formatDateTime(reservation.payment?.paidAt)}
         />
         <DetailRow
+          label="Refund amount"
+          value={
+            reservation.payment?.refundAmount != null
+              ? formatCurrency(
+                  reservation.payment.refundAmount,
+                  reservation.payment.currency
+                )
+              : "-"
+          }
+        />
+        <DetailRow
+          label="Refunded at"
+          value={formatDateTime(reservation.payment?.refundedAt)}
+        />
+        <DetailRow
+          label="Refund reason"
+          value={reservation.payment?.refundReason ?? "-"}
+        />
+        <DetailRow
           label="Student email"
           value={
             reservation.payment?.studentConfirmationEmailSentAt
@@ -719,6 +843,26 @@ function ReservationDetail({
               : "Not sent"
           }
         />
+      </DetailBlock>
+
+      <DetailBlock title="Change requests">
+        {reservation.changeRequests.length > 0 ? (
+          <div className="space-y-3">
+            {reservation.changeRequests.map((request) => (
+              <ChangeRequestCard
+                key={request.id}
+                request={request}
+                onApprove={(currentRequest) =>
+                  onApproveRequest(reservation, currentRequest)
+                }
+              />
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-[#606579]">
+            No cancellation requests yet.
+          </p>
+        )}
       </DetailBlock>
     </div>
   );
@@ -871,9 +1015,16 @@ function MentorDetail({
 function PaymentDetail({
   reservation,
   onApprove,
+  onRefund,
+  onApproveRequest,
 }: {
   reservation: PaymentReservationCase | null;
   onApprove: (reservation: PaymentReservationCase) => void;
+  onRefund: (reservation: PaymentReservationCase) => void;
+  onApproveRequest: (
+    reservation: AdminReservationCase,
+    request: AdminBookingChangeRequest
+  ) => void;
 }) {
   if (!reservation) {
     return (
@@ -924,6 +1075,16 @@ function PaymentDetail({
             Approve payout
           </button>
         )}
+
+        {reservation.payment.status === "succeeded" ? (
+          <button
+            type="button"
+            onClick={() => onRefund(reservation)}
+            className="mt-4 ml-3 rounded-xl border border-[#d5d7df] px-4 py-2 text-sm font-medium text-[#1f1f2d] hover:bg-[#f8f8fb]"
+          >
+            Refund payment
+          </button>
+        ) : null}
       </div>
 
       <DetailBlock title="Payment">
@@ -932,6 +1093,25 @@ function PaymentDetail({
           value={formatDateTime(reservation.payment.createdAt)}
         />
         <DetailRow label="Paid at" value={formatDateTime(reservation.payment.paidAt)} />
+        <DetailRow
+          label="Refund amount"
+          value={
+            reservation.payment.refundAmount != null
+              ? formatCurrency(
+                  reservation.payment.refundAmount,
+                  reservation.payment.currency
+                )
+              : "-"
+          }
+        />
+        <DetailRow
+          label="Refunded at"
+          value={formatDateTime(reservation.payment.refundedAt)}
+        />
+        <DetailRow
+          label="Refund reason"
+          value={reservation.payment.refundReason ?? "-"}
+        />
         <DetailRow
           label="Student confirmation email"
           value={
@@ -970,6 +1150,26 @@ function PaymentDetail({
           <p className="text-sm text-[#606579]">No open flags on this payment.</p>
         )}
       </DetailBlock>
+
+      <DetailBlock title="Change requests">
+        {reservation.changeRequests.length > 0 ? (
+          <div className="space-y-3">
+            {reservation.changeRequests.map((request) => (
+              <ChangeRequestCard
+                key={request.id}
+                request={request}
+                onApprove={(currentRequest) =>
+                  onApproveRequest(reservation, currentRequest)
+                }
+              />
+            ))}
+          </div>
+        ) : (
+          <p className="text-sm text-[#606579]">
+            No cancellation requests yet.
+          </p>
+        )}
+      </DetailBlock>
     </div>
   );
 }
@@ -995,6 +1195,12 @@ export function AdminOperationsConsole({
   const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [selectedMentorId, setSelectedMentorId] = useState<string | null>(null);
   const [selectedPaymentId, setSelectedPaymentId] = useState<string | null>(null);
+  const [actionTarget, setActionTarget] = useState<ReservationActionTarget | null>(
+    null
+  );
+  const [actionNote, setActionNote] = useState("");
+  const [refundOnCancel, setRefundOnCancel] = useState(true);
+  const [processingAction, setProcessingAction] = useState(false);
 
   async function fetchDashboard() {
     try {
@@ -1044,6 +1250,12 @@ export function AdminOperationsConsole({
       reservation.mentor?.email,
       reservation.payment?.status,
       reservation.payout?.status,
+      ...reservation.changeRequests.flatMap((request) => [
+        request.type,
+        request.status,
+        request.reason,
+        request.requesterDisplayName,
+      ]),
       ...reservation.flags.map((flag) => flag.label),
     ]
       .filter(Boolean)
@@ -1095,6 +1307,12 @@ export function AdminOperationsConsole({
       reservation.payout?.status,
       reservation.student.displayName,
       reservation.mentor?.displayName,
+      ...reservation.changeRequests.flatMap((request) => [
+        request.type,
+        request.status,
+        request.reason,
+        request.requesterDisplayName,
+      ]),
       ...reservation.flags.map((flag) => flag.label),
     ]
       .filter(Boolean)
@@ -1138,6 +1356,86 @@ export function AdminOperationsConsole({
   function handleOpenReservationCase(reservationId: string) {
     setActiveTab("reservations");
     setSelectedReservationId(reservationId);
+  }
+
+  function openCancelAction(reservation: AdminReservationCase) {
+    setActionTarget({ kind: "cancel", reservation });
+    setActionNote("");
+    setRefundOnCancel(reservation.payment?.status === "succeeded");
+  }
+
+  function openRefundAction(reservation: PaymentReservationCase) {
+    setActionTarget({ kind: "refund", reservation });
+    setActionNote("");
+  }
+
+  function openApproveRequestAction(
+    reservation: AdminReservationCase,
+    request: AdminBookingChangeRequest
+  ) {
+    setActionTarget({ kind: "approve_request", reservation, request });
+    setActionNote("");
+    setRefundOnCancel(
+      request.type === "cancel" &&
+        reservation.payment?.status === "succeeded"
+    );
+  }
+
+  function closeActionDialog() {
+    if (processingAction) return;
+    setActionTarget(null);
+    setActionNote("");
+    setRefundOnCancel(true);
+  }
+
+  async function handleReservationAction() {
+    if (!actionTarget) return;
+
+    setProcessingAction(true);
+
+    try {
+      const body =
+        actionTarget.kind === "cancel"
+          ? {
+              action: "cancel",
+              bookingId: actionTarget.reservation.bookingId,
+              note: actionNote,
+              refundOnCancel,
+            }
+          : actionTarget.kind === "refund"
+            ? {
+                action: "refund",
+                paymentId: actionTarget.reservation.payment.id,
+                note: actionNote,
+              }
+            : {
+                action: "approve_request",
+                requestId: actionTarget.request.id,
+                note: actionNote,
+                refundOnCancel,
+              };
+
+      const response = await fetch("/api/admin/reservations/action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (!response.ok) {
+        const payload = (await response.json()) as { error?: string };
+        window.alert(payload.error || "Failed to complete the reservation action.");
+        return;
+      }
+
+      setActionTarget(null);
+      setActionNote("");
+      setRefundOnCancel(true);
+      await fetchDashboard();
+    } catch {
+      window.alert("Failed to complete the reservation action.");
+    } finally {
+      setProcessingAction(false);
+    }
   }
 
   const activeCount =
@@ -1348,7 +1646,12 @@ export function AdminOperationsConsole({
               </div>
 
               {activeTab === "reservations" && (
-                <ReservationDetail reservation={selectedReservation} />
+                <ReservationDetail
+                  reservation={selectedReservation}
+                  onCancel={openCancelAction}
+                  onRefund={openRefundAction}
+                  onApproveRequest={openApproveRequestAction}
+                />
               )}
               {activeTab === "users" && (
                 <UserDetail
@@ -1368,12 +1671,99 @@ export function AdminOperationsConsole({
                 <PaymentDetail
                   reservation={selectedPayment}
                   onApprove={setConfirmTarget}
+                  onRefund={openRefundAction}
+                  onApproveRequest={openApproveRequestAction}
                 />
               )}
             </div>
           </div>
         </section>
       </main>
+
+      <Dialog
+        open={Boolean(actionTarget)}
+        onClose={closeActionDialog}
+        className="relative z-50"
+      >
+        <div className="fixed inset-0 bg-black/50" aria-hidden="true" />
+        <div className="fixed inset-0 flex items-center justify-center p-4">
+          <Dialog.Panel className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
+            <Dialog.Title className="text-lg font-semibold text-[#1f1f2d]">
+              {actionTarget?.kind === "cancel"
+                ? "Cancel booking"
+                : actionTarget?.kind === "refund"
+                  ? "Refund payment"
+                  : actionTarget?.kind === "approve_request"
+                    ? "Approve cancellation request"
+                    : "Reservation action"}
+            </Dialog.Title>
+
+            {actionTarget ? (
+              <div className="mt-3 space-y-3 text-sm text-[#4b5563]">
+                <p>
+                  Booking #{actionTarget.reservation.bookingId} ·{" "}
+                  {actionTarget.reservation.student.displayName} x{" "}
+                  {actionTarget.reservation.mentor?.displayName ?? "Unknown mentor"}
+                </p>
+                <p>Lesson time {formatDateTime(actionTarget.reservation.startTime)}</p>
+                {"request" in actionTarget ? (
+                  <p>
+                    Request type {humanizeToken(actionTarget.request.type)} · Submitted{" "}
+                    {formatDateTime(actionTarget.request.createdAt)}
+                  </p>
+                ) : null}
+              </div>
+            ) : null}
+
+            {((actionTarget?.kind === "approve_request" &&
+              actionTarget.reservation.payment?.status === "succeeded") ||
+              (actionTarget?.kind === "cancel" &&
+                actionTarget.reservation.payment?.status === "succeeded")) ? (
+              <label className="mt-5 inline-flex items-center gap-2 rounded-xl border border-[#d5d7df] px-3 py-2 text-sm text-[#1f1f2d]">
+                <input
+                  type="checkbox"
+                  checked={refundOnCancel}
+                  onChange={(event) => setRefundOnCancel(event.target.checked)}
+                  className="h-4 w-4 rounded border-[#cbd5e1]"
+                />
+                Process a refund together with this cancellation
+              </label>
+            ) : null}
+
+            <label className="mt-5 block">
+              <span className="mb-1.5 block text-sm font-medium text-[#1f1f2d]">
+                Note
+              </span>
+              <textarea
+                value={actionNote}
+                onChange={(event) => setActionNote(event.target.value)}
+                rows={4}
+                placeholder="Optional note shared in cancellation emails and admin history"
+                className="w-full rounded-2xl border border-[#d5d7df] px-3 py-2.5 text-sm text-[#1f1f2d] outline-none transition focus:border-[#1f1f2d]"
+              />
+            </label>
+
+            <div className="mt-6 flex gap-3">
+              <button
+                type="button"
+                onClick={closeActionDialog}
+                disabled={processingAction}
+                className="flex-1 rounded-xl border border-[#d5d7df] px-4 py-2 text-sm font-medium text-[#1f1f2d] hover:bg-[#f8f8fb] disabled:opacity-60"
+              >
+                Close
+              </button>
+              <button
+                type="button"
+                disabled={!actionTarget || processingAction}
+                onClick={() => void handleReservationAction()}
+                className="flex-1 rounded-xl bg-[#1f1f2d] px-4 py-2 text-sm font-medium text-white hover:bg-[#11111b] disabled:opacity-60"
+              >
+                {processingAction ? "Saving..." : "Confirm"}
+              </button>
+            </div>
+          </Dialog.Panel>
+        </div>
+      </Dialog>
 
       <Dialog
         open={Boolean(confirmTarget)}

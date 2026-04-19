@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import Stripe from "stripe";
+import { syncPaymentRefundFromStripe } from "@/lib/bookings/server";
 import { sendBookingNotificationEmails } from "@/lib/email/bookingNotifications";
+import { sendRefundCompletedEmail } from "@/lib/email/cancellationNotifications";
 import { stripe } from "@/lib/stripe/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/server";
 import { issueMeetingLinksForBooking } from "@/lib/meetings/server";
@@ -88,7 +90,13 @@ export async function POST(request: Request) {
           .eq("stripe_payment_intent_id", pi.id)
           .single();
 
-        if (!payment || payment.status === "succeeded") break;
+        if (
+          !payment ||
+          payment.status === "succeeded" ||
+          payment.status === "refunded"
+        ) {
+          break;
+        }
 
         const { error: failUpdateError } = await adminDb
           .from("payments")
@@ -98,6 +106,49 @@ export async function POST(request: Request) {
         if (failUpdateError) {
           console.error("Failed to update payment failure status:", failUpdateError);
           throw failUpdateError;
+        }
+        break;
+      }
+
+      case "charge.refunded": {
+        const charge = event.data.object as Stripe.Charge;
+        const paymentIntentId =
+          typeof charge.payment_intent === "string"
+            ? charge.payment_intent
+            : charge.payment_intent?.id;
+
+        if (!paymentIntentId || charge.amount_refunded <= 0) {
+          break;
+        }
+
+        const refunds = charge.refunds?.data ?? [];
+        const latestRefund = refunds[refunds.length - 1] ?? null;
+
+        const syncResult = await syncPaymentRefundFromStripe(
+          {
+            paymentIntentId,
+            stripeRefundId: latestRefund?.id ?? null,
+            refundAmount: charge.amount_refunded,
+            refundedAt: latestRefund
+              ? new Date(latestRefund.created * 1000).toISOString()
+              : new Date().toISOString(),
+            refundReason: latestRefund?.reason ?? null,
+          },
+          adminDb
+        );
+
+        if (syncResult?.statusChanged) {
+          try {
+            await sendRefundCompletedEmail({
+              paymentIntentId,
+              eventKey: `charge-refunded-${event.id}`,
+            });
+          } catch (notificationError) {
+            console.error(
+              "Refund completion email processing failed:",
+              notificationError
+            );
+          }
         }
         break;
       }

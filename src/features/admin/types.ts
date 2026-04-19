@@ -1,3 +1,8 @@
+import type {
+  BookingChangeRequestStatus,
+  BookingChangeRequestType,
+} from "@/features/bookings/types";
+
 export type AdminTab = "reservations" | "users" | "mentors" | "payments";
 
 export type AdminFlagTone = "info" | "warning" | "danger";
@@ -7,12 +12,28 @@ export type AdminCaseFlag = {
     | "awaiting_payout_approval"
     | "payment_failed"
     | "payment_refunded"
+    | "refund_pending"
     | "expired_pending_booking"
+    | "change_request_pending"
+    | "mentor_cancelled"
     | "meeting_link_missing"
     | "mentor_payout_setup_incomplete"
     | "payout_failed";
   label: string;
   tone: AdminFlagTone;
+};
+
+export type AdminBookingChangeRequest = {
+  id: string;
+  requesterUserId: string;
+  requesterDisplayName: string;
+  requesterRole: string | null;
+  type: BookingChangeRequestType;
+  status: BookingChangeRequestStatus;
+  reason: string | null;
+  reviewNote: string | null;
+  reviewedAt: string | null;
+  createdAt: string;
 };
 
 export type AdminReservationCase = {
@@ -53,6 +74,9 @@ export type AdminReservationCase = {
     currency: string;
     paidAt: string | null;
     createdAt: string | null;
+    refundAmount: number | null;
+    refundedAt: string | null;
+    refundReason: string | null;
     studentConfirmationEmailSentAt: string | null;
     mentorBookingEmailSentAt: string | null;
   } | null;
@@ -62,6 +86,7 @@ export type AdminReservationCase = {
     amount: number;
     createdAt: string | null;
   } | null;
+  changeRequests: AdminBookingChangeRequest[];
   flags: AdminCaseFlag[];
 };
 

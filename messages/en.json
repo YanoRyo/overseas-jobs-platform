@@ -411,7 +411,30 @@
       "linkPending": "The meeting link will appear here once payment is confirmed.",
       "linkPreparing": "The meeting link is being prepared now.",
       "noLink": "No meeting link was stored for this lesson.",
-      "openMeeting": "Open meeting"
+      "openMeeting": "Open meeting",
+      "requestCancellation": "Request cancellation",
+      "cancelLesson": "Cancel lesson",
+      "studentCancellationDialogDescription": "Send a cancellation request for your lesson with {participant}. Bridgeee will review it before the cancellation is finalized.",
+      "mentorCancellationDialogDescription": "Cancel the lesson with {participant} now. This takes effect immediately and Bridgeee will follow up on the refund separately if needed.",
+      "requestReason": "Reason",
+      "requestReasonPlaceholder": "Add context for the mentor and Bridgeee operations team.",
+      "mentorCancellationReasonPlaceholder": "Share the reason for this cancellation so the student and Bridgeee can follow up.",
+      "requestCancelButton": "Close",
+      "requestSubmitting": "Submitting...",
+      "requestSubmitButton": "Submit request",
+      "confirmMentorCancellation": "Cancel lesson now",
+      "requestSubmitFailed": "Failed to submit the cancellation.",
+      "cancellationRequested": "Cancellation requested",
+      "cancelledByMentor": "Cancelled by mentor",
+      "paymentRefundPending": "A refund has been initiated and is pending confirmation.",
+      "paymentRefunded": "This payment has been refunded.",
+      "paymentRefundedWithAmount": "Refunded: {amount}.",
+      "cancellationRequestPendingDetail": "This cancellation request is awaiting review from Bridgeee operations.",
+      "lessonCancelledNote": "This lesson has been cancelled. The meeting link is no longer active.",
+      "lessonCancelledByMentorNote": "This lesson was cancelled by the mentor. Bridgeee will confirm the refund separately if one applies.",
+      "cancellationRequestPending": "A cancellation request is pending review.",
+      "changeRequestRejected": "The latest cancellation request was rejected.",
+      "cancellationRequestApproved": "The latest cancellation request was approved."
     }
   },
   "favorites": {
@@ -868,7 +891,7 @@
       },
       "cancellation": {
         "title": "Cancellation Policy",
-        "description": "Understand how cancellations, rescheduling, and refunds are handled."
+        "description": "Understand how cancellations and refunds are handled."
       }
     }
   },
@@ -912,7 +935,7 @@
           "bullets": {
             "1": "Prices shown on the platform may change over time.",
             "2": "Payment processing may be handled by third-party providers such as Stripe.",
-            "3": "Refunds, cancellations, and rescheduling are handled according to the published cancellation policy and any provider requirements."
+            "3": "Refunds and cancellations are handled according to the published cancellation policy and any provider requirements."
           }
         },
         "conduct": {
@@ -1079,41 +1102,41 @@
     },
     "cancellation": {
       "metaTitle": "Cancellation Policy | Bridgeee",
-      "metaDescription": "Review Bridgeee's cancellation, rescheduling, and refund policy.",
+      "metaDescription": "Review Bridgeee's cancellation and refund policy.",
       "pageTitle": "Cancellation Policy",
-      "pageDescription": "This policy explains how Bridgeee handles cancellations, rescheduling requests, and refund decisions.",
+      "pageDescription": "This policy explains how Bridgeee handles cancellation requests, mentor-side cancellations, and refund decisions.",
       "sections": {
         "overview": {
           "title": "1. Overview",
           "paragraphs": {
-            "1": "Bridgeee uses this policy to set user expectations around cancellations, rescheduling, missed sessions, and refund handling.",
+            "1": "Bridgeee uses this policy to set user expectations around cancellations, missed sessions, and refund handling.",
             "2": "Specific outcomes may depend on the timing of the request, mentor availability, payment status, and any provider rules that apply to the transaction."
           }
         },
         "studentChanges": {
-          "title": "2. Student Cancellations and Rescheduling",
+          "title": "2. Student Cancellation Requests",
           "paragraphs": {
-            "1": "Students should review session details carefully before booking and contact the mentor promptly if a change is needed.",
-            "2": "Bridgeee may take the timing of a cancellation request into account when deciding whether a reschedule or refund is appropriate."
+            "1": "Students should review session details carefully before booking and submit a cancellation request promptly if they can no longer attend.",
+            "2": "Bridgeee reviews each student cancellation request before the cancellation is finalized and may decide whether a refund is appropriate based on timing and payment status."
           },
           "bullets": {
-            "1": "Earlier requests are more likely to be handled through rescheduling where possible.",
+            "1": "Earlier requests are more likely to qualify for a smoother cancellation review.",
             "2": "Last-minute cancellations may lead to limited refund options.",
-            "3": "No-shows or repeated misuse of scheduling features may affect future access to the service.",
+            "3": "No-shows or repeated misuse of booking features may affect future access to the service.",
             "4": "Cancellations made at least 24 hours before the scheduled session may be eligible for a full refund.",
             "5": "Cancellations made within 24 hours may not be eligible for a refund."
           }
         },
         "mentorChanges": {
-          "title": "3. Mentor Cancellations and Rescheduling",
+          "title": "3. Mentor Cancellations",
           "paragraphs": {
             "1": "Mentors are expected to keep availability accurate and communicate quickly if a session can no longer be delivered as booked.",
-            "2": "If a mentor cancels or must reschedule, Bridgeee may support a new booking time or another appropriate resolution."
+            "2": "If a mentor cancels a lesson, Bridgeee will notify the student promptly and follow up on the refund or other appropriate resolution."
           },
           "bullets": {
             "1": "Mentors should provide as much advance notice as possible.",
             "2": "Repeated mentor-side cancellations may lead to account review or feature limits.",
-            "3": "Users should confirm any updated booking details within the product before the new session time."
+            "3": "Students can review the final cancellation state and refund updates from My Lessons."
           }
         },
         "refunds": {

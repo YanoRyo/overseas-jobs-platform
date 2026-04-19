@@ -1,7 +1,6 @@
 "use client";
 import { useCallback } from "react";
 import { useRouter } from "@/i18n/navigation";
-import { useSupabaseClient } from "@supabase/auth-helpers-react";
 import type { ReservationData } from "../types/reservation";
 
 type BookingParams = {
@@ -21,35 +20,42 @@ type BookingParams = {
  * BookingModalとMentorDetailPage(Schedule経由)の両方で使用。
  */
 export function useCreateBooking() {
-  const supabase = useSupabaseClient();
   const router = useRouter();
 
   const createBookingAndCheckout = useCallback(
     async (params: BookingParams) => {
       const endTime = new Date(params.startTime);
       endTime.setMinutes(endTime.getMinutes() + params.duration);
-      const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
+      const response = await fetch("/api/bookings", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          mentorId: params.mentorId,
+          startTime: params.startTime.toISOString(),
+          endTime: endTime.toISOString(),
+        }),
+      });
 
-      const { data: booking, error } = await supabase
-        .from("bookings")
-        .insert({
-          user_id: params.userId,
-          mentor_id: params.mentorId,
-          start_time: params.startTime.toISOString(),
-          end_time: endTime.toISOString(),
-          status: "pending",
-          expires_at: expiresAt,
-        })
-        .select("id")
-        .single();
+      const body = (await response.json().catch(() => null)) as
+        | { bookingId?: string | number; error?: string }
+        | null;
 
-      if (error || !booking) {
-        alert("Failed to create the booking. Please try again.");
+      if (!response.ok || !body?.bookingId) {
+        console.error("Failed to create booking:", {
+          status: response.status,
+          error: body?.error ?? null,
+          mentorId: params.mentorId,
+          startTime: params.startTime.toISOString(),
+          endTime: endTime.toISOString(),
+        });
+        alert(body?.error ?? "Failed to create the booking. Please try again.");
         return false;
       }
 
       const reservation: ReservationData = {
-        bookingId: booking.id,
+        bookingId: String(body.bookingId),
         mentorId: params.mentorId,
         mentorName: params.mentorName,
         mentorAvatarUrl: params.mentorAvatarUrl,
@@ -64,7 +70,7 @@ export function useCreateBooking() {
       router.push("/checkout");
       return true;
     },
-    [supabase, router]
+    [router]
   );
 
   return { createBookingAndCheckout };

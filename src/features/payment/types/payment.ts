@@ -1,11 +1,11 @@
-export type BookingStatus =
-  | "pending"
-  | "confirmed"
-  | "completed"
-  | "expired"
-  | "cancelled";
-
-export type PaymentStatus = "pending" | "succeeded" | "failed" | "refunded";
+import type {
+  BookingStatus,
+  PaymentStatus,
+} from "@/features/bookings/types";
+export type {
+  BookingStatus,
+  PaymentStatus,
+} from "@/features/bookings/types";
 
 export type PayoutStatus = "pending" | "paid" | "failed";
 
