@@ -6,8 +6,16 @@ import {
 
 type UserRole = "student" | "mentor";
 
+const BOOKING_EXPIRY_MINUTES = 15;
+const ALLOWED_DURATIONS = [25, 50] as const;
+
 const isUserRole = (value: unknown): value is UserRole =>
   value === "student" || value === "mentor";
+
+type AtomicBookingResult = {
+  booking_id: number | null;
+  conflict: boolean;
+};
 
 export async function POST(request: Request) {
   const supabase = await createSupabaseServerClient();
@@ -25,12 +33,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body: {
-    mentorId?: unknown;
-    startTime?: unknown;
-    endTime?: unknown;
-  };
-
+  let body: { mentorId?: unknown; startTime?: unknown; duration?: unknown };
   try {
     body = (await request.json()) as typeof body;
   } catch {
@@ -38,35 +41,44 @@ export async function POST(request: Request) {
   }
 
   const mentorId =
-    typeof body.mentorId === "string" && body.mentorId.trim().length > 0
-      ? body.mentorId
-      : null;
-  const startTime =
-    typeof body.startTime === "string" && body.startTime.trim().length > 0
-      ? body.startTime
-      : null;
-  const endTime =
-    typeof body.endTime === "string" && body.endTime.trim().length > 0
-      ? body.endTime
+    typeof body.mentorId === "string" ? body.mentorId.trim() : null;
+  const startTimeStr =
+    typeof body.startTime === "string" ? body.startTime.trim() : null;
+  const duration =
+    typeof body.duration === "number" &&
+    ALLOWED_DURATIONS.includes(
+      body.duration as (typeof ALLOWED_DURATIONS)[number]
+    )
+      ? (body.duration as (typeof ALLOWED_DURATIONS)[number])
       : null;
 
-  if (!mentorId || !startTime || !endTime) {
+  if (!mentorId || !startTimeStr) {
     return NextResponse.json(
-      { error: "mentorId, startTime, and endTime are required" },
+      { error: "mentorId and startTime are required" },
       { status: 400 }
     );
   }
 
-  const parsedStart = new Date(startTime);
-  const parsedEnd = new Date(endTime);
-
-  if (
-    Number.isNaN(parsedStart.getTime()) ||
-    Number.isNaN(parsedEnd.getTime()) ||
-    parsedEnd <= parsedStart
-  ) {
+  if (!duration) {
     return NextResponse.json(
-      { error: "The booking time is invalid" },
+      {
+        error: `Invalid duration. Allowed values: ${ALLOWED_DURATIONS.join(", ")} minutes`,
+      },
+      { status: 400 }
+    );
+  }
+
+  const startTime = new Date(startTimeStr);
+  if (Number.isNaN(startTime.getTime())) {
+    return NextResponse.json(
+      { error: "Invalid startTime format" },
+      { status: 400 }
+    );
+  }
+
+  if (startTime.getTime() < Date.now()) {
+    return NextResponse.json(
+      { error: "Cannot book a slot in the past" },
       { status: 400 }
     );
   }
@@ -98,9 +110,10 @@ export async function POST(request: Request) {
   const metadataRole = isUserRole(user.user_metadata?.role)
     ? user.user_metadata.role
     : null;
+  const roleToPersist = existingUser?.role ?? metadataRole ?? null;
 
-  if (existingUser?.role ?? metadataRole) {
-    payload.role = (existingUser?.role ?? metadataRole) as UserRole;
+  if (roleToPersist) {
+    payload.role = roleToPersist;
   }
 
   const { error: upsertError } = await adminDb.from("users").upsert(payload);
@@ -113,31 +126,50 @@ export async function POST(request: Request) {
     );
   }
 
-  const expiresAt = new Date(Date.now() + 15 * 60 * 1000).toISOString();
-  const { data: booking, error: bookingError } = await adminDb
-    .from("bookings")
-    .insert({
-      user_id: user.id,
-      mentor_id: mentorId,
-      start_time: parsedStart.toISOString(),
-      end_time: parsedEnd.toISOString(),
-      status: "pending",
-      expires_at: expiresAt,
-    })
+  const { data: mentor, error: mentorError } = await adminDb
+    .from("mentors")
     .select("id")
-    .single();
+    .eq("id", mentorId)
+    .maybeSingle();
 
-  if (bookingError || !booking) {
-    console.error("booking create insert error", bookingError);
+  if (mentorError) {
+    console.error("bookings: mentor lookup error", mentorError);
     return NextResponse.json(
-      {
-        error:
-          bookingError?.message ??
-          "Failed to create the booking. Please try again.",
-      },
+      { error: "Failed to verify mentor" },
       { status: 500 }
     );
   }
 
-  return NextResponse.json({ bookingId: booking.id });
+  if (!mentor) {
+    return NextResponse.json({ error: "Mentor not found" }, { status: 404 });
+  }
+
+  const { data: result, error: rpcError } = await adminDb.rpc(
+    "create_booking_atomic",
+    {
+      p_user_id: user.id,
+      p_mentor_id: mentor.id,
+      p_start_time: startTime.toISOString(),
+      p_duration_minutes: duration,
+      p_expiry_minutes: BOOKING_EXPIRY_MINUTES,
+    }
+  );
+
+  if (rpcError) {
+    console.error("bookings: atomic create error", rpcError);
+    return NextResponse.json(
+      { error: "Failed to create booking" },
+      { status: 500 }
+    );
+  }
+
+  const bookingResult = (result ?? null) as AtomicBookingResult | null;
+  if (!bookingResult || bookingResult.conflict || !bookingResult.booking_id) {
+    return NextResponse.json(
+      { error: "This time slot is already booked" },
+      { status: 409 }
+    );
+  }
+
+  return NextResponse.json({ bookingId: bookingResult.booking_id });
 }

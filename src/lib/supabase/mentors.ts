@@ -7,6 +7,7 @@ import type {
   MentorExpertiseInsert,
   MentorAvailabilityInsert,
 } from './types';
+import { validateImageFile, getSafeExtension } from '@/lib/validation/fileUpload';
 
 // ========================================
 // 取得系
@@ -165,7 +166,12 @@ export const createMentorAvailability = async (
 // ========================================
 
 export const uploadAvatar = async (userId: string, file: File) => {
-  const fileExt = file.name.split('.').pop();
+  const validation = validateImageFile(file);
+  if (!validation.valid) {
+    return { url: null, error: new Error(validation.error) };
+  }
+
+  const fileExt = getSafeExtension(file);
   const filePath = `${userId}/avatar.${fileExt}`;
 
   const { error } = await supabase.storage
@@ -207,7 +213,12 @@ export const registerMentor = async ({
   // 1. 画像アップロード（ある場合）
   let avatarUrl = mentor.avatar_url;
   if (avatarFile) {
-    const fileExt = avatarFile.name.split('.').pop() || 'png';
+    const validation = validateImageFile(avatarFile);
+    if (!validation.valid) {
+      return { mentor: null, error: new Error(validation.error) };
+    }
+
+    const fileExt = getSafeExtension(avatarFile);
     const filePath = `${mentor.user_id}/avatar.${fileExt}`;
 
     const { error: uploadError } = await supabaseClient.storage

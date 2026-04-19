@@ -1,4 +1,5 @@
 "use client";
+
 import { useCallback } from "react";
 import { useRouter } from "@/i18n/navigation";
 import type { ReservationData } from "../types/reservation";
@@ -24,8 +25,6 @@ export function useCreateBooking() {
 
   const createBookingAndCheckout = useCallback(
     async (params: BookingParams) => {
-      const endTime = new Date(params.startTime);
-      endTime.setMinutes(endTime.getMinutes() + params.duration);
       const response = await fetch("/api/bookings", {
         method: "POST",
         headers: {
@@ -34,7 +33,7 @@ export function useCreateBooking() {
         body: JSON.stringify({
           mentorId: params.mentorId,
           startTime: params.startTime.toISOString(),
-          endTime: endTime.toISOString(),
+          duration: params.duration,
         }),
       });
 
@@ -48,7 +47,7 @@ export function useCreateBooking() {
           error: body?.error ?? null,
           mentorId: params.mentorId,
           startTime: params.startTime.toISOString(),
-          endTime: endTime.toISOString(),
+          duration: params.duration,
         });
         alert(body?.error ?? "Failed to create the booking. Please try again.");
         return false;

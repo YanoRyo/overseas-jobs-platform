@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
+import { validateImageFile, getSafeExtension } from "@/lib/validation/fileUpload";
 
 type UseMentorAvatarUploadResult = {
   ok: boolean;
@@ -19,10 +20,15 @@ export function useMentorAvatarUpload(mentorId: string | null) {
       return { ok: false, error: "Mentor profile is missing" };
     }
 
+    const validation = validateImageFile(file);
+    if (!validation.valid) {
+      return { ok: false, error: validation.error };
+    }
+
     setUploading(true);
 
     try {
-      const ext = file.name.split(".").pop() ?? "png";
+      const ext = getSafeExtension(file);
       const path = `${user.id}/profile.${ext}`;
 
       const { error: uploadError } = await supabase.storage

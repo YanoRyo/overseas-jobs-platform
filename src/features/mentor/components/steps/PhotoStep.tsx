@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { Upload, Check, User } from "lucide-react";
 import type { PhotoFormData } from "../../types/registration";
 import { StepNavigation } from "../shared/StepNavigation";
+import { validateImageFile } from "@/lib/validation/fileUpload";
 
 type PhotoStepProps = {
   data: PhotoFormData;
@@ -34,22 +35,17 @@ export const PhotoStep = ({
       const file = event.target.files?.[0];
       if (!file) return;
 
-      // エラーをクリア
       setFileError(null);
 
-      // ファイル形式チェック
-      if (!file.type.startsWith("image/")) {
-        setFileError(t("selectImage"));
+      const validation = validateImageFile(file);
+      if (!validation.valid) {
+        setFileError(
+          validation.code === "too_large" ? t("fileSizeLimit") : t("selectImage")
+        );
+        event.currentTarget.value = "";
         return;
       }
 
-      // ファイルサイズチェック (5MB)
-      if (file.size > 5 * 1024 * 1024) {
-        setFileError(t("fileSizeLimit"));
-        return;
-      }
-
-      // プレビュー用のURLを作成
       const previewUrl = URL.createObjectURL(file);
       onUpdate({
         avatarFile: file,
@@ -127,7 +123,7 @@ export const PhotoStep = ({
           <input
             ref={fileInputRef}
             type="file"
-            accept="image/*"
+            accept="image/png,image/jpeg,image/webp"
             onChange={handleFileSelect}
             className="hidden"
             aria-label="Upload profile photo"

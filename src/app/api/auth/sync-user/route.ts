@@ -70,8 +70,13 @@ export async function POST(request: Request) {
     username: user.email?.split("@")[0] ?? "no-name",
   };
 
+  // 既存ユーザーでroleが設定済みの場合はDB値を固定（body/metadataからの変更を許可しない）
+  // 既存ユーザーでroleがNULLの場合、および新規ユーザーはcallback由来のrequestedRoleを優先
+  // （useAuthCallback側もroleParamを優先して遷移判定している整合性）
   const roleToPersist =
-    existingUser?.role ?? requestedRole ?? metadataRole ?? null;
+    existingUser && existingUser.role !== null
+      ? existingUser.role
+      : (requestedRole ?? metadataRole ?? null);
 
   if (roleToPersist) {
     payload.role = roleToPersist;
