@@ -7,6 +7,10 @@ import {
   refundPayment,
 } from "@/lib/bookings/server";
 import {
+  issueMeetingLinksForBooking,
+  saveManualMeetingLinksForBooking,
+} from "@/lib/meetings/server";
+import {
   createSupabaseServerClient,
   createSupabaseServiceClient,
 } from "@/lib/supabase/server";
@@ -28,7 +32,31 @@ type RequestBody =
       requestId?: string;
       note?: string | null;
       refundOnCancel?: boolean;
+    }
+  | {
+      action?: "set_meeting_links";
+      bookingId?: string | number;
+      meetingProvider?: string | null;
+      meetingJoinUrl?: string | null;
+      meetingHostUrl?: string | null;
+    }
+  | {
+      action?: "reissue_meeting_links";
+      bookingId?: string | number;
     };
+
+function normalizeOptionalString(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
+}
+
+function isValidHttpUrl(value: string) {
+  try {
+    const url = new URL(value);
+    return url.protocol === "http:" || url.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
 
 export async function POST(request: Request) {
   const supabase = await createSupabaseServerClient();
@@ -118,6 +146,73 @@ export async function POST(request: Request) {
         );
 
         return NextResponse.json({ success: true });
+      }
+
+      case "set_meeting_links": {
+        if (!body.bookingId) {
+          return NextResponse.json(
+            { error: "bookingId is required." },
+            { status: 400 }
+          );
+        }
+
+        const joinUrl = normalizeOptionalString(body.meetingJoinUrl);
+        const hostUrl = normalizeOptionalString(body.meetingHostUrl);
+        const provider = normalizeOptionalString(body.meetingProvider) || "manual";
+
+        if (!joinUrl) {
+          return NextResponse.json(
+            { error: "meetingJoinUrl is required." },
+            { status: 400 }
+          );
+        }
+
+        if (!isValidHttpUrl(joinUrl)) {
+          return NextResponse.json(
+            { error: "meetingJoinUrl must be a valid http(s) URL." },
+            { status: 400 }
+          );
+        }
+
+        if (hostUrl && !isValidHttpUrl(hostUrl)) {
+          return NextResponse.json(
+            { error: "meetingHostUrl must be a valid http(s) URL." },
+            { status: 400 }
+          );
+        }
+
+        await saveManualMeetingLinksForBooking(String(body.bookingId), {
+          provider,
+          joinUrl,
+          hostUrl: hostUrl || null,
+        });
+
+        return NextResponse.json({ success: true });
+      }
+
+      case "reissue_meeting_links": {
+        if (!body.bookingId) {
+          return NextResponse.json(
+            { error: "bookingId is required." },
+            { status: 400 }
+          );
+        }
+
+        const result = await issueMeetingLinksForBooking(String(body.bookingId), {
+          force: true,
+        });
+
+        if (result === "disabled") {
+          return NextResponse.json(
+            {
+              error:
+                "Automatic meeting issuance is disabled. Save a manual meeting URL instead.",
+            },
+            { status: 409 }
+          );
+        }
+
+        return NextResponse.json({ success: true, result });
       }
 
       default:

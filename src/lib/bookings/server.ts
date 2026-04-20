@@ -14,6 +14,7 @@ import {
   sendStudentCancellationRequestSubmittedEmails,
   type CancellationRefundState,
 } from "@/lib/email/cancellationNotifications";
+import { resolveMeetingSetupIssue } from "@/lib/meetings/issues";
 import { stripe } from "@/lib/stripe/server";
 import { createSupabaseServiceClient } from "@/lib/supabase/server";
 
@@ -621,6 +622,8 @@ export async function cancelBooking(
   if (bookingUpdateError) {
     throw new BookingActionError("Failed to cancel the booking.", 500);
   }
+
+  await resolveMeetingSetupIssue(booking.id, adminDb);
 
   return {
     booking: {

@@ -1,5 +1,11 @@
 import "server-only";
 
+import {
+  isMeetingProviderAutoIssuanceEnabled,
+  recordMeetingSetupFailure,
+  resolveMeetingSetupIssue,
+  summarizeMeetingSetupError,
+} from "@/lib/meetings/issues";
 import { createSupabaseServiceClient } from "@/lib/supabase/server";
 
 type MeetingProvider = "disabled" | "template" | "zoom";
@@ -20,6 +26,16 @@ type CreatedMeeting = {
   createdAt: string;
 };
 
+type PersistMeetingInput = {
+  provider: string;
+  externalMeetingId?: string | null;
+  joinUrl: string;
+  hostUrl?: string | null;
+  createdAt?: string;
+};
+
+export type IssueMeetingLinksResult = "created" | "disabled" | "skipped";
+
 type BookingMeetingRow = {
   id: string;
   mentor_id: string;
@@ -33,6 +49,11 @@ type MentorMeetingRow = {
   first_name: string;
   last_name: string;
 };
+
+function getConfiguredMeetingProviderLabel() {
+  const raw = process.env.MEETING_PROVIDER?.trim();
+  return raw || null;
+}
 
 function resolveMeetingProvider(): MeetingProvider {
   const raw = process.env.MEETING_PROVIDER?.trim().toLowerCase();
@@ -227,75 +248,132 @@ async function createMeetingForBooking(
   }
 }
 
-export async function issueMeetingLinksForBooking(
+async function persistMeetingLinksForBooking(
   bookingId: string,
+  meeting: PersistMeetingInput,
   options?: { force?: boolean }
 ) {
   const adminDb = createSupabaseServiceClient();
-
-  const { data: booking, error: bookingError } = await adminDb
-    .from("bookings")
-    .select(
-      "id, mentor_id, start_time, end_time, meeting_join_url"
-    )
-    .eq("id", bookingId)
-    .single();
-
-  if (bookingError) {
-    console.error("Failed to fetch booking for meeting issuance:", bookingError);
-    throw bookingError;
-  }
-
-  const bookingRow = booking as BookingMeetingRow | null;
-
-  if (!bookingRow || (bookingRow.meeting_join_url && !options?.force)) {
-    return;
-  }
-
-  const { data: mentor, error: mentorError } = await adminDb
-    .from("mentors")
-    .select("id, first_name, last_name")
-    .eq("id", bookingRow.mentor_id)
-    .single();
-
-  if (mentorError) {
-    console.error("Failed to fetch mentor for meeting issuance:", mentorError);
-    throw mentorError;
-  }
-
-  const mentorRow = mentor as MentorMeetingRow | null;
-  const mentorName = mentorRow
-    ? `${mentorRow.first_name} ${mentorRow.last_name}`.trim()
-    : "Mentor";
-
-  const meeting = await createMeetingForBooking({
-    bookingId: bookingRow.id,
-    mentorId: bookingRow.mentor_id,
-    mentorName,
-    startTime: bookingRow.start_time,
-    endTime: bookingRow.end_time,
-  });
-
-  if (!meeting) {
-    return;
-  }
-
-  const { error: updateError } = await adminDb
+  let updateQuery = adminDb
     .from("bookings")
     .update({
       meeting_provider: meeting.provider,
       meeting_join_url: meeting.joinUrl,
-      meeting_host_url: meeting.hostUrl,
-      external_meeting_id: meeting.externalMeetingId,
-      meeting_created_at: meeting.createdAt,
+      meeting_host_url: meeting.hostUrl ?? null,
+      external_meeting_id: meeting.externalMeetingId ?? null,
+      meeting_created_at: meeting.createdAt ?? new Date().toISOString(),
     })
-    .eq("id", bookingRow.id)
-    .is("meeting_join_url", null);
+    .eq("id", bookingId);
+
+  if (!options?.force) {
+    updateQuery = updateQuery.is("meeting_join_url", null);
+  }
+
+  const { error: updateError } = await updateQuery;
 
   if (updateError) {
     console.error("Failed to persist meeting links:", updateError);
     throw updateError;
   }
+}
+
+export async function issueMeetingLinksForBooking(
+  bookingId: string,
+  options?: { force?: boolean }
+): Promise<IssueMeetingLinksResult> {
+  const adminDb = createSupabaseServiceClient();
+  const shouldTrackFailure = isMeetingProviderAutoIssuanceEnabled();
+
+  try {
+    const { data: booking, error: bookingError } = await adminDb
+      .from("bookings")
+      .select("id, mentor_id, start_time, end_time, meeting_join_url")
+      .eq("id", bookingId)
+      .single();
+
+    if (bookingError) {
+      console.error("Failed to fetch booking for meeting issuance:", bookingError);
+      throw bookingError;
+    }
+
+    const bookingRow = booking as BookingMeetingRow | null;
+
+    if (!bookingRow || (bookingRow.meeting_join_url && !options?.force)) {
+      return "skipped";
+    }
+
+    const { data: mentor, error: mentorError } = await adminDb
+      .from("mentors")
+      .select("id, first_name, last_name")
+      .eq("id", bookingRow.mentor_id)
+      .single();
+
+    if (mentorError) {
+      console.error("Failed to fetch mentor for meeting issuance:", mentorError);
+      throw mentorError;
+    }
+
+    const mentorRow = mentor as MentorMeetingRow | null;
+    const mentorName = mentorRow
+      ? `${mentorRow.first_name} ${mentorRow.last_name}`.trim()
+      : "Mentor";
+
+    const meeting = await createMeetingForBooking({
+      bookingId: bookingRow.id,
+      mentorId: bookingRow.mentor_id,
+      mentorName,
+      startTime: bookingRow.start_time,
+      endTime: bookingRow.end_time,
+    });
+
+    if (!meeting) {
+      return "disabled";
+    }
+
+    if (!meeting.joinUrl?.trim()) {
+      throw new Error("Meeting provider returned an empty join URL.");
+    }
+
+    await persistMeetingLinksForBooking(bookingRow.id, meeting, options);
+    await resolveMeetingSetupIssue(bookingRow.id, adminDb);
+    return "created";
+  } catch (error) {
+    if (shouldTrackFailure) {
+      await recordMeetingSetupFailure(
+        {
+          bookingId,
+          provider: getConfiguredMeetingProviderLabel(),
+          errorSummary: summarizeMeetingSetupError(error),
+          error,
+        },
+        adminDb
+      );
+    }
+
+    throw error;
+  }
+}
+
+export async function saveManualMeetingLinksForBooking(
+  bookingId: string,
+  input: {
+    provider?: string | null;
+    joinUrl: string;
+    hostUrl?: string | null;
+  }
+) {
+  await persistMeetingLinksForBooking(
+    bookingId,
+    {
+      provider: input.provider?.trim() || "manual",
+      joinUrl: input.joinUrl,
+      hostUrl: input.hostUrl?.trim() || null,
+      externalMeetingId: null,
+      createdAt: new Date().toISOString(),
+    },
+    { force: true }
+  );
+  await resolveMeetingSetupIssue(bookingId);
 }
 
 export function __testOnly__applyMeetingTemplate(

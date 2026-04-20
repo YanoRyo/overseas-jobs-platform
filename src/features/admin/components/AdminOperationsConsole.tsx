@@ -22,6 +22,11 @@ type CancellationActionItem = {
   request: AdminBookingChangeRequest;
 };
 
+type MeetingSetupActionItem = {
+  reservation: AdminReservationCase;
+  issue: NonNullable<AdminReservationCase["meetingSetupIssue"]>;
+};
+
 type PaymentViewFilter =
   | "action_required"
   | "all"
@@ -29,7 +34,11 @@ type PaymentViewFilter =
   | "payout_pending"
   | "refund_pending";
 
-type ActionRequiredFocus = "all" | "cancellation_requests" | "payout_approvals";
+type ActionRequiredFocus =
+  | "all"
+  | "cancellation_requests"
+  | "payout_approvals"
+  | "meeting_setup_issues";
 
 type Tone = AdminFlagTone | "success" | "neutral";
 
@@ -44,6 +53,7 @@ const ACTION_REQUIRED_FILTERS: ActionRequiredFocus[] = [
   "all",
   "cancellation_requests",
   "payout_approvals",
+  "meeting_setup_issues",
 ];
 
 const PAYMENT_FILTERS: PaymentViewFilter[] = [
@@ -126,6 +136,7 @@ function humanizeToken(value: string | null | undefined) {
   if (!value) return "Unknown";
   return value
     .replaceAll("_", " ")
+    .replaceAll("-", " ")
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
@@ -207,9 +218,14 @@ function hasRefundPending(reservation: PaymentReservationCase) {
   return reservation.payment.status === "refund_pending";
 }
 
+function hasMeetingSetupIssue(reservation: AdminReservationCase) {
+  return reservation.meetingSetupIssue?.status === "unresolved";
+}
+
 function isActionRequiredReservation(reservation: AdminReservationCase) {
   return (
     hasPendingCancellationRequest(reservation) ||
+    hasMeetingSetupIssue(reservation) ||
     (isPaymentReservationCase(reservation) &&
       (hasPayoutPending(reservation) || hasRefundPending(reservation)))
   );
@@ -245,6 +261,8 @@ function buildReservationSearchHaystack(reservation: AdminReservationCase) {
     reservation.mentor?.email,
     reservation.payment?.status,
     reservation.payout?.status,
+    reservation.meetingSetupIssue?.provider,
+    reservation.meetingSetupIssue?.errorSummary,
     ...reservation.changeRequests.flatMap((request) => [
       request.type,
       request.status,
@@ -263,6 +281,8 @@ function buildPaymentSearchHaystack(reservation: PaymentReservationCase) {
     reservation.payment.id,
     reservation.payment.status,
     reservation.payout?.status,
+    reservation.meetingSetupIssue?.provider,
+    reservation.meetingSetupIssue?.errorSummary,
     reservation.student.displayName,
     reservation.mentor?.displayName,
     ...reservation.changeRequests.flatMap((request) => [
@@ -475,17 +495,223 @@ function ChangeRequestCard({
   );
 }
 
+function ExternalLinkValue({
+  url,
+}: {
+  url: string | null | undefined;
+}) {
+  if (!url) {
+    return <span>-</span>;
+  }
+
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noreferrer"
+      className="break-all text-[#2563eb] underline underline-offset-2"
+    >
+      {url}
+    </a>
+  );
+}
+
+function MeetingSetupIssueDetail({
+  reservation,
+}: {
+  reservation: AdminReservationCase;
+}) {
+  const t = useTranslations("admin.operations");
+  const issue = reservation.meetingSetupIssue;
+
+  if (!issue) {
+    return null;
+  }
+
+  return (
+    <DetailBlock title={t("detail.meetingSetupIssue")}>
+      <DetailRow
+        label={t("detail.status")}
+        value={humanizeToken(issue.status)}
+      />
+      <DetailRow
+        label={t("detail.meetingProvider")}
+        value={issue.provider ? humanizeToken(issue.provider) : "-"}
+      />
+      <DetailRow
+        label={t("detail.errorSummary")}
+        value={issue.errorSummary}
+      />
+      <DetailRow
+        label={t("detail.occurredAt")}
+        value={formatDateTime(issue.occurredAt)}
+      />
+      <DetailRow
+        label={t("detail.meetingStatus")}
+        value={reservation.hasMeetingLink ? t("states.ready") : t("states.notReady")}
+      />
+    </DetailBlock>
+  );
+}
+
+function MeetingLinkEditor({
+  reservation,
+  processingKey,
+  onSaveMeetingLinks,
+  onReissueMeetingLinks,
+}: {
+  reservation: AdminReservationCase;
+  processingKey?: string | null;
+  onSaveMeetingLinks?: (
+    reservation: AdminReservationCase,
+    values: {
+      meetingProvider: string;
+      meetingJoinUrl: string;
+      meetingHostUrl: string | null;
+    }
+  ) => void;
+  onReissueMeetingLinks?: (reservation: AdminReservationCase) => void;
+}) {
+  const t = useTranslations("admin.operations");
+  const [meetingProvider, setMeetingProvider] = useState(
+    reservation.meetingProvider ?? "manual"
+  );
+  const [meetingJoinUrl, setMeetingJoinUrl] = useState(
+    reservation.meetingJoinUrl ?? ""
+  );
+  const [meetingHostUrl, setMeetingHostUrl] = useState(
+    reservation.meetingHostUrl ?? ""
+  );
+
+  useEffect(() => {
+    setMeetingProvider(reservation.meetingProvider ?? "manual");
+    setMeetingJoinUrl(reservation.meetingJoinUrl ?? "");
+    setMeetingHostUrl(reservation.meetingHostUrl ?? "");
+  }, [
+    reservation.id,
+    reservation.meetingHostUrl,
+    reservation.meetingJoinUrl,
+    reservation.meetingProvider,
+  ]);
+
+  const saveProcessing = processingKey === `meeting:${reservation.id}`;
+  const reissueProcessing = processingKey === `meeting_reissue:${reservation.id}`;
+
+  return (
+    <DetailBlock title={t("detail.meetingLinks")}>
+      <div className="space-y-4">
+        <div className="space-y-2">
+          <DetailRow
+            label={t("detail.meetingProvider")}
+            value={
+              reservation.meetingProvider
+                ? humanizeToken(reservation.meetingProvider)
+                : "-"
+            }
+          />
+          <DetailRow
+            label={t("detail.meetingJoinUrl")}
+            value={<ExternalLinkValue url={reservation.meetingJoinUrl} />}
+          />
+          <DetailRow
+            label={t("detail.meetingHostUrl")}
+            value={<ExternalLinkValue url={reservation.meetingHostUrl} />}
+          />
+        </div>
+
+        <div className="grid gap-3">
+          <label className="grid gap-1.5 text-sm text-[#606579]">
+            <span>{t("meetingForm.providerLabel")}</span>
+            <input
+              value={meetingProvider}
+              onChange={(event) => setMeetingProvider(event.target.value)}
+              placeholder={t("meetingForm.providerPlaceholder")}
+              className="rounded-xl border border-[#d5d7df] bg-white px-3 py-2 text-sm text-[#1f1f2d] outline-none transition focus:border-[#1f1f2d]"
+            />
+          </label>
+
+          <label className="grid gap-1.5 text-sm text-[#606579]">
+            <span>{t("meetingForm.joinUrlLabel")}</span>
+            <input
+              value={meetingJoinUrl}
+              onChange={(event) => setMeetingJoinUrl(event.target.value)}
+              placeholder="https://"
+              className="rounded-xl border border-[#d5d7df] bg-white px-3 py-2 text-sm text-[#1f1f2d] outline-none transition focus:border-[#1f1f2d]"
+            />
+          </label>
+
+          <label className="grid gap-1.5 text-sm text-[#606579]">
+            <span>{t("meetingForm.hostUrlLabel")}</span>
+            <input
+              value={meetingHostUrl}
+              onChange={(event) => setMeetingHostUrl(event.target.value)}
+              placeholder={t("meetingForm.hostUrlPlaceholder")}
+              className="rounded-xl border border-[#d5d7df] bg-white px-3 py-2 text-sm text-[#1f1f2d] outline-none transition focus:border-[#1f1f2d]"
+            />
+          </label>
+          <p className="text-xs text-[#606579]">{t("meetingForm.hostUrlHint")}</p>
+        </div>
+
+        <div className="flex flex-wrap gap-2">
+          {onSaveMeetingLinks ? (
+            <button
+              type="button"
+              disabled={saveProcessing || !meetingJoinUrl.trim()}
+              onClick={() =>
+                onSaveMeetingLinks(reservation, {
+                  meetingProvider,
+                  meetingJoinUrl,
+                  meetingHostUrl: meetingHostUrl.trim() || null,
+                })
+              }
+              className="rounded-xl bg-[#2563eb] px-4 py-2 text-sm font-medium text-white hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {saveProcessing
+                ? t("actions.savingMeetingLink")
+                : t("actions.saveMeetingLink")}
+            </button>
+          ) : null}
+
+          {onReissueMeetingLinks ? (
+            <button
+              type="button"
+              disabled={reissueProcessing}
+              onClick={() => onReissueMeetingLinks(reservation)}
+              className="rounded-xl border border-[#d5d7df] px-4 py-2 text-sm font-medium text-[#1f1f2d] hover:bg-[#f8f8fb] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {reissueProcessing
+                ? t("actions.reissuingMeetingLink")
+                : t("actions.reissueMeetingLink")}
+            </button>
+          ) : null}
+        </div>
+      </div>
+    </DetailBlock>
+  );
+}
+
 function ReservationDetail({
   reservation,
   onApproveRequest,
-  processingRequestId,
+  onSaveMeetingLinks,
+  onReissueMeetingLinks,
+  processingKey,
 }: {
   reservation: AdminReservationCase | null;
   onApproveRequest?: (
     reservation: AdminReservationCase,
     request: AdminBookingChangeRequest
   ) => void;
-  processingRequestId?: string | null;
+  onSaveMeetingLinks?: (
+    reservation: AdminReservationCase,
+    values: {
+      meetingProvider: string;
+      meetingJoinUrl: string;
+      meetingHostUrl: string | null;
+    }
+  ) => void;
+  onReissueMeetingLinks?: (reservation: AdminReservationCase) => void;
+  processingKey?: string | null;
 }) {
   const t = useTranslations("admin.operations");
 
@@ -551,11 +777,30 @@ function ReservationDetail({
           label={t("detail.meeting")}
           value={
             reservation.hasMeetingLink
-              ? reservation.meetingProvider ?? t("states.ready")
+              ? reservation.meetingProvider
+                ? humanizeToken(reservation.meetingProvider)
+                : t("states.ready")
               : t("states.notReady")
           }
         />
+        <DetailRow
+          label={t("detail.meetingJoinUrl")}
+          value={<ExternalLinkValue url={reservation.meetingJoinUrl} />}
+        />
+        <DetailRow
+          label={t("detail.meetingHostUrl")}
+          value={<ExternalLinkValue url={reservation.meetingHostUrl} />}
+        />
       </DetailBlock>
+
+      <MeetingSetupIssueDetail reservation={reservation} />
+
+      <MeetingLinkEditor
+        reservation={reservation}
+        processingKey={processingKey}
+        onSaveMeetingLinks={onSaveMeetingLinks}
+        onReissueMeetingLinks={onReissueMeetingLinks}
+      />
 
       <DetailBlock title={t("detail.student")}>
         <DetailRow label={t("detail.name")} value={reservation.student.displayName} />
@@ -652,7 +897,7 @@ function ReservationDetail({
                         onApproveRequest(reservation, currentRequest)
                     : undefined
                 }
-                processing={processingRequestId === request.id}
+                processing={processingKey === `approve_request:${request.id}`}
               />
             ))}
           </div>
@@ -669,6 +914,8 @@ function PaymentDetail({
   onApprovePayout,
   onRefundPayment,
   onApproveRequest,
+  onSaveMeetingLinks,
+  onReissueMeetingLinks,
   processingKey,
 }: {
   reservation: PaymentReservationCase | null;
@@ -678,6 +925,15 @@ function PaymentDetail({
     reservation: AdminReservationCase,
     request: AdminBookingChangeRequest
   ) => void;
+  onSaveMeetingLinks?: (
+    reservation: AdminReservationCase,
+    values: {
+      meetingProvider: string;
+      meetingJoinUrl: string;
+      meetingHostUrl: string | null;
+    }
+  ) => void;
+  onReissueMeetingLinks?: (reservation: AdminReservationCase) => void;
   processingKey?: string | null;
 }) {
   const t = useTranslations("admin.operations");
@@ -733,9 +989,9 @@ function PaymentDetail({
             <button
               type="button"
               disabled={payoutProcessing}
-            onClick={() => onApprovePayout(reservation)}
-            className="rounded-xl bg-[#2563eb] px-4 py-2 text-sm font-medium text-white hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
-          >
+              onClick={() => onApprovePayout(reservation)}
+              className="rounded-xl bg-[#2563eb] px-4 py-2 text-sm font-medium text-white hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
+            >
               {payoutProcessing
                 ? t("actions.approvingPayout")
                 : t("actions.approvePayout")}
@@ -745,9 +1001,9 @@ function PaymentDetail({
             <button
               type="button"
               disabled={refundProcessing}
-            onClick={() => onRefundPayment(reservation)}
-            className="rounded-xl border border-[#d5d7df] px-4 py-2 text-sm font-medium text-[#1f1f2d] hover:bg-[#f8f8fb] disabled:cursor-not-allowed disabled:opacity-60"
-          >
+              onClick={() => onRefundPayment(reservation)}
+              className="rounded-xl border border-[#d5d7df] px-4 py-2 text-sm font-medium text-[#1f1f2d] hover:bg-[#f8f8fb] disabled:cursor-not-allowed disabled:opacity-60"
+            >
               {refundProcessing
                 ? t("actions.refundingPayment")
                 : t("actions.refundPayment")}
@@ -808,9 +1064,30 @@ function PaymentDetail({
         />
         <DetailRow
           label={t("detail.meetingProvider")}
-          value={reservation.meetingProvider ?? "-"}
+          value={
+            reservation.meetingProvider
+              ? humanizeToken(reservation.meetingProvider)
+              : "-"
+          }
+        />
+        <DetailRow
+          label={t("detail.meetingJoinUrl")}
+          value={<ExternalLinkValue url={reservation.meetingJoinUrl} />}
+        />
+        <DetailRow
+          label={t("detail.meetingHostUrl")}
+          value={<ExternalLinkValue url={reservation.meetingHostUrl} />}
         />
       </DetailBlock>
+
+      <MeetingSetupIssueDetail reservation={reservation} />
+
+      <MeetingLinkEditor
+        reservation={reservation}
+        processingKey={processingKey}
+        onSaveMeetingLinks={onSaveMeetingLinks}
+        onReissueMeetingLinks={onReissueMeetingLinks}
+      />
 
       <DetailBlock title={t("detail.caseFlags")}>
         {reservation.flags.length > 0 ? (
@@ -1104,6 +1381,7 @@ function OverviewPanel({
   summary,
   cancellationRequestItems,
   payoutApprovalItems,
+  meetingSetupItems,
   refundPendingCount,
   processedLogsCount,
   onOpenActionRequired,
@@ -1113,6 +1391,7 @@ function OverviewPanel({
   summary: AdminOperationsResponse["summary"];
   cancellationRequestItems: CancellationActionItem[];
   payoutApprovalItems: PaymentReservationCase[];
+  meetingSetupItems: MeetingSetupActionItem[];
   refundPendingCount: number;
   processedLogsCount: number;
   onOpenActionRequired: (focus: ActionRequiredFocus) => void;
@@ -1131,7 +1410,7 @@ function OverviewPanel({
           <p className="mt-2 text-sm text-[#606579]">
             {t("overview.snapshotDescription")}
           </p>
-          <div className="mt-5 grid gap-4 md:grid-cols-2">
+          <div className="mt-5 grid gap-4 md:grid-cols-3">
             <SummaryCard
               label={t("overview.cancellationRequestsLabel")}
               value={cancellationRequestItems.length}
@@ -1145,6 +1424,13 @@ function OverviewPanel({
               description={t("overview.payoutApprovalsDescription")}
               tone="warning"
               onClick={() => onOpenActionRequired("payout_approvals")}
+            />
+            <SummaryCard
+              label={t("overview.meetingSetupIssuesLabel")}
+              value={meetingSetupItems.length}
+              description={t("overview.meetingSetupIssuesDescription")}
+              tone="danger"
+              onClick={() => onOpenActionRequired("meeting_setup_issues")}
             />
           </div>
         </section>
@@ -1302,6 +1588,25 @@ export function AdminOperationsConsole({
       );
   }, [paymentCases]);
 
+  const meetingSetupItems = useMemo(() => {
+    return reservations
+      .filter(
+        (
+          reservation
+        ): reservation is AdminReservationCase & {
+          meetingSetupIssue: NonNullable<AdminReservationCase["meetingSetupIssue"]>;
+        } => hasMeetingSetupIssue(reservation)
+      )
+      .map((reservation) => ({
+        reservation,
+        issue: reservation.meetingSetupIssue,
+      }))
+      .sort(
+        (left, right) =>
+          getTimestamp(right.issue.occurredAt) - getTimestamp(left.issue.occurredAt)
+      );
+  }, [reservations]);
+
   const refundPendingItems = useMemo(() => {
     return paymentCases.filter((reservation) => hasRefundPending(reservation));
   }, [paymentCases]);
@@ -1377,19 +1682,46 @@ export function AdminOperationsConsole({
     );
   }, [payoutApprovalItems, query]);
 
+  const visibleMeetingSetupItems = useMemo(() => {
+    if (!query) {
+      return meetingSetupItems;
+    }
+
+    return meetingSetupItems.filter(({ reservation, issue }) =>
+      searchMatches(
+        [
+          buildReservationSearchHaystack(reservation),
+          issue.provider,
+          issue.errorSummary,
+        ]
+          .filter(Boolean)
+          .join(" "),
+        query
+      )
+    );
+  }, [meetingSetupItems, query]);
+
   const visibleActionRequiredReservations = useMemo(() => {
     const pool =
       actionRequiredFocus === "cancellation_requests"
         ? visibleCancellationItems.map((item) => item.reservation)
         : actionRequiredFocus === "payout_approvals"
           ? visiblePayoutItems
+          : actionRequiredFocus === "meeting_setup_issues"
+            ? visibleMeetingSetupItems.map((item) => item.reservation)
           : [
               ...visibleCancellationItems.map((item) => item.reservation),
               ...visiblePayoutItems,
+              ...visibleMeetingSetupItems.map((item) => item.reservation),
             ];
 
     return [...new Map(pool.map((reservation) => [reservation.id, reservation])).values()];
-  }, [actionRequiredFocus, visibleCancellationItems, visiblePayoutItems]);
+  }, [
+    actionRequiredFocus,
+    visibleCancellationItems,
+    visibleMeetingSetupItems,
+    visiblePayoutItems,
+  ]);
 
   const selectedActionReservation = pickSelectedItem(
     visibleActionRequiredReservations,
@@ -1492,6 +1824,72 @@ export function AdminOperationsConsole({
     }
   }
 
+  async function handleSaveMeetingLinks(
+    reservation: AdminReservationCase,
+    values: {
+      meetingProvider: string;
+      meetingJoinUrl: string;
+      meetingHostUrl: string | null;
+    }
+  ) {
+    const key = `meeting:${reservation.id}`;
+    setProcessingKey(key);
+
+    try {
+      const response = await fetch("/api/admin/reservations/action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "set_meeting_links",
+          bookingId: reservation.bookingId,
+          meetingProvider: values.meetingProvider,
+          meetingJoinUrl: values.meetingJoinUrl,
+          meetingHostUrl: values.meetingHostUrl,
+        }),
+      });
+
+      if (!response.ok) {
+        const payload = (await response.json()) as { error?: string };
+        window.alert(payload.error || t("alerts.saveMeetingLinkFailed"));
+        return;
+      }
+
+      await fetchDashboard();
+    } catch {
+      window.alert(t("alerts.saveMeetingLinkFailed"));
+    } finally {
+      setProcessingKey(null);
+    }
+  }
+
+  async function handleReissueMeetingLinks(reservation: AdminReservationCase) {
+    const key = `meeting_reissue:${reservation.id}`;
+    setProcessingKey(key);
+
+    try {
+      const response = await fetch("/api/admin/reservations/action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "reissue_meeting_links",
+          bookingId: reservation.bookingId,
+        }),
+      });
+
+      if (!response.ok) {
+        const payload = (await response.json()) as { error?: string };
+        window.alert(payload.error || t("alerts.reissueMeetingLinkFailed"));
+        return;
+      }
+
+      await fetchDashboard();
+    } catch {
+      window.alert(t("alerts.reissueMeetingLinkFailed"));
+    } finally {
+      setProcessingKey(null);
+    }
+  }
+
   function openActionRequired(focus: ActionRequiredFocus) {
     setActiveTab("action_required");
     setActionRequiredFocus(focus);
@@ -1504,13 +1902,25 @@ export function AdminOperationsConsole({
     setQuery("");
   }
 
+  function openReservationDetail(reservationId: string) {
+    setSelectedActionReservationId(reservationId);
+
+    window.requestAnimationFrame(() => {
+      document
+        .getElementById("admin-detail-panel")
+        ?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }
+
   const activeCount =
     activeTab === "action_required"
       ? actionRequiredFocus === "cancellation_requests"
         ? visibleCancellationItems.length
         : actionRequiredFocus === "payout_approvals"
           ? visiblePayoutItems.length
-          : visibleCancellationItems.length + visiblePayoutItems.length
+          : actionRequiredFocus === "meeting_setup_issues"
+            ? visibleMeetingSetupItems.length
+            : visibleActionRequiredReservations.length
       : activeTab === "payments"
         ? filteredPayments.length
         : activeTab === "logs"
@@ -1583,7 +1993,7 @@ export function AdminOperationsConsole({
             </p>
           </div>
 
-          <div className="mt-5 grid gap-4 md:grid-cols-2">
+          <div className="mt-5 grid gap-4 md:grid-cols-3">
             <SummaryCard
               label={t("overview.cancellationRequestsLabel")}
               value={cancellationRequestItems.length}
@@ -1597,6 +2007,13 @@ export function AdminOperationsConsole({
               description={t("hero.payoutDescription")}
               tone="warning"
               onClick={() => openActionRequired("payout_approvals")}
+            />
+            <SummaryCard
+              label={t("overview.meetingSetupIssuesLabel")}
+              value={meetingSetupItems.length}
+              description={t("hero.meetingSetupDescription")}
+              tone="danger"
+              onClick={() => openActionRequired("meeting_setup_issues")}
             />
           </div>
         </section>
@@ -1645,12 +2062,14 @@ export function AdminOperationsConsole({
                   totalReservations: 0,
                   reservationsNeedingAttention: 0,
                   awaitingPayoutApproval: 0,
+                  meetingSetupIssues: 0,
                   usersNeedingAttention: 0,
                   mentorsNeedingAttention: 0,
                   paymentFailures: 0,
                 }}
                 cancellationRequestItems={cancellationRequestItems}
                 payoutApprovalItems={payoutApprovalItems}
+                meetingSetupItems={meetingSetupItems}
                 refundPendingCount={refundPendingItems.length}
                 processedLogsCount={
                   reservations.filter((reservation) => isLogReservation(reservation))
@@ -1721,7 +2140,8 @@ export function AdminOperationsConsole({
                   <div className="max-h-[760px] space-y-6 overflow-y-auto pr-1">
                     {activeTab === "action_required" ? (
                       <>
-                        {actionRequiredFocus !== "payout_approvals" ? (
+                        {actionRequiredFocus !== "payout_approvals" &&
+                        actionRequiredFocus !== "meeting_setup_issues" ? (
                           <ActionRequiredQueue
                             title={t("queues.cancellationTitle")}
                             count={visibleCancellationItems.length}
@@ -1777,7 +2197,8 @@ export function AdminOperationsConsole({
                           </ActionRequiredQueue>
                         ) : null}
 
-                        {actionRequiredFocus !== "cancellation_requests" ? (
+                        {actionRequiredFocus !== "cancellation_requests" &&
+                        actionRequiredFocus !== "meeting_setup_issues" ? (
                           <ActionRequiredQueue
                             title={t("queues.payoutTitle")}
                             count={visiblePayoutItems.length}
@@ -1829,6 +2250,64 @@ export function AdminOperationsConsole({
                             )}
                           </ActionRequiredQueue>
                         ) : null}
+
+                        {actionRequiredFocus !== "cancellation_requests" &&
+                        actionRequiredFocus !== "payout_approvals" ? (
+                          <ActionRequiredQueue
+                            title={t("queues.meetingSetupTitle")}
+                            count={visibleMeetingSetupItems.length}
+                            description={t("queues.meetingSetupDescription")}
+                          >
+                            {visibleMeetingSetupItems.length > 0 ? (
+                              <div className="space-y-3">
+                                {visibleMeetingSetupItems.map(({ reservation, issue }) => (
+                                  <ActionRequiredCard
+                                    key={issue.id}
+                                    reservation={reservation}
+                                    title={t("labels.bookingNumber", {
+                                      id: reservation.bookingId,
+                                    })}
+                                    secondary={`${reservation.student.displayName} x ${
+                                      reservation.mentor?.displayName ??
+                                      t("states.unknownMentor")
+                                    }`}
+                                    body={
+                                      <div className="space-y-1 text-sm">
+                                        <p className="text-[#1f1f2d]">
+                                          {issue.errorSummary}
+                                        </p>
+                                        <p className="text-xs text-[#606579]">
+                                          {issue.provider
+                                            ? humanizeToken(issue.provider)
+                                            : "-"}{" "}
+                                          · {formatDateTime(issue.occurredAt)} ·{" "}
+                                          {reservation.hasMeetingLink
+                                            ? t("states.ready")
+                                            : t("states.notReady")}
+                                        </p>
+                                      </div>
+                                    }
+                                    badges={renderFlagBadges(reservation.flags)}
+                                    selected={
+                                      selectedActionReservation?.id === reservation.id
+                                    }
+                                    processing={false}
+                                    actionLabel={t("actions.openBookingDetail")}
+                                    onSelect={() =>
+                                      setSelectedActionReservationId(reservation.id)
+                                    }
+                                    onAction={() => openReservationDetail(reservation.id)}
+                                  />
+                                ))}
+                              </div>
+                            ) : (
+                              <EmptyState
+                                title={t("empty.noMeetingSetupQueueTitle")}
+                                description={t("empty.noMeetingSetupQueueDescription")}
+                              />
+                            )}
+                          </ActionRequiredQueue>
+                        ) : null}
                       </>
                     ) : null}
 
@@ -1854,7 +2333,7 @@ export function AdminOperationsConsole({
                   </div>
                 </div>
 
-                <div>
+                <div id="admin-detail-panel">
                   <div className="mb-4">
                     <h2 className="text-lg font-semibold text-[#1f1f2d]">
                       {t("listHeadings.detail")}
@@ -1873,6 +2352,12 @@ export function AdminOperationsConsole({
                         onRefundPayment={(reservation) =>
                           void handleRefundPayment(reservation)
                         }
+                        onSaveMeetingLinks={(reservation, values) =>
+                          void handleSaveMeetingLinks(reservation, values)
+                        }
+                        onReissueMeetingLinks={(reservation) =>
+                          void handleReissueMeetingLinks(reservation)
+                        }
                         processingKey={processingKey}
                       />
                     ) : (
@@ -1881,11 +2366,13 @@ export function AdminOperationsConsole({
                         onApproveRequest={(reservation, request) =>
                           void handleApproveCancellation(reservation, request)
                         }
-                        processingRequestId={
-                          processingKey?.startsWith("approve_request:")
-                            ? processingKey.replace("approve_request:", "")
-                            : null
+                        onSaveMeetingLinks={(reservation, values) =>
+                          void handleSaveMeetingLinks(reservation, values)
                         }
+                        onReissueMeetingLinks={(reservation) =>
+                          void handleReissueMeetingLinks(reservation)
+                        }
+                        processingKey={processingKey}
                       />
                     )
                   ) : null}
@@ -1902,12 +2389,27 @@ export function AdminOperationsConsole({
                       onApproveRequest={(reservation, request) =>
                         void handleApproveCancellation(reservation, request)
                       }
+                      onSaveMeetingLinks={(reservation, values) =>
+                        void handleSaveMeetingLinks(reservation, values)
+                      }
+                      onReissueMeetingLinks={(reservation) =>
+                        void handleReissueMeetingLinks(reservation)
+                      }
                       processingKey={processingKey}
                     />
                   ) : null}
 
                   {activeTab === "logs" ? (
-                    <ReservationDetail reservation={selectedLogReservation} />
+                    <ReservationDetail
+                      reservation={selectedLogReservation}
+                      onSaveMeetingLinks={(reservation, values) =>
+                        void handleSaveMeetingLinks(reservation, values)
+                      }
+                      onReissueMeetingLinks={(reservation) =>
+                        void handleReissueMeetingLinks(reservation)
+                      }
+                      processingKey={processingKey}
+                    />
                   ) : null}
                 </div>
               </div>

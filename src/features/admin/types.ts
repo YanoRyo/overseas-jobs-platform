@@ -17,6 +17,7 @@ export type AdminCaseFlag = {
     | "change_request_pending"
     | "mentor_cancelled"
     | "meeting_link_missing"
+    | "meeting_setup_issue"
     | "mentor_payout_setup_incomplete"
     | "payout_failed";
   label: string;
@@ -45,6 +46,16 @@ export type AdminReservationCase = {
   createdAt: string | null;
   expiresAt: string | null;
   meetingProvider: string | null;
+  meetingJoinUrl: string | null;
+  meetingHostUrl: string | null;
+  meetingSetupIssue: {
+    id: string;
+    provider: string | null;
+    errorSummary: string;
+    occurredAt: string;
+    status: "unresolved" | "resolved";
+    failureCount: number;
+  } | null;
   hasMeetingLink: boolean;
   paymentApprovalEligible: boolean;
   needsAttention: boolean;
@@ -150,6 +161,7 @@ export type AdminOperationsResponse = {
     totalReservations: number;
     reservationsNeedingAttention: number;
     awaitingPayoutApproval: number;
+    meetingSetupIssues: number;
     usersNeedingAttention: number;
     mentorsNeedingAttention: number;
     paymentFailures: number;

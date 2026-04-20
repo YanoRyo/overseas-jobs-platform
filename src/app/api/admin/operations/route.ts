@@ -8,6 +8,10 @@ import {
   warnForMissingPaymentRefundColumns,
 } from "@/lib/bookings/server";
 import {
+  getMeetingSetupIssuesByBookingIds,
+  type MeetingSetupIssueRecord,
+} from "@/lib/meetings/issues";
+import {
   createSupabaseServerClient,
   createSupabaseServiceClient,
 } from "@/lib/supabase/server";
@@ -164,7 +168,8 @@ function buildReservationFlags(
   mentor: MentorRow | null,
   payment: PaymentRow | null,
   payout: PayoutRow | null,
-  changeRequests: AdminBookingChangeRequest[]
+  changeRequests: AdminBookingChangeRequest[],
+  meetingSetupIssue: MeetingSetupIssueRecord | null
 ) {
   const now = Date.now();
   const flags: AdminCaseFlag[] = [];
@@ -236,7 +241,13 @@ function buildReservationFlags(
     });
   }
 
-  if (
+  if (meetingSetupIssue?.status === "unresolved") {
+    flags.push({
+      type: "meeting_setup_issue",
+      label: "Meeting setup issue",
+      tone: "danger",
+    });
+  } else if (
     booking.status === "confirmed" &&
     !booking.meeting_join_url &&
     !booking.meeting_host_url
@@ -500,6 +511,10 @@ export async function GET() {
   const payments = (paymentsResult.data ?? []) as PaymentRow[];
   const payouts = (payoutsResult.data ?? []) as PayoutRow[];
   const changeRequests = (changeRequestsResult.data ?? []) as ChangeRequestRow[];
+  const meetingSetupIssuesByBookingId = await getMeetingSetupIssuesByBookingIds(
+    bookings.map((booking) => booking.id),
+    adminDb
+  );
 
   const userMap = new Map(users.map((row) => [row.id, row]));
   const mentorMap = new Map(mentors.map((row) => [row.id, row]));
@@ -544,12 +559,15 @@ export async function GET() {
         ? latestPayoutByPaymentIdMap.get(payment.id) ?? null
         : null;
       const bookingChangeRequests = changeRequestsByBookingId.get(booking.id) ?? [];
+      const meetingSetupIssue =
+        meetingSetupIssuesByBookingId.get(String(booking.id)) ?? null;
       const flags = buildReservationFlags(
         booking,
         mentor,
         payment,
         payout,
-        bookingChangeRequests
+        bookingChangeRequests,
+        meetingSetupIssue
       );
 
       return {
@@ -561,6 +579,18 @@ export async function GET() {
         createdAt: booking.created_at,
         expiresAt: booking.expires_at,
         meetingProvider: booking.meeting_provider,
+        meetingJoinUrl: booking.meeting_join_url,
+        meetingHostUrl: booking.meeting_host_url,
+        meetingSetupIssue: meetingSetupIssue
+          ? {
+              id: meetingSetupIssue.id,
+              provider: meetingSetupIssue.provider,
+              errorSummary: meetingSetupIssue.errorSummary,
+              occurredAt: meetingSetupIssue.occurredAt,
+              status: meetingSetupIssue.status,
+              failureCount: meetingSetupIssue.failureCount,
+            }
+          : null,
         hasMeetingLink: Boolean(
           booking.meeting_join_url || booking.meeting_host_url
         ),
@@ -814,6 +844,7 @@ export async function GET() {
       awaitingPayoutApproval: reservations.filter(
         (item) => item.paymentApprovalEligible
       ).length,
+      meetingSetupIssues: reservations.filter((item) => item.meetingSetupIssue).length,
       usersNeedingAttention: usersData.filter((item) => item.needsAttention).length,
       mentorsNeedingAttention: mentorsData.filter((item) => item.needsAttention)
         .length,

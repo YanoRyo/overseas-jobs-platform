@@ -1173,7 +1173,8 @@
         "actionRequired": {
           "all": "All",
           "cancellation_requests": "Cancellation Requests",
-          "payout_approvals": "Payout Approvals"
+          "payout_approvals": "Payout Approvals",
+          "meeting_setup_issues": "Meeting Setup Issues"
         },
         "payments": {
           "action_required": "Action Required",
@@ -1192,10 +1193,11 @@
       "hero": {
         "eyebrow": "Action Required",
         "title": "Handle the live queue first",
-        "description": "Prioritize cancellation approvals and payout approvals without opening separate detail screens.",
+        "description": "Prioritize cancellation approvals, payout approvals, and meeting setup failures without opening separate detail screens.",
         "summary": "Refund pending {refundCount} · Logs {logCount}",
         "cancellationDescription": "Student cancellations waiting for admin approval.",
-        "payoutDescription": "Succeeded payments ready to release to mentors."
+        "payoutDescription": "Succeeded payments ready to release to mentors.",
+        "meetingSetupDescription": "Bookings where the meeting URL could not be prepared automatically."
       },
       "overview": {
         "snapshotTitle": "Today's operations snapshot",
@@ -1204,6 +1206,8 @@
         "cancellationRequestsDescription": "Student cancellation requests waiting for approval.",
         "payoutApprovalsLabel": "Payout Approvals",
         "payoutApprovalsDescription": "Succeeded payments waiting for payout release.",
+        "meetingSetupIssuesLabel": "Meeting Setup Issues",
+        "meetingSetupIssuesDescription": "Bookings where automatic meeting setup needs follow-up.",
         "nextTitle": "What needs attention next",
         "nextDescription": "Use the fastest path into the current queue.",
         "refundPendingTitle": "Refund pending",
@@ -1254,7 +1258,13 @@
         "studentConfirmationEmail": "Student confirmation email",
         "mentorBookingEmail": "Mentor booking email",
         "meetingStatus": "Meeting status",
-        "meetingProvider": "Meeting provider"
+        "meetingProvider": "Meeting provider",
+        "meetingLinks": "Meeting link operations",
+        "meetingJoinUrl": "Join URL",
+        "meetingHostUrl": "Host URL",
+        "meetingSetupIssue": "Meeting setup issue",
+        "errorSummary": "Error summary",
+        "occurredAt": "Occurred at"
       },
       "empty": {
         "selectCaseTitle": "Select a case",
@@ -1270,7 +1280,9 @@
         "noCancellationQueueTitle": "No cancellation requests",
         "noCancellationQueueDescription": "New student cancellation requests will appear here.",
         "noPayoutQueueTitle": "No payout approvals",
-        "noPayoutQueueDescription": "Succeeded payments waiting for payout release will appear here."
+        "noPayoutQueueDescription": "Succeeded payments waiting for payout release will appear here.",
+        "noMeetingSetupQueueTitle": "No meeting setup issues",
+        "noMeetingSetupQueueDescription": "Automatic meeting setup failures will appear here."
       },
       "labels": {
         "bookingNumber": "Booking #{id}",
@@ -1287,7 +1299,9 @@
         "cancellationTitle": "Cancellation Requests",
         "cancellationDescription": "Approve student cancellations directly from the queue.",
         "payoutTitle": "Payout Approvals",
-        "payoutDescription": "Approve mentor payouts without leaving the queue."
+        "payoutDescription": "Approve mentor payouts without leaving the queue.",
+        "meetingSetupTitle": "Meeting Setup Issues",
+        "meetingSetupDescription": "Review automatic meeting setup failures and fix the booking from the detail panel."
       },
       "actions": {
         "approveCancellation": "Approve cancellation",
@@ -1296,13 +1310,28 @@
         "approvingPayout": "Approving...",
         "refundPayment": "Refund payment",
         "refundingPayment": "Refunding...",
+        "saveMeetingLink": "Save manual link",
+        "savingMeetingLink": "Saving...",
+        "reissueMeetingLink": "Reissue automatically",
+        "reissuingMeetingLink": "Reissuing...",
+        "openBookingDetail": "Open booking detail",
         "processing": "Processing..."
       },
       "alerts": {
         "approvePayoutFailed": "Failed to approve the payout.",
         "approveCancellationFailed": "Failed to approve the cancellation.",
         "refundConfirm": "Refund this payment now?",
-        "refundFailed": "Failed to refund the payment."
+        "refundFailed": "Failed to refund the payment.",
+        "saveMeetingLinkFailed": "Failed to save the meeting link.",
+        "reissueMeetingLinkFailed": "Failed to reissue the meeting link automatically."
+      },
+      "meetingForm": {
+        "providerLabel": "Provider label",
+        "providerPlaceholder": "manual / google_meet / zoom",
+        "joinUrlLabel": "Join URL",
+        "hostUrlLabel": "Host URL (optional)",
+        "hostUrlPlaceholder": "Leave blank to reuse the join URL",
+        "hostUrlHint": "If the host URL is blank, mentors will use the join URL."
       },
       "search": {
         "placeholder": "Search {label}"

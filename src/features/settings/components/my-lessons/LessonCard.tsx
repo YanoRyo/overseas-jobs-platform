@@ -55,8 +55,13 @@ function formatMeetingProvider(
   t: LessonsTranslator
 ): string {
   if (!provider) return t("meetingLink");
-  if (provider === "template") return t("externalMeeting");
-  return provider.charAt(0).toUpperCase() + provider.slice(1);
+  if (provider === "template" || provider === "manual") {
+    return t("externalMeeting");
+  }
+  return provider
+    .replaceAll("_", " ")
+    .replaceAll("-", " ")
+    .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
 function getStatusLabel(
