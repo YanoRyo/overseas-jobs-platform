@@ -3,5 +3,5 @@ import { AdminOperationsConsole } from "@/features/admin/components/AdminOperati
 export const dynamic = "force-dynamic";
 
 export default function AdminPage() {
-  return <AdminOperationsConsole defaultTab="reservations" />;
+  return <AdminOperationsConsole defaultTab="overview" />;
 }

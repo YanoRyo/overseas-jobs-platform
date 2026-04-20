@@ -1160,5 +1160,168 @@
         }
       }
     }
+  },
+  "admin": {
+    "operations": {
+      "tabs": {
+        "overview": "Overview",
+        "action_required": "Action Required",
+        "payments": "Payments",
+        "logs": "Logs"
+      },
+      "filters": {
+        "actionRequired": {
+          "all": "All",
+          "cancellation_requests": "Cancellation Requests",
+          "payout_approvals": "Payout Approvals"
+        },
+        "payments": {
+          "action_required": "Action Required",
+          "all": "All",
+          "cancellation_pending": "Cancellation Pending",
+          "payout_pending": "Payout Pending",
+          "refund_pending": "Refund Pending"
+        }
+      },
+      "header": {
+        "eyebrow": "Bridgeee Admin",
+        "title": "Operations Console",
+        "description": "Move through the queue from action required first, then review payments and logs. Updated {updatedAt}.",
+        "refresh": "Refresh"
+      },
+      "hero": {
+        "eyebrow": "Action Required",
+        "title": "Handle the live queue first",
+        "description": "Prioritize cancellation approvals and payout approvals without opening separate detail screens.",
+        "summary": "Refund pending {refundCount} · Logs {logCount}",
+        "cancellationDescription": "Student cancellations waiting for admin approval.",
+        "payoutDescription": "Succeeded payments ready to release to mentors."
+      },
+      "overview": {
+        "snapshotTitle": "Today's operations snapshot",
+        "snapshotDescription": "Focus on the queue first. Processed records stay in Logs for later review.",
+        "cancellationRequestsLabel": "Cancellation Requests",
+        "cancellationRequestsDescription": "Student cancellation requests waiting for approval.",
+        "payoutApprovalsLabel": "Payout Approvals",
+        "payoutApprovalsDescription": "Succeeded payments waiting for payout release.",
+        "nextTitle": "What needs attention next",
+        "nextDescription": "Use the fastest path into the current queue.",
+        "refundPendingTitle": "Refund pending",
+        "refundPendingDescription": "Payments already refunding and waiting for final confirmation.",
+        "processedLogsTitle": "Processed logs",
+        "processedLogsDescription": "Review completed cancellations, refunds, and payout activity.",
+        "usersNeedAttentionLabel": "Users Needing Attention",
+        "usersNeedAttentionDescription": "Tracked for operational awareness in the current dataset.",
+        "mentorsNeedAttentionLabel": "Mentors Needing Attention",
+        "mentorsNeedAttentionDescription": "Payout setup and delivery issues still surface here.",
+        "paymentFailuresLabel": "Payment Failures",
+        "paymentFailuresDescription": "Failures stay visible in Payments and Logs for follow-up."
+      },
+      "changeRequest": {
+        "title": "Cancellation request",
+        "requestedBy": "Requested by {name}",
+        "reviewNote": "Review note: {note}"
+      },
+      "detail": {
+        "reservationCase": "Reservation case",
+        "paymentCase": "Payment case",
+        "reservation": "Reservation",
+        "student": "Student",
+        "mentor": "Mentor",
+        "payment": "Payment",
+        "changeRequests": "Change requests",
+        "caseFlags": "Case flags",
+        "status": "Status",
+        "lessonTime": "Lesson time",
+        "created": "Created",
+        "expires": "Expires",
+        "meeting": "Meeting",
+        "name": "Name",
+        "handle": "Handle",
+        "role": "Role",
+        "timezone": "Timezone",
+        "phone": "Phone",
+        "email": "Email",
+        "hourlyRate": "Hourly rate",
+        "stripeReady": "Stripe ready",
+        "amount": "Amount",
+        "paymentStatus": "Payment status",
+        "payoutStatus": "Payout status",
+        "paidAt": "Paid at",
+        "refundAmount": "Refund amount",
+        "refundedAt": "Refunded at",
+        "refundReason": "Refund reason",
+        "studentConfirmationEmail": "Student confirmation email",
+        "mentorBookingEmail": "Mentor booking email",
+        "meetingStatus": "Meeting status",
+        "meetingProvider": "Meeting provider"
+      },
+      "empty": {
+        "selectCaseTitle": "Select a case",
+        "selectCaseDescription": "Choose a reservation from the queue or logs to inspect the full operational context.",
+        "selectPaymentTitle": "Select a payment case",
+        "selectPaymentDescription": "Choose a payment item to inspect payout status, refund status, and linked cancellation activity.",
+        "noCancellationRequests": "No cancellation requests yet.",
+        "noCaseFlags": "No open flags on this payment.",
+        "noPaymentRecordsTitle": "No payment records",
+        "noPaymentRecordsDescription": "No payment records match the current filter.",
+        "noProcessedLogsTitle": "No processed logs",
+        "noProcessedLogsDescription": "Processed reservation and payment logs will appear here.",
+        "noCancellationQueueTitle": "No cancellation requests",
+        "noCancellationQueueDescription": "New student cancellation requests will appear here.",
+        "noPayoutQueueTitle": "No payout approvals",
+        "noPayoutQueueDescription": "Succeeded payments waiting for payout release will appear here."
+      },
+      "labels": {
+        "bookingNumber": "Booking #{id}",
+        "lessonAt": "Lesson {dateTime}",
+        "activityAt": "Activity {dateTime}",
+        "paymentStatusBadge": "Payment {status}",
+        "payoutStatusBadge": "Payout {status}"
+      },
+      "listHeadings": {
+        "actionQueue": "Action queue",
+        "detail": "Detail"
+      },
+      "queues": {
+        "cancellationTitle": "Cancellation Requests",
+        "cancellationDescription": "Approve student cancellations directly from the queue.",
+        "payoutTitle": "Payout Approvals",
+        "payoutDescription": "Approve mentor payouts without leaving the queue."
+      },
+      "actions": {
+        "approveCancellation": "Approve cancellation",
+        "approvePayout": "Approve payout",
+        "approvingCancellation": "Approving...",
+        "approvingPayout": "Approving...",
+        "refundPayment": "Refund payment",
+        "refundingPayment": "Refunding...",
+        "processing": "Processing..."
+      },
+      "alerts": {
+        "approvePayoutFailed": "Failed to approve the payout.",
+        "approveCancellationFailed": "Failed to approve the cancellation.",
+        "refundConfirm": "Refund this payment now?",
+        "refundFailed": "Failed to refund the payment."
+      },
+      "search": {
+        "placeholder": "Search {label}"
+      },
+      "results": "{count, plural, one {# result} other {# results}}",
+      "loading": "Loading admin operations...",
+      "errors": {
+        "fetch": "Failed to fetch admin operations",
+        "load": "Failed to load admin operations data."
+      },
+      "states": {
+        "unknownMentor": "Unknown mentor",
+        "ready": "Ready",
+        "notReady": "Not ready",
+        "yes": "Yes",
+        "no": "No",
+        "notSent": "Not sent",
+        "noCancellationReason": "No cancellation reason provided."
+      }
+    }
   }
 }

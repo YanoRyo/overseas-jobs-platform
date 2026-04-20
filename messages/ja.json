@@ -1160,5 +1160,168 @@
         }
       }
     }
+  },
+  "admin": {
+    "operations": {
+      "tabs": {
+        "overview": "Overview",
+        "action_required": "要対応",
+        "payments": "Payments",
+        "logs": "Logs"
+      },
+      "filters": {
+        "actionRequired": {
+          "all": "すべて",
+          "cancellation_requests": "キャンセル申請",
+          "payout_approvals": "Payout承認"
+        },
+        "payments": {
+          "action_required": "要対応",
+          "all": "すべて",
+          "cancellation_pending": "キャンセル待ち",
+          "payout_pending": "Payout待ち",
+          "refund_pending": "返金待ち"
+        }
+      },
+      "header": {
+        "eyebrow": "Bridgeee Admin",
+        "title": "オペレーションコンソール",
+        "description": "まず要対応キューを処理し、その後に決済とログを確認します。更新日時: {updatedAt}",
+        "refresh": "更新"
+      },
+      "hero": {
+        "eyebrow": "要対応",
+        "title": "まず今の処理キューを片付ける",
+        "description": "詳細画面を開き直さなくても、キャンセル承認と payout 承認を優先して処理できます。",
+        "summary": "返金待ち {refundCount} · ログ {logCount}",
+        "cancellationDescription": "管理者の承認待ちになっている受講生キャンセルです。",
+        "payoutDescription": "メンターへの支払い解放待ちの決済です。"
+      },
+      "overview": {
+        "snapshotTitle": "本日のオペレーション概要",
+        "snapshotDescription": "まずはキューの処理を優先し、処理済みのものは後から Logs で確認できます。",
+        "cancellationRequestsLabel": "キャンセル申請",
+        "cancellationRequestsDescription": "承認待ちの受講生キャンセル申請です。",
+        "payoutApprovalsLabel": "Payout承認",
+        "payoutApprovalsDescription": "支払い解放待ちの決済です。",
+        "nextTitle": "次に見るべき項目",
+        "nextDescription": "現在のキューへ最短で移動できます。",
+        "refundPendingTitle": "返金待ち",
+        "refundPendingDescription": "返金処理中で、最終反映待ちの決済です。",
+        "processedLogsTitle": "処理済みログ",
+        "processedLogsDescription": "完了したキャンセル、返金、payout の履歴を確認します。",
+        "usersNeedAttentionLabel": "要確認ユーザー",
+        "usersNeedAttentionDescription": "現在のデータセット上で運営確認が必要なユーザーです。",
+        "mentorsNeedAttentionLabel": "要確認メンター",
+        "mentorsNeedAttentionDescription": "payout 設定や配信まわりの問題をここで把握できます。",
+        "paymentFailuresLabel": "決済失敗",
+        "paymentFailuresDescription": "失敗した決済は Payments と Logs の両方で追跡できます。"
+      },
+      "changeRequest": {
+        "title": "キャンセル申請",
+        "requestedBy": "{name} からの申請",
+        "reviewNote": "確認メモ: {note}"
+      },
+      "detail": {
+        "reservationCase": "予約ケース",
+        "paymentCase": "決済ケース",
+        "reservation": "予約情報",
+        "student": "受講生",
+        "mentor": "メンター",
+        "payment": "決済",
+        "changeRequests": "変更申請",
+        "caseFlags": "ケースフラグ",
+        "status": "ステータス",
+        "lessonTime": "レッスン日時",
+        "created": "作成日時",
+        "expires": "期限",
+        "meeting": "ミーティング",
+        "name": "名前",
+        "handle": "ユーザー名",
+        "role": "ロール",
+        "timezone": "タイムゾーン",
+        "phone": "電話番号",
+        "email": "メールアドレス",
+        "hourlyRate": "時間単価",
+        "stripeReady": "Stripe準備完了",
+        "amount": "金額",
+        "paymentStatus": "決済ステータス",
+        "payoutStatus": "Payoutステータス",
+        "paidAt": "支払い完了日時",
+        "refundAmount": "返金額",
+        "refundedAt": "返金完了日時",
+        "refundReason": "返金理由",
+        "studentConfirmationEmail": "受講生確認メール",
+        "mentorBookingEmail": "メンター予約メール",
+        "meetingStatus": "ミーティング状態",
+        "meetingProvider": "ミーティング提供元"
+      },
+      "empty": {
+        "selectCaseTitle": "ケースを選択してください",
+        "selectCaseDescription": "キューまたはログから予約を選ぶと、詳細なオペレーション情報を確認できます。",
+        "selectPaymentTitle": "決済ケースを選択してください",
+        "selectPaymentDescription": "決済項目を選ぶと、payout 状態、返金状態、関連するキャンセル情報を確認できます。",
+        "noCancellationRequests": "まだキャンセル申請はありません。",
+        "noCaseFlags": "この決済には未処理フラグがありません。",
+        "noPaymentRecordsTitle": "決済レコードはありません",
+        "noPaymentRecordsDescription": "現在のフィルターに一致する決済はありません。",
+        "noProcessedLogsTitle": "処理済みログはありません",
+        "noProcessedLogsDescription": "処理済みの予約や決済ログがここに表示されます。",
+        "noCancellationQueueTitle": "キャンセル申請はありません",
+        "noCancellationQueueDescription": "新しい受講生キャンセル申請がここに表示されます。",
+        "noPayoutQueueTitle": "Payout承認はありません",
+        "noPayoutQueueDescription": "支払い解放待ちの決済がここに表示されます。"
+      },
+      "labels": {
+        "bookingNumber": "Booking #{id}",
+        "lessonAt": "レッスン {dateTime}",
+        "activityAt": "更新 {dateTime}",
+        "paymentStatusBadge": "決済 {status}",
+        "payoutStatusBadge": "Payout {status}"
+      },
+      "listHeadings": {
+        "actionQueue": "対応キュー",
+        "detail": "詳細"
+      },
+      "queues": {
+        "cancellationTitle": "キャンセル申請",
+        "cancellationDescription": "受講生キャンセルをキュー上からそのまま承認します。",
+        "payoutTitle": "Payout承認",
+        "payoutDescription": "メンターへの payout をキュー上から承認します。"
+      },
+      "actions": {
+        "approveCancellation": "キャンセル承認",
+        "approvePayout": "Payout承認",
+        "approvingCancellation": "承認中...",
+        "approvingPayout": "承認中...",
+        "refundPayment": "返金する",
+        "refundingPayment": "返金中...",
+        "processing": "処理中..."
+      },
+      "alerts": {
+        "approvePayoutFailed": "Payout 承認に失敗しました。",
+        "approveCancellationFailed": "キャンセル承認に失敗しました。",
+        "refundConfirm": "この決済を今すぐ返金しますか？",
+        "refundFailed": "返金に失敗しました。"
+      },
+      "search": {
+        "placeholder": "{label}を検索"
+      },
+      "results": "{count, plural, one {# 件} other {# 件}}",
+      "loading": "管理データを読み込み中...",
+      "errors": {
+        "fetch": "管理データの取得に失敗しました",
+        "load": "管理データの読み込みに失敗しました。"
+      },
+      "states": {
+        "unknownMentor": "不明なメンター",
+        "ready": "準備完了",
+        "notReady": "未準備",
+        "yes": "はい",
+        "no": "いいえ",
+        "notSent": "未送信",
+        "noCancellationReason": "キャンセル理由は未入力です。"
+      }
+    }
   }
 }

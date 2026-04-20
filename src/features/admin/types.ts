@@ -3,7 +3,7 @@ import type {
   BookingChangeRequestType,
 } from "@/features/bookings/types";
 
-export type AdminTab = "reservations" | "users" | "mentors" | "payments";
+export type AdminTab = "overview" | "action_required" | "payments" | "logs";
 
 export type AdminFlagTone = "info" | "warning" | "danger";
 

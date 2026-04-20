@@ -1,50 +1,61 @@
 "use client";
 
-import { Dialog } from "@headlessui/react";
 import { RefreshCcw, Search } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
-import { Link, useRouter } from "@/i18n/navigation";
+import { useTranslations } from "next-intl";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useRouter } from "@/i18n/navigation";
 import type {
   AdminBookingChangeRequest,
   AdminCaseFlag,
   AdminFlagTone,
-  AdminMentorCase,
   AdminOperationsResponse,
   AdminReservationCase,
   AdminTab,
-  AdminUserCase,
 } from "../types";
 
 type PaymentReservationCase = AdminReservationCase & {
   payment: NonNullable<AdminReservationCase["payment"]>;
 };
 
-type ReservationActionTarget =
-  | { kind: "cancel"; reservation: AdminReservationCase }
-  | { kind: "refund"; reservation: PaymentReservationCase }
-  | {
-      kind: "approve_request";
-      reservation: AdminReservationCase;
-      request: AdminBookingChangeRequest;
-    };
+type CancellationActionItem = {
+  reservation: AdminReservationCase;
+  request: AdminBookingChangeRequest;
+};
+
+type PaymentViewFilter =
+  | "action_required"
+  | "all"
+  | "cancellation_pending"
+  | "payout_pending"
+  | "refund_pending";
+
+type ActionRequiredFocus = "all" | "cancellation_requests" | "payout_approvals";
 
 type Tone = AdminFlagTone | "success" | "neutral";
 
-const TAB_OPTIONS: Array<{ id: AdminTab; label: string }> = [
-  { id: "reservations", label: "Reservations" },
-  { id: "users", label: "Users" },
-  { id: "mentors", label: "Mentors" },
-  { id: "payments", label: "Payments" },
+const TAB_OPTIONS: AdminTab[] = [
+  "overview",
+  "action_required",
+  "payments",
+  "logs",
+];
+
+const ACTION_REQUIRED_FILTERS: ActionRequiredFocus[] = [
+  "all",
+  "cancellation_requests",
+  "payout_approvals",
+];
+
+const PAYMENT_FILTERS: PaymentViewFilter[] = [
+  "action_required",
+  "all",
+  "cancellation_pending",
+  "payout_pending",
+  "refund_pending",
 ];
 
 function cn(...parts: Array<string | false | null | undefined>) {
   return parts.filter(Boolean).join(" ");
-}
-
-function isPaymentReservationCase(
-  reservation: AdminReservationCase
-): reservation is PaymentReservationCase {
-  return reservation.payment !== null;
 }
 
 function parseAppDate(value: string | null | undefined) {
@@ -53,6 +64,11 @@ function parseAppDate(value: string | null | undefined) {
     return new Date(value);
   }
   return new Date(`${value}Z`);
+}
+
+function getTimestamp(value: string | null | undefined) {
+  const date = parseAppDate(value);
+  return date?.getTime() ?? 0;
 }
 
 function formatDateTime(value: string | null | undefined) {
@@ -67,14 +83,9 @@ function formatDateTime(value: string | null | undefined) {
   }).format(date);
 }
 
-function formatDateOnly(value: string | null | undefined) {
-  const date = parseAppDate(value);
-  if (!date || Number.isNaN(date.getTime())) return "-";
-  return new Intl.DateTimeFormat("en-US", {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  }).format(date);
+function formatTimestamp(value: number) {
+  if (!Number.isFinite(value) || value <= 0) return "-";
+  return formatDateTime(new Date(value).toISOString());
 }
 
 function formatCurrency(amount: number | null | undefined, currency = "usd") {
@@ -105,58 +116,9 @@ function toneClassName(tone: Tone) {
     case "info":
       return "bg-sky-100 text-sky-700";
     case "success":
-      return "bg-emerald-100 text-emerald-700";
+      return "bg-slate-200 text-slate-700";
     default:
       return "bg-slate-100 text-slate-600";
-  }
-}
-
-function bookingStatusTone(status: string | null | undefined): Tone {
-  switch (status) {
-    case "confirmed":
-      return "info";
-    case "cancellation_requested":
-      return "warning";
-    case "completed":
-      return "success";
-    case "pending":
-      return "warning";
-    case "cancelled_by_mentor":
-      return "danger";
-    case "cancelled":
-    case "expired":
-      return "danger";
-    default:
-      return "neutral";
-  }
-}
-
-function paymentStatusTone(status: string | null | undefined): Tone {
-  switch (status) {
-    case "succeeded":
-      return "success";
-    case "refund_pending":
-      return "warning";
-    case "pending":
-      return "warning";
-    case "failed":
-    case "refunded":
-      return "danger";
-    default:
-      return "neutral";
-  }
-}
-
-function payoutStatusTone(status: string | null | undefined): Tone {
-  switch (status) {
-    case "paid":
-      return "success";
-    case "pending":
-      return "warning";
-    case "failed":
-      return "danger";
-    default:
-      return "neutral";
   }
 }
 
@@ -167,16 +129,54 @@ function humanizeToken(value: string | null | undefined) {
     .replace(/\b\w/g, (letter) => letter.toUpperCase());
 }
 
-function searchMatches(value: string, query: string) {
-  return value.toLowerCase().includes(query.toLowerCase());
+function bookingStatusTone(status: string | null | undefined): Tone {
+  switch (status) {
+    case "cancellation_requested":
+    case "pending":
+      return "warning";
+    case "cancelled":
+    case "cancelled_by_mentor":
+    case "expired":
+      return "danger";
+    case "completed":
+      return "neutral";
+    case "confirmed":
+      return "info";
+    default:
+      return "neutral";
+  }
 }
 
-function isReservationMutable(status: string | null | undefined) {
-  return (
-    status === "pending" ||
-    status === "confirmed" ||
-    status === "cancellation_requested"
-  );
+function paymentStatusTone(status: string | null | undefined): Tone {
+  switch (status) {
+    case "pending":
+    case "refund_pending":
+      return "warning";
+    case "failed":
+      return "danger";
+    case "succeeded":
+    case "refunded":
+      return "neutral";
+    default:
+      return "neutral";
+  }
+}
+
+function payoutStatusTone(status: string | null | undefined): Tone {
+  switch (status) {
+    case "pending":
+      return "warning";
+    case "failed":
+      return "danger";
+    case "paid":
+      return "neutral";
+    default:
+      return "neutral";
+  }
+}
+
+function searchMatches(value: string, query: string) {
+  return value.toLowerCase().includes(query.toLowerCase());
 }
 
 function renderFlagBadges(flags: AdminCaseFlag[]) {
@@ -189,6 +189,94 @@ function renderFlagBadges(flags: AdminCaseFlag[]) {
   );
 }
 
+function isPaymentReservationCase(
+  reservation: AdminReservationCase
+): reservation is PaymentReservationCase {
+  return reservation.payment !== null;
+}
+
+function hasPendingCancellationRequest(reservation: AdminReservationCase) {
+  return reservation.changeRequests.some((request) => request.status === "pending");
+}
+
+function hasPayoutPending(reservation: PaymentReservationCase) {
+  return reservation.paymentApprovalEligible;
+}
+
+function hasRefundPending(reservation: PaymentReservationCase) {
+  return reservation.payment.status === "refund_pending";
+}
+
+function isActionRequiredReservation(reservation: AdminReservationCase) {
+  return (
+    hasPendingCancellationRequest(reservation) ||
+    (isPaymentReservationCase(reservation) &&
+      (hasPayoutPending(reservation) || hasRefundPending(reservation)))
+  );
+}
+
+function isLogReservation(reservation: AdminReservationCase) {
+  return (
+    reservation.status === "completed" ||
+    reservation.status === "cancelled" ||
+    reservation.status === "cancelled_by_mentor" ||
+    reservation.payment?.status === "refunded" ||
+    reservation.payout?.status === "paid"
+  );
+}
+
+function getCaseActivityTimestamp(reservation: AdminReservationCase) {
+  return Math.max(
+    getTimestamp(reservation.payment?.refundedAt),
+    getTimestamp(reservation.payment?.paidAt),
+    getTimestamp(reservation.payout?.createdAt),
+    getTimestamp(reservation.startTime),
+    getTimestamp(reservation.createdAt)
+  );
+}
+
+function buildReservationSearchHaystack(reservation: AdminReservationCase) {
+  return [
+    reservation.bookingId,
+    reservation.status,
+    reservation.student.displayName,
+    reservation.student.username,
+    reservation.mentor?.displayName,
+    reservation.mentor?.email,
+    reservation.payment?.status,
+    reservation.payout?.status,
+    ...reservation.changeRequests.flatMap((request) => [
+      request.type,
+      request.status,
+      request.reason,
+      request.requesterDisplayName,
+    ]),
+    ...reservation.flags.map((flag) => flag.label),
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+function buildPaymentSearchHaystack(reservation: PaymentReservationCase) {
+  return [
+    reservation.bookingId,
+    reservation.payment.id,
+    reservation.payment.status,
+    reservation.payout?.status,
+    reservation.student.displayName,
+    reservation.mentor?.displayName,
+    ...reservation.changeRequests.flatMap((request) => [
+      request.type,
+      request.status,
+      request.reason,
+      request.requesterDisplayName,
+    ]),
+    ...reservation.flags.map((flag) => flag.label),
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
 function Badge({ label, tone }: { label: string; tone: Tone }) {
   return (
     <span
@@ -199,6 +287,58 @@ function Badge({ label, tone }: { label: string; tone: Tone }) {
     >
       {label}
     </span>
+  );
+}
+
+function SummaryCard({
+  label,
+  value,
+  description,
+  tone,
+  onClick,
+}: {
+  label: string;
+  value: number;
+  description: string;
+  tone: Tone;
+  onClick?: () => void;
+}) {
+  const content = (
+    <div
+      className={cn(
+        "rounded-2xl border border-[#e5e7eb] bg-white p-5 text-left shadow-sm transition hover:border-[#cfd3e1]",
+        onClick && "cursor-pointer"
+      )}
+    >
+      <Badge label={label} tone={tone} />
+      <p className="mt-4 text-3xl font-semibold text-[#1f1f2d]">{value}</p>
+      <p className="mt-2 text-sm text-[#606579]">{description}</p>
+    </div>
+  );
+
+  if (!onClick) {
+    return content;
+  }
+
+  return (
+    <button type="button" onClick={onClick} className="w-full">
+      {content}
+    </button>
+  );
+}
+
+function EmptyState({
+  title,
+  description,
+}: {
+  title: string;
+  description: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-dashed border-[#d5d7df] bg-[#fcfcfd] px-6 py-10 text-center">
+      <p className="text-sm font-semibold text-[#1f1f2d]">{title}</p>
+      <p className="mt-2 text-sm text-[#606579]">{description}</p>
+    </div>
   );
 }
 
@@ -232,29 +372,78 @@ function DetailRow({
   );
 }
 
+function QueueCard({
+  selected,
+  onSelect,
+  children,
+}: {
+  selected: boolean;
+  onSelect?: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <div
+      role={onSelect ? "button" : undefined}
+      tabIndex={onSelect ? 0 : undefined}
+      onClick={onSelect}
+      onKeyDown={
+        onSelect
+          ? (event) => {
+              if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                onSelect();
+              }
+            }
+          : undefined
+      }
+      className={cn(
+        "rounded-2xl border bg-white p-4 transition",
+        onSelect && "cursor-pointer",
+        selected
+          ? "border-[#1f1f2d] bg-[#f8f8fb]"
+          : "border-[#e5e7eb] hover:border-[#cfd3e1]"
+      )}
+    >
+      {children}
+    </div>
+  );
+}
+
 function ChangeRequestCard({
   request,
   onApprove,
+  processing,
 }: {
   request: AdminBookingChangeRequest;
-  onApprove: (request: AdminBookingChangeRequest) => void;
+  onApprove?: (request: AdminBookingChangeRequest) => void;
+  processing?: boolean;
 }) {
+  const t = useTranslations("admin.operations");
+
   return (
     <div className="rounded-2xl border border-[#e5e7eb] bg-white p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <p className="text-sm font-semibold text-[#1f1f2d]">
-            Cancellation request
+            {t("changeRequest.title")}
           </p>
           <p className="mt-1 text-xs text-[#606579]">
-            Requested by {request.requesterDisplayName}
+            {t("changeRequest.requestedBy", {
+              name: request.requesterDisplayName,
+            })}
             {request.requesterRole ? ` · ${request.requesterRole}` : ""} ·{" "}
             {formatDateTime(request.createdAt)}
           </p>
         </div>
         <Badge
           label={humanizeToken(request.status)}
-          tone={request.status === "approved" ? "success" : request.status === "rejected" ? "danger" : "warning"}
+          tone={
+            request.status === "pending"
+              ? "warning"
+              : request.status === "approved"
+                ? "neutral"
+                : "danger"
+          }
         />
       </div>
 
@@ -264,418 +453,47 @@ function ChangeRequestCard({
 
       {request.reviewNote ? (
         <p className="mt-2 text-xs text-[#606579]">
-          Review note: {request.reviewNote}
+          {t("changeRequest.reviewNote", { note: request.reviewNote })}
         </p>
       ) : null}
 
-      {request.status === "pending" ? (
+      {request.status === "pending" && onApprove ? (
         <div className="mt-4 flex flex-wrap gap-2">
           <button
             type="button"
+            disabled={processing}
             onClick={() => onApprove(request)}
-            className="rounded-lg bg-[#2563eb] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#1d4ed8]"
+            className="rounded-lg bg-[#2563eb] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Approve cancellation
+            {processing
+              ? t("actions.approvingCancellation")
+              : t("actions.approveCancellation")}
           </button>
         </div>
       ) : null}
-    </div>
-  );
-}
-
-function SummaryCard({
-  label,
-  value,
-  tone,
-  onClick,
-}: {
-  label: string;
-  value: number;
-  tone: Tone;
-  onClick?: () => void;
-}) {
-  const content = (
-    <div
-      className={cn(
-        "rounded-2xl border border-[#e5e7eb] bg-white p-5 text-left shadow-sm transition hover:border-[#cfd3e1]",
-        onClick && "cursor-pointer"
-      )}
-    >
-      <Badge label={label} tone={tone} />
-      <p className="mt-4 text-3xl font-semibold text-[#1f1f2d]">{value}</p>
-    </div>
-  );
-
-  if (!onClick) {
-    return content;
-  }
-
-  return (
-    <button type="button" onClick={onClick} className="w-full">
-      {content}
-    </button>
-  );
-}
-
-function EmptyState({
-  title,
-  description,
-}: {
-  title: string;
-  description: string;
-}) {
-  return (
-    <div className="rounded-2xl border border-dashed border-[#d5d7df] bg-[#fcfcfd] px-6 py-10 text-center">
-      <p className="text-sm font-semibold text-[#1f1f2d]">{title}</p>
-      <p className="mt-2 text-sm text-[#606579]">{description}</p>
-    </div>
-  );
-}
-
-function RecentReservationList({
-  reservationIds,
-  reservations,
-  onOpenCase,
-}: {
-  reservationIds: number[];
-  reservations: AdminReservationCase[];
-  onOpenCase: (reservationId: string) => void;
-}) {
-  if (reservationIds.length === 0) {
-    return (
-      <p className="text-sm text-[#606579]">No linked reservation cases yet.</p>
-    );
-  }
-
-  return (
-    <div className="space-y-3">
-      {reservationIds.map((bookingId) => {
-        const reservation = reservations.find(
-          (item) => item.bookingId === bookingId
-        );
-
-        if (!reservation) return null;
-
-        return (
-          <button
-            key={reservation.id}
-            type="button"
-            onClick={() => onOpenCase(reservation.id)}
-            className="flex w-full items-center justify-between rounded-xl border border-[#e5e7eb] bg-white px-4 py-3 text-left hover:border-[#cfd3e1]"
-          >
-            <div>
-              <p className="text-sm font-semibold text-[#1f1f2d]">
-                Booking #{reservation.bookingId}
-              </p>
-              <p className="mt-1 text-xs text-[#606579]">
-                {reservation.student.displayName} x{" "}
-                {reservation.mentor?.displayName ?? "Unknown mentor"}
-              </p>
-              <p className="mt-1 text-xs text-[#606579]">
-                {formatDateTime(reservation.startTime)}
-              </p>
-            </div>
-            <Badge
-              label={humanizeToken(reservation.status)}
-              tone={bookingStatusTone(reservation.status)}
-            />
-          </button>
-        );
-      })}
-    </div>
-  );
-}
-
-function ReservationList({
-  reservations,
-  selectedId,
-  onSelect,
-}: {
-  reservations: AdminReservationCase[];
-  selectedId: string | null;
-  onSelect: (id: string) => void;
-}) {
-  if (reservations.length === 0) {
-    return (
-      <EmptyState
-        title="No reservation cases"
-        description="No reservations match the current filters."
-      />
-    );
-  }
-
-  return (
-    <div className="space-y-3">
-      {reservations.map((reservation) => (
-        <button
-          key={reservation.id}
-          type="button"
-          onClick={() => onSelect(reservation.id)}
-          className={cn(
-            "w-full rounded-2xl border px-4 py-4 text-left transition",
-            selectedId === reservation.id
-              ? "border-[#1f1f2d] bg-[#f8f8fb]"
-              : "border-[#e5e7eb] bg-white hover:border-[#cfd3e1]"
-          )}
-        >
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="text-sm font-semibold text-[#1f1f2d]">
-                Booking #{reservation.bookingId}
-              </p>
-              <p className="mt-1 text-sm text-[#606579]">
-                {reservation.student.displayName} x{" "}
-                {reservation.mentor?.displayName ?? "Unknown mentor"}
-              </p>
-            </div>
-            <Badge
-              label={humanizeToken(reservation.status)}
-              tone={bookingStatusTone(reservation.status)}
-            />
-          </div>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {reservation.payment && (
-              <Badge
-                label={`Payment ${humanizeToken(reservation.payment.status)}`}
-                tone={paymentStatusTone(reservation.payment.status)}
-              />
-            )}
-            {reservation.flags.map((flag) => (
-              <Badge key={flag.type} label={flag.label} tone={flag.tone} />
-            ))}
-          </div>
-          <p className="mt-3 text-xs text-[#606579]">
-            Lesson time: {formatDateTime(reservation.startTime)}
-          </p>
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function UserList({
-  users,
-  selectedId,
-  onSelect,
-}: {
-  users: AdminUserCase[];
-  selectedId: string | null;
-  onSelect: (id: string) => void;
-}) {
-  if (users.length === 0) {
-    return (
-      <EmptyState
-        title="No users found"
-        description="No user accounts match the current filters."
-      />
-    );
-  }
-
-  return (
-    <div className="space-y-3">
-      {users.map((user) => (
-        <button
-          key={user.id}
-          type="button"
-          onClick={() => onSelect(user.id)}
-          className={cn(
-            "w-full rounded-2xl border px-4 py-4 text-left transition",
-            selectedId === user.id
-              ? "border-[#1f1f2d] bg-[#f8f8fb]"
-              : "border-[#e5e7eb] bg-white hover:border-[#cfd3e1]"
-          )}
-        >
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="text-sm font-semibold text-[#1f1f2d]">
-                {user.displayName}
-              </p>
-              <p className="mt-1 text-sm text-[#606579]">
-                @{user.username ?? "unknown"} {user.role ? `· ${user.role}` : ""}
-              </p>
-            </div>
-            <Badge
-              label={user.stateLabel}
-              tone={user.needsAttention ? "warning" : "neutral"}
-            />
-          </div>
-          <p className="mt-3 text-xs text-[#606579]">
-            Reservations {user.counts.totalReservations} · Failed payments{" "}
-            {user.counts.failedPayments} · Last lesson{" "}
-            {formatDateOnly(user.lastReservationAt)}
-          </p>
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function MentorList({
-  mentors,
-  selectedId,
-  onSelect,
-}: {
-  mentors: AdminMentorCase[];
-  selectedId: string | null;
-  onSelect: (id: string) => void;
-}) {
-  if (mentors.length === 0) {
-    return (
-      <EmptyState
-        title="No mentors found"
-        description="No mentor profiles match the current filters."
-      />
-    );
-  }
-
-  return (
-    <div className="space-y-3">
-      {mentors.map((mentor) => (
-        <button
-          key={mentor.id}
-          type="button"
-          onClick={() => onSelect(mentor.id)}
-          className={cn(
-            "w-full rounded-2xl border px-4 py-4 text-left transition",
-            selectedId === mentor.id
-              ? "border-[#1f1f2d] bg-[#f8f8fb]"
-              : "border-[#e5e7eb] bg-white hover:border-[#cfd3e1]"
-          )}
-        >
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div>
-              <p className="text-sm font-semibold text-[#1f1f2d]">
-                {mentor.displayName}
-              </p>
-              <p className="mt-1 text-sm text-[#606579]">{mentor.email}</p>
-            </div>
-            <Badge
-              label={mentor.stateLabel}
-              tone={mentor.needsAttention ? "warning" : "neutral"}
-            />
-          </div>
-          <p className="mt-3 text-xs text-[#606579]">
-            Awaiting payout approval {mentor.counts.awaitingPayoutApproval} ·
-            Payout ready {mentor.stripeOnboardingCompleted ? "Yes" : "No"}
-          </p>
-        </button>
-      ))}
-    </div>
-  );
-}
-
-function PaymentList({
-  reservations,
-  selectedId,
-  onSelect,
-  onApprove,
-}: {
-  reservations: PaymentReservationCase[];
-  selectedId: string | null;
-  onSelect: (id: string) => void;
-  onApprove: (reservation: PaymentReservationCase) => void;
-}) {
-  if (reservations.length === 0) {
-    return (
-      <EmptyState
-        title="No payment records"
-        description="No payment records match the current filters."
-      />
-    );
-  }
-
-  return (
-    <div className="space-y-3">
-      {reservations.map((reservation) => (
-        <div
-          key={reservation.id}
-          onClick={() => onSelect(reservation.id)}
-          onKeyDown={(event) => {
-            if (event.key === "Enter" || event.key === " ") {
-              event.preventDefault();
-              onSelect(reservation.id);
-            }
-          }}
-          role="button"
-          tabIndex={0}
-          className={cn(
-            "w-full rounded-2xl border px-4 py-4 text-left transition",
-            selectedId === reservation.id
-              ? "border-[#1f1f2d] bg-[#f8f8fb]"
-              : "border-[#e5e7eb] bg-white hover:border-[#cfd3e1]"
-          )}
-        >
-          <div className="flex flex-wrap items-start justify-between gap-3">
-            <div>
-              <p className="text-sm font-semibold text-[#1f1f2d]">
-                {formatCurrency(
-                  reservation.payment.amount,
-                  reservation.payment.currency
-                )}
-              </p>
-              <p className="mt-1 text-sm text-[#606579]">
-                {reservation.student.displayName} x{" "}
-                {reservation.mentor?.displayName ?? "Unknown mentor"}
-              </p>
-              <p className="mt-1 text-xs text-[#606579]">
-                Booking #{reservation.bookingId} · {formatDateTime(reservation.startTime)}
-              </p>
-            </div>
-            <div className="flex flex-col items-end gap-2">
-              <Badge
-                label={humanizeToken(reservation.payment.status)}
-                tone={paymentStatusTone(reservation.payment.status)}
-              />
-              {reservation.payout && (
-                <Badge
-                  label={`Payout ${humanizeToken(reservation.payout.status)}`}
-                  tone={payoutStatusTone(reservation.payout.status)}
-                />
-              )}
-            </div>
-          </div>
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            {reservation.flags.map((flag) => (
-              <Badge key={flag.type} label={flag.label} tone={flag.tone} />
-            ))}
-            {reservation.paymentApprovalEligible && (
-              <button
-                type="button"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onApprove(reservation);
-                }}
-                className="rounded-lg bg-[#2563eb] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#1d4ed8]"
-              >
-                Approve payout
-              </button>
-            )}
-          </div>
-        </div>
-      ))}
     </div>
   );
 }
 
 function ReservationDetail({
   reservation,
-  onCancel,
-  onRefund,
   onApproveRequest,
+  processingRequestId,
 }: {
   reservation: AdminReservationCase | null;
-  onCancel: (reservation: AdminReservationCase) => void;
-  onRefund: (reservation: PaymentReservationCase) => void;
-  onApproveRequest: (
+  onApproveRequest?: (
     reservation: AdminReservationCase,
     request: AdminBookingChangeRequest
   ) => void;
+  processingRequestId?: string | null;
 }) {
+  const t = useTranslations("admin.operations");
+
   if (!reservation) {
     return (
       <EmptyState
-        title="Select a reservation"
-        description="Choose a reservation case to inspect student, mentor, payment, and meeting details."
+        title={t("empty.selectCaseTitle")}
+        description={t("empty.selectCaseDescription")}
       />
     );
   }
@@ -685,10 +503,14 @@ function ReservationDetail({
       <div className="rounded-2xl border border-[#e5e7eb] bg-white p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-sm text-[#606579]">Reservation case</p>
+            <p className="text-sm text-[#606579]">{t("detail.reservationCase")}</p>
             <h3 className="mt-1 text-xl font-semibold text-[#1f1f2d]">
-              Booking #{reservation.bookingId}
+              {t("labels.bookingNumber", { id: reservation.bookingId })}
             </h3>
+            <p className="mt-2 text-sm text-[#606579]">
+              {reservation.student.displayName} x{" "}
+              {reservation.mentor?.displayName ?? t("states.unknownMentor")}
+            </p>
           </div>
           <Badge
             label={humanizeToken(reservation.status)}
@@ -696,82 +518,67 @@ function ReservationDetail({
           />
         </div>
         <div className="mt-4 flex flex-wrap gap-2">
-          {reservation.payment && (
+          {reservation.payment ? (
             <Badge
-              label={`Payment ${humanizeToken(reservation.payment.status)}`}
+              label={t("labels.paymentStatusBadge", {
+                status: humanizeToken(reservation.payment.status),
+              })}
               tone={paymentStatusTone(reservation.payment.status)}
             />
-          )}
-          {reservation.payout && (
+          ) : null}
+          {reservation.payout ? (
             <Badge
-              label={`Payout ${humanizeToken(reservation.payout.status)}`}
+              label={t("labels.payoutStatusBadge", {
+                status: humanizeToken(reservation.payout.status),
+              })}
               tone={payoutStatusTone(reservation.payout.status)}
             />
-          )}
+          ) : null}
           {renderFlagBadges(reservation.flags)}
-        </div>
-        <div className="mt-4 flex flex-wrap gap-2">
-          {isReservationMutable(reservation.status) ? (
-            <button
-              type="button"
-              onClick={() => onCancel(reservation)}
-              className="rounded-lg border border-[#fecaca] bg-[#fff1f2] px-3 py-2 text-sm font-medium text-[#be123c] hover:bg-[#ffe4e6]"
-            >
-              Cancel booking
-            </button>
-          ) : null}
-          {isPaymentReservationCase(reservation) &&
-          reservation.payment.status === "succeeded" ? (
-            <button
-              type="button"
-              onClick={() => onRefund(reservation)}
-              className="rounded-lg bg-[#1f1f2d] px-3 py-2 text-sm font-medium text-white hover:bg-[#11111b]"
-            >
-              Refund payment
-            </button>
-          ) : null}
         </div>
       </div>
 
-      <DetailBlock title="Reservation">
+      <DetailBlock title={t("detail.reservation")}>
         <DetailRow
-          label="Lesson time"
+          label={t("detail.lessonTime")}
           value={`${formatDateTime(reservation.startTime)} - ${formatDateTime(
             reservation.endTime
           )}`}
         />
-        <DetailRow label="Created" value={formatDateTime(reservation.createdAt)} />
-        <DetailRow label="Expires" value={formatDateTime(reservation.expiresAt)} />
+        <DetailRow label={t("detail.created")} value={formatDateTime(reservation.createdAt)} />
+        <DetailRow label={t("detail.expires")} value={formatDateTime(reservation.expiresAt)} />
         <DetailRow
-          label="Meeting"
+          label={t("detail.meeting")}
           value={
             reservation.hasMeetingLink
-              ? `${reservation.meetingProvider ?? "Meeting ready"}`
-              : "Not ready"
+              ? reservation.meetingProvider ?? t("states.ready")
+              : t("states.notReady")
           }
         />
       </DetailBlock>
 
-      <DetailBlock title="Student">
-        <DetailRow label="Name" value={reservation.student.displayName} />
+      <DetailBlock title={t("detail.student")}>
+        <DetailRow label={t("detail.name")} value={reservation.student.displayName} />
         <DetailRow
-          label="Handle"
-          value={reservation.student.username ? `@${reservation.student.username}` : "-"}
+          label={t("detail.handle")}
+          value={
+            reservation.student.username ? `@${reservation.student.username}` : "-"
+          }
         />
-        <DetailRow label="Role" value={reservation.student.role ?? "-"} />
-        <DetailRow label="Timezone" value={reservation.student.timezone ?? "-"} />
-        <DetailRow label="Phone" value={reservation.student.phone ?? "-"} />
+        <DetailRow label={t("detail.role")} value={reservation.student.role ?? "-"} />
+        <DetailRow label={t("detail.timezone")} value={reservation.student.timezone ?? "-"} />
+        <DetailRow label={t("detail.phone")} value={reservation.student.phone ?? "-"} />
       </DetailBlock>
 
-      <DetailBlock title="Mentor">
+      <DetailBlock title={t("detail.mentor")}>
         <DetailRow
-          label="Name"
-          value={reservation.mentor?.displayName ?? "Unknown mentor"}
+          label={t("detail.name")}
+          value={reservation.mentor?.displayName ?? t("states.unknownMentor")}
         />
-        <DetailRow label="Email" value={reservation.mentor?.email ?? "-"} />
-        <DetailRow label="Timezone" value={reservation.mentor?.timezone ?? "-"} />
+        <DetailRow label={t("detail.email")} value={reservation.mentor?.email ?? "-"} />
+        <DetailRow label={t("detail.timezone")} value={reservation.mentor?.timezone ?? "-"} />
         <DetailRow
-          label="Hourly rate"
+          label={t("detail.hourlyRate")}
           value={
             reservation.mentor?.hourlyRate != null
               ? `$${reservation.mentor.hourlyRate}/hr`
@@ -779,14 +586,18 @@ function ReservationDetail({
           }
         />
         <DetailRow
-          label="Stripe ready"
-          value={reservation.mentor?.stripeOnboardingCompleted ? "Yes" : "No"}
+          label={t("detail.stripeReady")}
+          value={
+            reservation.mentor?.stripeOnboardingCompleted
+              ? t("states.yes")
+              : t("states.no")
+          }
         />
       </DetailBlock>
 
-      <DetailBlock title="Payment">
+      <DetailBlock title={t("detail.payment")}>
         <DetailRow
-          label="Amount"
+          label={t("detail.amount")}
           value={
             reservation.payment
               ? formatCurrency(
@@ -797,19 +608,18 @@ function ReservationDetail({
           }
         />
         <DetailRow
-          label="Payment status"
-          value={reservation.payment ? humanizeToken(reservation.payment.status) : "-"}
+          label={t("detail.paymentStatus")}
+          value={
+            reservation.payment ? humanizeToken(reservation.payment.status) : "-"
+          }
         />
         <DetailRow
-          label="Payout status"
+          label={t("detail.payoutStatus")}
           value={reservation.payout ? humanizeToken(reservation.payout.status) : "-"}
         />
+        <DetailRow label={t("detail.paidAt")} value={formatDateTime(reservation.payment?.paidAt)} />
         <DetailRow
-          label="Paid at"
-          value={formatDateTime(reservation.payment?.paidAt)}
-        />
-        <DetailRow
-          label="Refund amount"
+          label={t("detail.refundAmount")}
           value={
             reservation.payment?.refundAmount != null
               ? formatCurrency(
@@ -820,193 +630,35 @@ function ReservationDetail({
           }
         />
         <DetailRow
-          label="Refunded at"
+          label={t("detail.refundedAt")}
           value={formatDateTime(reservation.payment?.refundedAt)}
         />
         <DetailRow
-          label="Refund reason"
+          label={t("detail.refundReason")}
           value={reservation.payment?.refundReason ?? "-"}
-        />
-        <DetailRow
-          label="Student email"
-          value={
-            reservation.payment?.studentConfirmationEmailSentAt
-              ? formatDateTime(reservation.payment.studentConfirmationEmailSentAt)
-              : "Not sent"
-          }
-        />
-        <DetailRow
-          label="Mentor email"
-          value={
-            reservation.payment?.mentorBookingEmailSentAt
-              ? formatDateTime(reservation.payment.mentorBookingEmailSentAt)
-              : "Not sent"
-          }
         />
       </DetailBlock>
 
-      <DetailBlock title="Change requests">
+      <DetailBlock title={t("detail.changeRequests")}>
         {reservation.changeRequests.length > 0 ? (
           <div className="space-y-3">
             {reservation.changeRequests.map((request) => (
               <ChangeRequestCard
                 key={request.id}
                 request={request}
-                onApprove={(currentRequest) =>
-                  onApproveRequest(reservation, currentRequest)
+                onApprove={
+                  onApproveRequest
+                    ? (currentRequest) =>
+                        onApproveRequest(reservation, currentRequest)
+                    : undefined
                 }
+                processing={processingRequestId === request.id}
               />
             ))}
           </div>
         ) : (
-          <p className="text-sm text-[#606579]">
-            No cancellation requests yet.
-          </p>
+          <p className="text-sm text-[#606579]">{t("empty.noCancellationRequests")}</p>
         )}
-      </DetailBlock>
-    </div>
-  );
-}
-
-function UserDetail({
-  user,
-  reservations,
-  onOpenCase,
-}: {
-  user: AdminUserCase | null;
-  reservations: AdminReservationCase[];
-  onOpenCase: (reservationId: string) => void;
-}) {
-  if (!user) {
-    return (
-      <EmptyState
-        title="Select a user"
-        description="Choose a user to inspect account health, booking history, and linked cases."
-      />
-    );
-  }
-
-  return (
-    <div className="space-y-4">
-      <div className="rounded-2xl border border-[#e5e7eb] bg-white p-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-sm text-[#606579]">User account</p>
-            <h3 className="mt-1 text-xl font-semibold text-[#1f1f2d]">
-              {user.displayName}
-            </h3>
-          </div>
-          <Badge
-            label={user.stateLabel}
-            tone={user.needsAttention ? "warning" : "neutral"}
-          />
-        </div>
-      </div>
-
-      <DetailBlock title="Profile">
-        <DetailRow label="Handle" value={user.username ? `@${user.username}` : "-"} />
-        <DetailRow label="Role" value={user.role ?? "-"} />
-        <DetailRow label="Timezone" value={user.timezone ?? "-"} />
-        <DetailRow label="Phone" value={user.phone ?? "-"} />
-        <DetailRow label="Joined" value={formatDateOnly(user.createdAt)} />
-        <DetailRow
-          label="Linked mentor profile"
-          value={user.hasMentorProfile ? "Yes" : "No"}
-        />
-      </DetailBlock>
-
-      <DetailBlock title="Activity">
-        <DetailRow label="Reservations" value={user.counts.totalReservations} />
-        <DetailRow label="Pending" value={user.counts.pendingReservations} />
-        <DetailRow label="Upcoming" value={user.counts.confirmedReservations} />
-        <DetailRow label="Completed" value={user.counts.completedReservations} />
-        <DetailRow label="Failed payments" value={user.counts.failedPayments} />
-        <DetailRow label="Refunded payments" value={user.counts.refundedPayments} />
-      </DetailBlock>
-
-      <DetailBlock title="Recent reservation cases">
-        <RecentReservationList
-          reservationIds={user.recentReservationIds}
-          reservations={reservations}
-          onOpenCase={onOpenCase}
-        />
-      </DetailBlock>
-    </div>
-  );
-}
-
-function MentorDetail({
-  mentor,
-  reservations,
-  onOpenCase,
-}: {
-  mentor: AdminMentorCase | null;
-  reservations: AdminReservationCase[];
-  onOpenCase: (reservationId: string) => void;
-}) {
-  if (!mentor) {
-    return (
-      <EmptyState
-        title="Select a mentor"
-        description="Choose a mentor to inspect payout readiness, lesson load, and linked cases."
-      />
-    );
-  }
-
-  return (
-    <div className="space-y-4">
-      <div className="rounded-2xl border border-[#e5e7eb] bg-white p-5">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          <div>
-            <p className="text-sm text-[#606579]">Mentor operations</p>
-            <h3 className="mt-1 text-xl font-semibold text-[#1f1f2d]">
-              {mentor.displayName}
-            </h3>
-          </div>
-          <Badge
-            label={mentor.stateLabel}
-            tone={mentor.needsAttention ? "warning" : "neutral"}
-          />
-        </div>
-      </div>
-
-      <DetailBlock title="Mentor profile">
-        <DetailRow label="Email" value={mentor.email ?? "-"} />
-        <DetailRow label="Timezone" value={mentor.timezone ?? "-"} />
-        <DetailRow label="Phone" value={mentor.phone ?? "-"} />
-        <DetailRow
-          label="Hourly rate"
-          value={mentor.hourlyRate != null ? `$${mentor.hourlyRate}/hr` : "-"}
-        />
-        <DetailRow
-          label="Stripe ready"
-          value={mentor.stripeOnboardingCompleted ? "Yes" : "No"}
-        />
-        <DetailRow
-          label="Stripe account"
-          value={mentor.stripeAccountId ?? "Not connected"}
-        />
-      </DetailBlock>
-
-      <DetailBlock title="Operations load">
-        <DetailRow label="Reservations" value={mentor.counts.totalReservations} />
-        <DetailRow label="Pending" value={mentor.counts.pendingReservations} />
-        <DetailRow label="Upcoming" value={mentor.counts.confirmedReservations} />
-        <DetailRow label="Completed" value={mentor.counts.completedReservations} />
-        <DetailRow
-          label="Awaiting payout approval"
-          value={mentor.counts.awaitingPayoutApproval}
-        />
-        <DetailRow label="Paid payouts" value={mentor.counts.paidPayouts} />
-        <DetailRow label="Failed payouts" value={mentor.counts.failedPayouts} />
-      </DetailBlock>
-
-      <DetailBlock title="Recent reservation cases">
-        <RecentReservationList
-          reservationIds={mentor.recentReservationIds}
-          reservations={reservations}
-          onOpenCase={onOpenCase}
-        />
       </DetailBlock>
     </div>
   );
@@ -1014,33 +666,40 @@ function MentorDetail({
 
 function PaymentDetail({
   reservation,
-  onApprove,
-  onRefund,
+  onApprovePayout,
+  onRefundPayment,
   onApproveRequest,
+  processingKey,
 }: {
   reservation: PaymentReservationCase | null;
-  onApprove: (reservation: PaymentReservationCase) => void;
-  onRefund: (reservation: PaymentReservationCase) => void;
-  onApproveRequest: (
+  onApprovePayout?: (reservation: PaymentReservationCase) => void;
+  onRefundPayment?: (reservation: PaymentReservationCase) => void;
+  onApproveRequest?: (
     reservation: AdminReservationCase,
     request: AdminBookingChangeRequest
   ) => void;
+  processingKey?: string | null;
 }) {
+  const t = useTranslations("admin.operations");
+
   if (!reservation) {
     return (
       <EmptyState
-        title="Select a payment"
-        description="Choose a payment to inspect payout status and operational follow-up details."
+        title={t("empty.selectPaymentTitle")}
+        description={t("empty.selectPaymentDescription")}
       />
     );
   }
+
+  const payoutProcessing = processingKey === `payout:${reservation.payment.id}`;
+  const refundProcessing = processingKey === `refund:${reservation.payment.id}`;
 
   return (
     <div className="space-y-4">
       <div className="rounded-2xl border border-[#e5e7eb] bg-white p-5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
-            <p className="text-sm text-[#606579]">Payment case</p>
+            <p className="text-sm text-[#606579]">{t("detail.paymentCase")}</p>
             <h3 className="mt-1 text-xl font-semibold text-[#1f1f2d]">
               {formatCurrency(
                 reservation.payment.amount,
@@ -1048,8 +707,9 @@ function PaymentDetail({
               )}
             </h3>
             <p className="mt-2 text-sm text-[#606579]">
-              Booking #{reservation.bookingId} · {reservation.student.displayName} x{" "}
-              {reservation.mentor?.displayName ?? "Unknown mentor"}
+              {t("labels.bookingNumber", { id: reservation.bookingId })} ·{" "}
+              {reservation.student.displayName} x{" "}
+              {reservation.mentor?.displayName ?? t("states.unknownMentor")}
             </p>
           </div>
           <div className="flex flex-col items-end gap-2">
@@ -1057,44 +717,53 @@ function PaymentDetail({
               label={humanizeToken(reservation.payment.status)}
               tone={paymentStatusTone(reservation.payment.status)}
             />
-            {reservation.payout && (
+            {reservation.payout ? (
               <Badge
-                label={`Payout ${humanizeToken(reservation.payout.status)}`}
+                label={t("labels.payoutStatusBadge", {
+                  status: humanizeToken(reservation.payout.status),
+                })}
                 tone={payoutStatusTone(reservation.payout.status)}
               />
-            )}
+            ) : null}
           </div>
         </div>
 
-        {reservation.paymentApprovalEligible && (
-          <button
-            type="button"
-            onClick={() => onApprove(reservation)}
-            className="mt-4 rounded-xl bg-[#2563eb] px-4 py-2 text-sm font-medium text-white hover:bg-[#1d4ed8]"
+        <div className="mt-4 flex flex-wrap gap-2">
+          {reservation.paymentApprovalEligible && onApprovePayout ? (
+            <button
+              type="button"
+              disabled={payoutProcessing}
+            onClick={() => onApprovePayout(reservation)}
+            className="rounded-xl bg-[#2563eb] px-4 py-2 text-sm font-medium text-white hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Approve payout
-          </button>
-        )}
-
-        {reservation.payment.status === "succeeded" ? (
-          <button
-            type="button"
-            onClick={() => onRefund(reservation)}
-            className="mt-4 ml-3 rounded-xl border border-[#d5d7df] px-4 py-2 text-sm font-medium text-[#1f1f2d] hover:bg-[#f8f8fb]"
+              {payoutProcessing
+                ? t("actions.approvingPayout")
+                : t("actions.approvePayout")}
+            </button>
+          ) : null}
+          {reservation.payment.status === "succeeded" && onRefundPayment ? (
+            <button
+              type="button"
+              disabled={refundProcessing}
+            onClick={() => onRefundPayment(reservation)}
+            className="rounded-xl border border-[#d5d7df] px-4 py-2 text-sm font-medium text-[#1f1f2d] hover:bg-[#f8f8fb] disabled:cursor-not-allowed disabled:opacity-60"
           >
-            Refund payment
-          </button>
-        ) : null}
+              {refundProcessing
+                ? t("actions.refundingPayment")
+                : t("actions.refundPayment")}
+            </button>
+          ) : null}
+        </div>
       </div>
 
-      <DetailBlock title="Payment">
+      <DetailBlock title={t("detail.payment")}>
         <DetailRow
-          label="Created"
+          label={t("detail.created")}
           value={formatDateTime(reservation.payment.createdAt)}
         />
-        <DetailRow label="Paid at" value={formatDateTime(reservation.payment.paidAt)} />
+        <DetailRow label={t("detail.paidAt")} value={formatDateTime(reservation.payment.paidAt)} />
         <DetailRow
-          label="Refund amount"
+          label={t("detail.refundAmount")}
           value={
             reservation.payment.refundAmount != null
               ? formatCurrency(
@@ -1105,102 +774,476 @@ function PaymentDetail({
           }
         />
         <DetailRow
-          label="Refunded at"
+          label={t("detail.refundedAt")}
           value={formatDateTime(reservation.payment.refundedAt)}
         />
         <DetailRow
-          label="Refund reason"
+          label={t("detail.refundReason")}
           value={reservation.payment.refundReason ?? "-"}
         />
         <DetailRow
-          label="Student confirmation email"
+          label={t("detail.studentConfirmationEmail")}
           value={
             reservation.payment.studentConfirmationEmailSentAt
               ? formatDateTime(reservation.payment.studentConfirmationEmailSentAt)
-              : "Not sent"
+              : t("states.notSent")
           }
         />
         <DetailRow
-          label="Mentor booking email"
+          label={t("detail.mentorBookingEmail")}
           value={
             reservation.payment.mentorBookingEmailSentAt
               ? formatDateTime(reservation.payment.mentorBookingEmailSentAt)
-              : "Not sent"
+              : t("states.notSent")
           }
         />
       </DetailBlock>
 
-      <DetailBlock title="Reservation">
-        <DetailRow label="Status" value={humanizeToken(reservation.status)} />
-        <DetailRow label="Lesson time" value={formatDateTime(reservation.startTime)} />
+      <DetailBlock title={t("detail.reservation")}>
+        <DetailRow label={t("detail.status")} value={humanizeToken(reservation.status)} />
+        <DetailRow label={t("detail.lessonTime")} value={formatDateTime(reservation.startTime)} />
         <DetailRow
-          label="Meeting status"
-          value={reservation.hasMeetingLink ? "Ready" : "Not ready"}
+          label={t("detail.meetingStatus")}
+          value={reservation.hasMeetingLink ? t("states.ready") : t("states.notReady")}
         />
         <DetailRow
-          label="Meeting provider"
+          label={t("detail.meetingProvider")}
           value={reservation.meetingProvider ?? "-"}
         />
       </DetailBlock>
 
-      <DetailBlock title="Case flags">
+      <DetailBlock title={t("detail.caseFlags")}>
         {reservation.flags.length > 0 ? (
-          renderFlagBadges(reservation.flags)
+          <div className="flex flex-wrap gap-2">{renderFlagBadges(reservation.flags)}</div>
         ) : (
-          <p className="text-sm text-[#606579]">No open flags on this payment.</p>
+          <p className="text-sm text-[#606579]">{t("empty.noCaseFlags")}</p>
         )}
       </DetailBlock>
 
-      <DetailBlock title="Change requests">
+      <DetailBlock title={t("detail.changeRequests")}>
         {reservation.changeRequests.length > 0 ? (
           <div className="space-y-3">
             {reservation.changeRequests.map((request) => (
               <ChangeRequestCard
                 key={request.id}
                 request={request}
-                onApprove={(currentRequest) =>
-                  onApproveRequest(reservation, currentRequest)
+                onApprove={
+                  onApproveRequest
+                    ? (currentRequest) =>
+                        onApproveRequest(reservation, currentRequest)
+                    : undefined
                 }
+                processing={processingKey === `approve_request:${request.id}`}
               />
             ))}
           </div>
         ) : (
-          <p className="text-sm text-[#606579]">
-            No cancellation requests yet.
-          </p>
+          <p className="text-sm text-[#606579]">{t("empty.noCancellationRequests")}</p>
         )}
       </DetailBlock>
     </div>
   );
 }
 
+function ActionRequiredQueue({
+  title,
+  count,
+  description,
+  children,
+}: {
+  title: string;
+  count: number;
+  description: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className="space-y-3">
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <h3 className="text-base font-semibold text-[#1f1f2d]">
+            {title} ({count})
+          </h3>
+          <p className="mt-1 text-sm text-[#606579]">{description}</p>
+        </div>
+      </div>
+      {children}
+    </section>
+  );
+}
+
+function ActionRequiredCard({
+  reservation,
+  title,
+  secondary,
+  body,
+  badges,
+  selected,
+  processing,
+  actionLabel,
+  onSelect,
+  onAction,
+}: {
+  reservation: AdminReservationCase;
+  title: string;
+  secondary: string;
+  body: ReactNode;
+  badges?: ReactNode;
+  selected: boolean;
+  processing: boolean;
+  actionLabel: string;
+  onSelect: () => void;
+  onAction: () => void;
+}) {
+  const t = useTranslations("admin.operations");
+
+  return (
+    <QueueCard selected={selected} onSelect={onSelect}>
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="text-sm font-semibold text-[#1f1f2d]">{title}</p>
+          <p className="mt-1 text-sm text-[#606579]">{secondary}</p>
+          <p className="mt-1 text-xs text-[#606579]">
+            {t("labels.lessonAt", {
+              dateTime: formatDateTime(reservation.startTime),
+            })}
+          </p>
+        </div>
+        <Badge
+          label={humanizeToken(reservation.status)}
+          tone={bookingStatusTone(reservation.status)}
+        />
+      </div>
+      <div className="mt-3 text-sm text-[#1f1f2d]">{body}</div>
+      {badges ? <div className="mt-3 flex flex-wrap gap-2">{badges}</div> : null}
+      <div className="mt-4">
+        <button
+          type="button"
+          disabled={processing}
+          onClick={(event) => {
+            event.stopPropagation();
+            onAction();
+          }}
+          className="rounded-lg bg-[#2563eb] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          {processing ? t("actions.processing") : actionLabel}
+        </button>
+      </div>
+    </QueueCard>
+  );
+}
+
+function PaymentList({
+  reservations,
+  selectedId,
+  processingKey,
+  onSelect,
+  onApprovePayout,
+}: {
+  reservations: PaymentReservationCase[];
+  selectedId: string | null;
+  processingKey: string | null;
+  onSelect: (id: string) => void;
+  onApprovePayout: (reservation: PaymentReservationCase) => void;
+}) {
+  const t = useTranslations("admin.operations");
+
+  if (reservations.length === 0) {
+    return (
+      <EmptyState
+        title={t("empty.noPaymentRecordsTitle")}
+        description={t("empty.noPaymentRecordsDescription")}
+      />
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {reservations.map((reservation) => {
+        const payoutProcessing = processingKey === `payout:${reservation.payment.id}`;
+
+        return (
+          <QueueCard
+            key={reservation.id}
+            selected={selectedId === reservation.id}
+            onSelect={() => onSelect(reservation.id)}
+          >
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-[#1f1f2d]">
+                  {t("labels.bookingNumber", { id: reservation.bookingId })}
+                </p>
+                <p className="mt-1 text-sm text-[#606579]">
+                  {formatCurrency(
+                    reservation.payment.amount,
+                    reservation.payment.currency
+                  )}
+                </p>
+                <p className="mt-1 text-xs text-[#606579]">
+                  {reservation.student.displayName} x{" "}
+                  {reservation.mentor?.displayName ?? t("states.unknownMentor")}
+                </p>
+                <p className="mt-1 text-xs text-[#606579]">
+                  {formatDateTime(reservation.startTime)}
+                </p>
+              </div>
+              <div className="flex flex-col items-end gap-2">
+                <Badge
+                  label={humanizeToken(reservation.payment.status)}
+                  tone={paymentStatusTone(reservation.payment.status)}
+                />
+                {reservation.payout ? (
+                  <Badge
+                    label={t("labels.payoutStatusBadge", {
+                      status: humanizeToken(reservation.payout.status),
+                    })}
+                    tone={payoutStatusTone(reservation.payout.status)}
+                  />
+                ) : null}
+              </div>
+            </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {renderFlagBadges(reservation.flags)}
+            </div>
+            {reservation.paymentApprovalEligible ? (
+              <div className="mt-4">
+                <button
+                  type="button"
+                  disabled={payoutProcessing}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onApprovePayout(reservation);
+                  }}
+                  className="rounded-lg bg-[#2563eb] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {payoutProcessing
+                    ? t("actions.approvingPayout")
+                    : t("actions.approvePayout")}
+                </button>
+              </div>
+            ) : null}
+          </QueueCard>
+        );
+      })}
+    </div>
+  );
+}
+
+function LogList({
+  reservations,
+  selectedId,
+  onSelect,
+}: {
+  reservations: AdminReservationCase[];
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+}) {
+  const t = useTranslations("admin.operations");
+
+  if (reservations.length === 0) {
+    return (
+      <EmptyState
+        title={t("empty.noProcessedLogsTitle")}
+        description={t("empty.noProcessedLogsDescription")}
+      />
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {reservations.map((reservation) => (
+        <QueueCard
+          key={reservation.id}
+          selected={selectedId === reservation.id}
+          onSelect={() => onSelect(reservation.id)}
+        >
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-semibold text-[#1f1f2d]">
+                {t("labels.bookingNumber", { id: reservation.bookingId })}
+              </p>
+              <p className="mt-1 text-sm text-[#606579]">
+                {reservation.student.displayName} x{" "}
+                {reservation.mentor?.displayName ?? t("states.unknownMentor")}
+              </p>
+              <p className="mt-1 text-xs text-[#606579]">
+                {t("labels.lessonAt", {
+                  dateTime: formatDateTime(reservation.startTime),
+                })}
+              </p>
+              <p className="mt-1 text-xs text-[#606579]">
+                {t("labels.activityAt", {
+                  dateTime: formatTimestamp(getCaseActivityTimestamp(reservation)),
+                })}
+              </p>
+            </div>
+            <div className="flex flex-col items-end gap-2">
+              <Badge
+                label={humanizeToken(reservation.status)}
+                tone={bookingStatusTone(reservation.status)}
+              />
+              {reservation.payment ? (
+                <Badge
+                  label={t("labels.paymentStatusBadge", {
+                    status: humanizeToken(reservation.payment.status),
+                  })}
+                  tone={paymentStatusTone(reservation.payment.status)}
+                />
+              ) : null}
+            </div>
+          </div>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {renderFlagBadges(reservation.flags)}
+          </div>
+        </QueueCard>
+      ))}
+    </div>
+  );
+}
+
+function OverviewPanel({
+  summary,
+  cancellationRequestItems,
+  payoutApprovalItems,
+  refundPendingCount,
+  processedLogsCount,
+  onOpenActionRequired,
+  onOpenPayments,
+  onOpenLogs,
+}: {
+  summary: AdminOperationsResponse["summary"];
+  cancellationRequestItems: CancellationActionItem[];
+  payoutApprovalItems: PaymentReservationCase[];
+  refundPendingCount: number;
+  processedLogsCount: number;
+  onOpenActionRequired: (focus: ActionRequiredFocus) => void;
+  onOpenPayments: (filter: PaymentViewFilter) => void;
+  onOpenLogs: () => void;
+}) {
+  const t = useTranslations("admin.operations");
+
+  return (
+    <div className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(320px,0.85fr)]">
+      <div className="space-y-6">
+        <section className="rounded-2xl border border-[#e5e7eb] bg-white p-5">
+          <h2 className="text-lg font-semibold text-[#1f1f2d]">
+            {t("overview.snapshotTitle")}
+          </h2>
+          <p className="mt-2 text-sm text-[#606579]">
+            {t("overview.snapshotDescription")}
+          </p>
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
+            <SummaryCard
+              label={t("overview.cancellationRequestsLabel")}
+              value={cancellationRequestItems.length}
+              description={t("overview.cancellationRequestsDescription")}
+              tone="danger"
+              onClick={() => onOpenActionRequired("cancellation_requests")}
+            />
+            <SummaryCard
+              label={t("overview.payoutApprovalsLabel")}
+              value={payoutApprovalItems.length}
+              description={t("overview.payoutApprovalsDescription")}
+              tone="warning"
+              onClick={() => onOpenActionRequired("payout_approvals")}
+            />
+          </div>
+        </section>
+
+        <section className="rounded-2xl border border-[#e5e7eb] bg-white p-5">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <h3 className="text-base font-semibold text-[#1f1f2d]">
+                {t("overview.nextTitle")}
+              </h3>
+              <p className="mt-1 text-sm text-[#606579]">
+                {t("overview.nextDescription")}
+              </p>
+            </div>
+          </div>
+          <div className="mt-4 space-y-3">
+            <button
+              type="button"
+              onClick={() => onOpenPayments("refund_pending")}
+              className="flex w-full items-center justify-between rounded-xl border border-[#e5e7eb] bg-[#fcfcfd] px-4 py-3 text-left hover:border-[#cfd3e1]"
+            >
+              <div>
+                <p className="text-sm font-semibold text-[#1f1f2d]">
+                  {t("overview.refundPendingTitle")}
+                </p>
+                <p className="mt-1 text-xs text-[#606579]">
+                  {t("overview.refundPendingDescription")}
+                </p>
+              </div>
+              <Badge label={String(refundPendingCount)} tone="warning" />
+            </button>
+
+            <button
+              type="button"
+              onClick={onOpenLogs}
+              className="flex w-full items-center justify-between rounded-xl border border-[#e5e7eb] bg-[#fcfcfd] px-4 py-3 text-left hover:border-[#cfd3e1]"
+            >
+              <div>
+                <p className="text-sm font-semibold text-[#1f1f2d]">
+                  {t("overview.processedLogsTitle")}
+                </p>
+                <p className="mt-1 text-xs text-[#606579]">
+                  {t("overview.processedLogsDescription")}
+                </p>
+              </div>
+              <Badge label={String(processedLogsCount)} tone="neutral" />
+            </button>
+          </div>
+        </section>
+      </div>
+
+      <div className="space-y-4">
+        <SummaryCard
+          label={t("overview.usersNeedAttentionLabel")}
+          value={summary.usersNeedingAttention}
+          description={t("overview.usersNeedAttentionDescription")}
+          tone="warning"
+        />
+        <SummaryCard
+          label={t("overview.mentorsNeedAttentionLabel")}
+          value={summary.mentorsNeedingAttention}
+          description={t("overview.mentorsNeedAttentionDescription")}
+          tone="warning"
+        />
+        <SummaryCard
+          label={t("overview.paymentFailuresLabel")}
+          value={summary.paymentFailures}
+          description={t("overview.paymentFailuresDescription")}
+          tone="danger"
+        />
+      </div>
+    </div>
+  );
+}
+
 export function AdminOperationsConsole({
-  defaultTab = "reservations",
+  defaultTab = "overview",
 }: {
   defaultTab?: AdminTab;
 }) {
   const router = useRouter();
+  const t = useTranslations("admin.operations");
   const [data, setData] = useState<AdminOperationsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<AdminTab>(defaultTab);
   const [query, setQuery] = useState("");
-  const [attentionOnly, setAttentionOnly] = useState(false);
-  const [confirmTarget, setConfirmTarget] =
-    useState<PaymentReservationCase | null>(null);
-  const [releasing, setReleasing] = useState(false);
-  const [selectedReservationId, setSelectedReservationId] = useState<string | null>(
-    null
-  );
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
-  const [selectedMentorId, setSelectedMentorId] = useState<string | null>(null);
+  const [actionRequiredFocus, setActionRequiredFocus] =
+    useState<ActionRequiredFocus>("all");
+  const [paymentFilter, setPaymentFilter] =
+    useState<PaymentViewFilter>("action_required");
+  const [processingKey, setProcessingKey] = useState<string | null>(null);
+  const [selectedActionReservationId, setSelectedActionReservationId] = useState<
+    string | null
+  >(null);
   const [selectedPaymentId, setSelectedPaymentId] = useState<string | null>(null);
-  const [actionTarget, setActionTarget] = useState<ReservationActionTarget | null>(
-    null
-  );
-  const [actionNote, setActionNote] = useState("");
-  const [refundOnCancel, setRefundOnCancel] = useState(true);
-  const [processingAction, setProcessingAction] = useState(false);
+  const [selectedLogReservationId, setSelectedLogReservationId] = useState<
+    string | null
+  >(null);
 
   async function fetchDashboard() {
     try {
@@ -1215,13 +1258,13 @@ export function AdminOperationsConsole({
       }
 
       if (!response.ok) {
-        throw new Error("Failed to fetch admin operations");
+        throw new Error(t("errors.fetch"));
       }
 
       const payload = (await response.json()) as AdminOperationsResponse;
       setData(payload);
     } catch {
-      setError("Failed to load admin operations data.");
+      setError(t("errors.load"));
     } finally {
       setLoading(false);
     }
@@ -1233,104 +1276,135 @@ export function AdminOperationsConsole({
   }, []);
 
   const reservations = data?.reservations ?? [];
-  const users = data?.users ?? [];
-  const mentors = data?.mentors ?? [];
   const paymentCases = reservations.filter(isPaymentReservationCase);
 
-  const filteredReservations = reservations.filter((reservation) => {
-    if (attentionOnly && !reservation.needsAttention) return false;
-    if (!query) return true;
+  const cancellationRequestItems = useMemo(() => {
+    return reservations
+      .flatMap((reservation) =>
+        reservation.changeRequests
+          .filter((request) => request.status === "pending")
+          .map((request) => ({ reservation, request }))
+      )
+      .sort(
+        (left, right) =>
+          getTimestamp(right.request.createdAt) -
+          getTimestamp(left.request.createdAt)
+      );
+  }, [reservations]);
 
-    const haystack = [
-      reservation.bookingId,
-      reservation.status,
-      reservation.student.displayName,
-      reservation.student.username,
-      reservation.mentor?.displayName,
-      reservation.mentor?.email,
-      reservation.payment?.status,
-      reservation.payout?.status,
-      ...reservation.changeRequests.flatMap((request) => [
-        request.type,
-        request.status,
-        request.reason,
-        request.requesterDisplayName,
-      ]),
-      ...reservation.flags.map((flag) => flag.label),
-    ]
-      .filter(Boolean)
-      .join(" ");
+  const payoutApprovalItems = useMemo(() => {
+    return paymentCases
+      .filter((reservation) => reservation.paymentApprovalEligible)
+      .sort(
+        (left, right) =>
+          getTimestamp(right.payment.paidAt ?? right.payment.createdAt) -
+          getTimestamp(left.payment.paidAt ?? left.payment.createdAt)
+      );
+  }, [paymentCases]);
 
-    return searchMatches(haystack, query);
-  });
+  const refundPendingItems = useMemo(() => {
+    return paymentCases.filter((reservation) => hasRefundPending(reservation));
+  }, [paymentCases]);
 
-  const filteredUsers = users.filter((user) => {
-    if (attentionOnly && !user.needsAttention) return false;
-    if (!query) return true;
+  const filteredPayments = useMemo(() => {
+    const base =
+      paymentFilter === "all"
+        ? paymentCases
+        : paymentFilter === "cancellation_pending"
+          ? paymentCases.filter((reservation) =>
+              hasPendingCancellationRequest(reservation)
+            )
+          : paymentFilter === "payout_pending"
+            ? paymentCases.filter((reservation) => hasPayoutPending(reservation))
+            : paymentFilter === "refund_pending"
+              ? refundPendingItems
+              : paymentCases.filter((reservation) =>
+                  isActionRequiredReservation(reservation)
+                );
 
-    const haystack = [
-      user.displayName,
-      user.username,
-      user.role,
-      user.stateLabel,
-    ]
-      .filter(Boolean)
-      .join(" ");
+    if (!query) {
+      return base;
+    }
 
-    return searchMatches(haystack, query);
-  });
+    return base.filter((reservation) =>
+      searchMatches(buildPaymentSearchHaystack(reservation), query)
+    );
+  }, [paymentCases, paymentFilter, query, refundPendingItems]);
 
-  const filteredMentors = mentors.filter((mentor) => {
-    if (attentionOnly && !mentor.needsAttention) return false;
-    if (!query) return true;
+  const filteredLogs = useMemo(() => {
+    const base = reservations
+      .filter((reservation) => isLogReservation(reservation))
+      .sort(
+        (left, right) =>
+          getCaseActivityTimestamp(right) - getCaseActivityTimestamp(left)
+      );
 
-    const haystack = [
-      mentor.displayName,
-      mentor.email,
-      mentor.stateLabel,
-      mentor.stripeAccountId,
-    ]
-      .filter(Boolean)
-      .join(" ");
+    if (!query) {
+      return base;
+    }
 
-    return searchMatches(haystack, query);
-  });
+    return base.filter((reservation) =>
+      searchMatches(buildReservationSearchHaystack(reservation), query)
+    );
+  }, [query, reservations]);
 
-  const filteredPayments = paymentCases.filter((reservation) => {
-    if (attentionOnly && !reservation.needsAttention) return false;
-    if (!query) return true;
+  const visibleCancellationItems = useMemo(() => {
+    if (!query) {
+      return cancellationRequestItems;
+    }
 
-    const haystack = [
-      reservation.bookingId,
-      reservation.payment.id,
-      reservation.payment.status,
-      reservation.payout?.status,
-      reservation.student.displayName,
-      reservation.mentor?.displayName,
-      ...reservation.changeRequests.flatMap((request) => [
-        request.type,
-        request.status,
-        request.reason,
-        request.requesterDisplayName,
-      ]),
-      ...reservation.flags.map((flag) => flag.label),
-    ]
-      .filter(Boolean)
-      .join(" ");
+    return cancellationRequestItems.filter(({ reservation, request }) =>
+      searchMatches(
+        [
+          buildReservationSearchHaystack(reservation),
+          request.reason,
+          request.requesterDisplayName,
+        ]
+          .filter(Boolean)
+          .join(" "),
+        query
+      )
+    );
+  }, [cancellationRequestItems, query]);
 
-    return searchMatches(haystack, query);
-  });
+  const visiblePayoutItems = useMemo(() => {
+    if (!query) {
+      return payoutApprovalItems;
+    }
 
-  const selectedReservation = pickSelectedItem(
-    filteredReservations,
-    selectedReservationId
+    return payoutApprovalItems.filter((reservation) =>
+      searchMatches(buildPaymentSearchHaystack(reservation), query)
+    );
+  }, [payoutApprovalItems, query]);
+
+  const visibleActionRequiredReservations = useMemo(() => {
+    const pool =
+      actionRequiredFocus === "cancellation_requests"
+        ? visibleCancellationItems.map((item) => item.reservation)
+        : actionRequiredFocus === "payout_approvals"
+          ? visiblePayoutItems
+          : [
+              ...visibleCancellationItems.map((item) => item.reservation),
+              ...visiblePayoutItems,
+            ];
+
+    return [...new Map(pool.map((reservation) => [reservation.id, reservation])).values()];
+  }, [actionRequiredFocus, visibleCancellationItems, visiblePayoutItems]);
+
+  const selectedActionReservation = pickSelectedItem(
+    visibleActionRequiredReservations,
+    selectedActionReservationId
   );
-  const selectedUser = pickSelectedItem(filteredUsers, selectedUserId);
-  const selectedMentor = pickSelectedItem(filteredMentors, selectedMentorId);
   const selectedPayment = pickSelectedItem(filteredPayments, selectedPaymentId);
+  const selectedLogReservation = pickSelectedItem(
+    filteredLogs,
+    selectedLogReservationId
+  );
 
-  async function handleRelease(reservation: PaymentReservationCase) {
-    setReleasing(true);
+  async function handleApprovePayout(reservation: PaymentReservationCase) {
+    const key = `payout:${reservation.payment.id}`;
+    setProcessingKey(key);
+
     try {
       const response = await fetch("/api/stripe/payouts/release", {
         method: "POST",
@@ -1340,117 +1414,113 @@ export function AdminOperationsConsole({
 
       if (!response.ok) {
         const payload = (await response.json()) as { error?: string };
-        window.alert(payload.error || "Failed to release the payout.");
+        window.alert(payload.error || t("alerts.approvePayoutFailed"));
         return;
       }
 
-      setConfirmTarget(null);
       await fetchDashboard();
     } catch {
-      window.alert("Failed to release the payout.");
+      window.alert(t("alerts.approvePayoutFailed"));
     } finally {
-      setReleasing(false);
+      setProcessingKey(null);
     }
   }
 
-  function handleOpenReservationCase(reservationId: string) {
-    setActiveTab("reservations");
-    setSelectedReservationId(reservationId);
-  }
-
-  function openCancelAction(reservation: AdminReservationCase) {
-    setActionTarget({ kind: "cancel", reservation });
-    setActionNote("");
-    setRefundOnCancel(reservation.payment?.status === "succeeded");
-  }
-
-  function openRefundAction(reservation: PaymentReservationCase) {
-    setActionTarget({ kind: "refund", reservation });
-    setActionNote("");
-  }
-
-  function openApproveRequestAction(
+  async function handleApproveCancellation(
     reservation: AdminReservationCase,
     request: AdminBookingChangeRequest
   ) {
-    setActionTarget({ kind: "approve_request", reservation, request });
-    setActionNote("");
-    setRefundOnCancel(
-      request.type === "cancel" &&
-        reservation.payment?.status === "succeeded"
-    );
-  }
-
-  function closeActionDialog() {
-    if (processingAction) return;
-    setActionTarget(null);
-    setActionNote("");
-    setRefundOnCancel(true);
-  }
-
-  async function handleReservationAction() {
-    if (!actionTarget) return;
-
-    setProcessingAction(true);
+    const key = `approve_request:${request.id}`;
+    setProcessingKey(key);
 
     try {
-      const body =
-        actionTarget.kind === "cancel"
-          ? {
-              action: "cancel",
-              bookingId: actionTarget.reservation.bookingId,
-              note: actionNote,
-              refundOnCancel,
-            }
-          : actionTarget.kind === "refund"
-            ? {
-                action: "refund",
-                paymentId: actionTarget.reservation.payment.id,
-                note: actionNote,
-              }
-            : {
-                action: "approve_request",
-                requestId: actionTarget.request.id,
-                note: actionNote,
-                refundOnCancel,
-              };
-
       const response = await fetch("/api/admin/reservations/action", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body),
+        body: JSON.stringify({
+          action: "approve_request",
+          requestId: request.id,
+          note: null,
+          refundOnCancel: reservation.payment?.status === "succeeded",
+        }),
       });
 
       if (!response.ok) {
         const payload = (await response.json()) as { error?: string };
-        window.alert(payload.error || "Failed to complete the reservation action.");
+        window.alert(payload.error || t("alerts.approveCancellationFailed"));
         return;
       }
 
-      setActionTarget(null);
-      setActionNote("");
-      setRefundOnCancel(true);
       await fetchDashboard();
     } catch {
-      window.alert("Failed to complete the reservation action.");
+      window.alert(t("alerts.approveCancellationFailed"));
     } finally {
-      setProcessingAction(false);
+      setProcessingKey(null);
     }
   }
 
+  async function handleRefundPayment(reservation: PaymentReservationCase) {
+    if (!window.confirm(t("alerts.refundConfirm"))) {
+      return;
+    }
+
+    const key = `refund:${reservation.payment.id}`;
+    setProcessingKey(key);
+
+    try {
+      const response = await fetch("/api/admin/reservations/action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "refund",
+          paymentId: reservation.payment.id,
+          note: null,
+        }),
+      });
+
+      if (!response.ok) {
+        const payload = (await response.json()) as { error?: string };
+        window.alert(payload.error || t("alerts.refundFailed"));
+        return;
+      }
+
+      await fetchDashboard();
+    } catch {
+      window.alert(t("alerts.refundFailed"));
+    } finally {
+      setProcessingKey(null);
+    }
+  }
+
+  function openActionRequired(focus: ActionRequiredFocus) {
+    setActiveTab("action_required");
+    setActionRequiredFocus(focus);
+    setQuery("");
+  }
+
+  function openPayments(filter: PaymentViewFilter) {
+    setActiveTab("payments");
+    setPaymentFilter(filter);
+    setQuery("");
+  }
+
   const activeCount =
-    activeTab === "reservations"
-      ? filteredReservations.length
-      : activeTab === "users"
-        ? filteredUsers.length
-        : activeTab === "mentors"
-          ? filteredMentors.length
-          : filteredPayments.length;
+    activeTab === "action_required"
+      ? actionRequiredFocus === "cancellation_requests"
+        ? visibleCancellationItems.length
+        : actionRequiredFocus === "payout_approvals"
+          ? visiblePayoutItems.length
+          : visibleCancellationItems.length + visiblePayoutItems.length
+      : activeTab === "payments"
+        ? filteredPayments.length
+        : activeTab === "logs"
+          ? filteredLogs.length
+          : 0;
 
   if (loading) {
     return (
       <div className="min-h-screen bg-[#fafafb] px-6 py-8">
-        <p className="text-sm text-[#606579]">Loading admin operations...</p>
+        <p className="text-sm text-[#606579]">{t("loading")}</p>
       </div>
     );
   }
@@ -1468,85 +1538,68 @@ export function AdminOperationsConsole({
       <header className="border-b border-[#e3e4ea] bg-white">
         <div className="mx-auto flex max-w-[1400px] flex-col gap-4 px-6 py-6 lg:flex-row lg:items-center lg:justify-between">
           <div>
-            <p className="text-sm font-medium text-[#606579]">Bridgeee Admin</p>
+            <p className="text-sm font-medium text-[#606579]">{t("header.eyebrow")}</p>
             <h1 className="mt-1 text-3xl font-semibold text-[#1f1f2d]">
-              Operations Console
+              {t("header.title")}
             </h1>
             <p className="mt-2 text-sm text-[#606579]">
-              Reservations, user state, mentor state, and payout cases in one
-              place. Updated {formatDateTime(data?.updatedAt)}.
+              {t("header.description", {
+                updatedAt: formatDateTime(data?.updatedAt),
+              })}
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <Link
-              href="/admin"
-              className="rounded-xl border border-[#d5d7df] bg-white px-4 py-2 text-sm font-medium text-[#1f1f2d] hover:bg-[#f8f8fb]"
-            >
-              Admin home
-            </Link>
-            <Link
-              href="/admin/payments"
-              className="rounded-xl border border-[#d5d7df] bg-white px-4 py-2 text-sm font-medium text-[#1f1f2d] hover:bg-[#f8f8fb]"
-            >
-              Payout approvals
-            </Link>
-            <button
-              type="button"
-              onClick={() => void fetchDashboard()}
-              className="inline-flex items-center gap-2 rounded-xl bg-[#1f1f2d] px-4 py-2 text-sm font-medium text-white hover:bg-[#11111b]"
-            >
-              <RefreshCcw className="h-4 w-4" />
-              Refresh
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={() => void fetchDashboard()}
+            className="inline-flex items-center gap-2 rounded-xl bg-[#1f1f2d] px-4 py-2 text-sm font-medium text-white hover:bg-[#11111b]"
+          >
+            <RefreshCcw className="h-4 w-4" />
+            {t("header.refresh")}
+          </button>
         </div>
       </header>
 
       <main className="mx-auto max-w-[1400px] px-6 py-8">
-        <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <SummaryCard
-            label="Reservations needing attention"
-            value={data?.summary.reservationsNeedingAttention ?? 0}
-            tone="warning"
-            onClick={() => {
-              setActiveTab("reservations");
-              setAttentionOnly(true);
-            }}
-          />
-          <SummaryCard
-            label="Awaiting payout approval"
-            value={data?.summary.awaitingPayoutApproval ?? 0}
-            tone="info"
-            onClick={() => {
-              setActiveTab("payments");
-              setAttentionOnly(true);
-            }}
-          />
-          <SummaryCard
-            label="Users needing attention"
-            value={data?.summary.usersNeedingAttention ?? 0}
-            tone="warning"
-            onClick={() => {
-              setActiveTab("users");
-              setAttentionOnly(true);
-            }}
-          />
-          <SummaryCard
-            label="Mentors needing attention"
-            value={data?.summary.mentorsNeedingAttention ?? 0}
-            tone="warning"
-            onClick={() => {
-              setActiveTab("mentors");
-              setAttentionOnly(true);
-            }}
-          />
-        </div>
+        <section className="rounded-[28px] border border-[#e5e7eb] bg-white p-6 shadow-sm">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="text-sm font-medium text-[#c2410c]">
+                {t("hero.eyebrow")}
+              </p>
+              <h2 className="mt-1 text-2xl font-semibold text-[#1f1f2d]">
+                {t("hero.title")}
+              </h2>
+              <p className="mt-2 text-sm text-[#606579]">
+                {t("hero.description")}
+              </p>
+            </div>
+            <p className="text-sm text-[#606579]">
+              {t("hero.summary", {
+                refundCount: refundPendingItems.length,
+                logCount: reservations.filter((reservation) => isLogReservation(reservation))
+                  .length,
+              })}
+            </p>
+          </div>
 
-        <p className="mt-4 text-sm text-[#606579]">
-          Total reservations {data?.summary.totalReservations ?? 0} · Payment
-          failures {data?.summary.paymentFailures ?? 0}
-        </p>
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
+            <SummaryCard
+              label={t("overview.cancellationRequestsLabel")}
+              value={cancellationRequestItems.length}
+              description={t("hero.cancellationDescription")}
+              tone="danger"
+              onClick={() => openActionRequired("cancellation_requests")}
+            />
+            <SummaryCard
+              label={t("overview.payoutApprovalsLabel")}
+              value={payoutApprovalItems.length}
+              description={t("hero.payoutDescription")}
+              tone="warning"
+              onClick={() => openActionRequired("payout_approvals")}
+            />
+          </div>
+        </section>
 
         <section className="mt-8 rounded-[28px] border border-[#e5e7eb] bg-white shadow-sm">
           <div className="border-b border-[#e5e7eb] px-4 py-4 lg:px-6">
@@ -1554,267 +1607,314 @@ export function AdminOperationsConsole({
               <div className="flex flex-wrap gap-2">
                 {TAB_OPTIONS.map((option) => (
                   <button
-                    key={option.id}
+                    key={option}
                     type="button"
-                    onClick={() => setActiveTab(option.id)}
+                    onClick={() => setActiveTab(option)}
                     className={cn(
                       "rounded-full px-4 py-2 text-sm font-medium transition",
-                      activeTab === option.id
+                      activeTab === option
                         ? "bg-[#1f1f2d] text-white"
                         : "bg-[#f3f4f6] text-[#606579] hover:bg-[#e5e7eb]"
                     )}
                   >
-                    {option.label}
+                    {t(`tabs.${option}`)}
                   </button>
                 ))}
               </div>
 
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+              {activeTab !== "overview" ? (
                 <label className="relative block">
                   <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8a90a2]" />
                   <input
                     value={query}
                     onChange={(event) => setQuery(event.target.value)}
-                    placeholder={`Search ${activeTab}`}
+                    placeholder={t("search.placeholder", {
+                      label: t(`tabs.${activeTab}`),
+                    })}
                     className="w-full rounded-xl border border-[#d5d7df] bg-white py-2 pl-9 pr-3 text-sm text-[#1f1f2d] outline-none transition focus:border-[#1f1f2d] sm:w-72"
                   />
                 </label>
-
-                <label className="inline-flex items-center gap-2 rounded-xl border border-[#d5d7df] px-3 py-2 text-sm text-[#1f1f2d]">
-                  <input
-                    type="checkbox"
-                    checked={attentionOnly}
-                    onChange={(event) => setAttentionOnly(event.target.checked)}
-                    className="h-4 w-4 rounded border-[#cbd5e1]"
-                  />
-                  Attention only
-                </label>
-              </div>
+              ) : null}
             </div>
           </div>
 
-          <div className="grid gap-6 p-4 lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)] lg:p-6">
-            <div>
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-[#1f1f2d]">
-                  {humanizeToken(activeTab)}
-                </h2>
-                <span className="text-sm text-[#606579]">{activeCount} results</span>
+          <div className="p-4 lg:p-6">
+            {activeTab === "overview" ? (
+              <OverviewPanel
+                summary={data?.summary ?? {
+                  totalReservations: 0,
+                  reservationsNeedingAttention: 0,
+                  awaitingPayoutApproval: 0,
+                  usersNeedingAttention: 0,
+                  mentorsNeedingAttention: 0,
+                  paymentFailures: 0,
+                }}
+                cancellationRequestItems={cancellationRequestItems}
+                payoutApprovalItems={payoutApprovalItems}
+                refundPendingCount={refundPendingItems.length}
+                processedLogsCount={
+                  reservations.filter((reservation) => isLogReservation(reservation))
+                    .length
+                }
+                onOpenActionRequired={openActionRequired}
+                onOpenPayments={openPayments}
+                onOpenLogs={() => setActiveTab("logs")}
+              />
+            ) : (
+              <div className="grid gap-6 lg:grid-cols-[minmax(0,1.08fr)_minmax(360px,0.92fr)]">
+                <div>
+                  <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                    <div>
+                      <h2 className="text-lg font-semibold text-[#1f1f2d]">
+                        {activeTab === "action_required"
+                          ? t("listHeadings.actionQueue")
+                          : activeTab === "payments"
+                            ? t("tabs.payments")
+                            : t("tabs.logs")}
+                      </h2>
+                      <p className="mt-1 text-sm text-[#606579]">
+                        {t("results", { count: activeCount })}
+                      </p>
+                    </div>
+
+                    {activeTab === "action_required" ? (
+                      <div className="flex flex-wrap gap-2">
+                        {ACTION_REQUIRED_FILTERS.map((option) => (
+                          <button
+                            key={option}
+                            type="button"
+                            onClick={() => setActionRequiredFocus(option)}
+                            className={cn(
+                              "rounded-full px-3 py-1.5 text-sm font-medium transition",
+                              actionRequiredFocus === option
+                                ? "bg-[#1f1f2d] text-white"
+                                : "bg-[#f3f4f6] text-[#606579] hover:bg-[#e5e7eb]"
+                            )}
+                          >
+                            {t(`filters.actionRequired.${option}`)}
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
+
+                    {activeTab === "payments" ? (
+                      <div className="flex flex-wrap gap-2">
+                        {PAYMENT_FILTERS.map((option) => (
+                          <button
+                            key={option}
+                            type="button"
+                            onClick={() => setPaymentFilter(option)}
+                            className={cn(
+                              "rounded-full px-3 py-1.5 text-sm font-medium transition",
+                              paymentFilter === option
+                                ? "bg-[#1f1f2d] text-white"
+                                : "bg-[#f3f4f6] text-[#606579] hover:bg-[#e5e7eb]"
+                            )}
+                          >
+                            {t(`filters.payments.${option}`)}
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
+                  </div>
+
+                  <div className="max-h-[760px] space-y-6 overflow-y-auto pr-1">
+                    {activeTab === "action_required" ? (
+                      <>
+                        {actionRequiredFocus !== "payout_approvals" ? (
+                          <ActionRequiredQueue
+                            title={t("queues.cancellationTitle")}
+                            count={visibleCancellationItems.length}
+                            description={t("queues.cancellationDescription")}
+                          >
+                            {visibleCancellationItems.length > 0 ? (
+                              <div className="space-y-3">
+                                {visibleCancellationItems.map(({ reservation, request }) => (
+                                  <ActionRequiredCard
+                                    key={request.id}
+                                    reservation={reservation}
+                                    title={t("labels.bookingNumber", {
+                                      id: reservation.bookingId,
+                                    })}
+                                    secondary={reservation.student.displayName}
+                                    body={
+                                      request.reason ? (
+                                        <p className="text-[#1f1f2d]">
+                                          {request.reason}
+                                        </p>
+                                      ) : (
+                                        <p className="text-[#606579]">
+                                          {t("states.noCancellationReason")}
+                                        </p>
+                                      )
+                                    }
+                                    badges={renderFlagBadges(reservation.flags)}
+                                    selected={
+                                      selectedActionReservation?.id === reservation.id
+                                    }
+                                    processing={
+                                      processingKey === `approve_request:${request.id}`
+                                    }
+                                    actionLabel={t("actions.approveCancellation")}
+                                    onSelect={() =>
+                                      setSelectedActionReservationId(reservation.id)
+                                    }
+                                    onAction={() =>
+                                      void handleApproveCancellation(
+                                        reservation,
+                                        request
+                                      )
+                                    }
+                                  />
+                                ))}
+                              </div>
+                            ) : (
+                              <EmptyState
+                                title={t("empty.noCancellationQueueTitle")}
+                                description={t("empty.noCancellationQueueDescription")}
+                              />
+                            )}
+                          </ActionRequiredQueue>
+                        ) : null}
+
+                        {actionRequiredFocus !== "cancellation_requests" ? (
+                          <ActionRequiredQueue
+                            title={t("queues.payoutTitle")}
+                            count={visiblePayoutItems.length}
+                            description={t("queues.payoutDescription")}
+                          >
+                            {visiblePayoutItems.length > 0 ? (
+                              <div className="space-y-3">
+                                {visiblePayoutItems.map((reservation) => (
+                                  <ActionRequiredCard
+                                    key={reservation.id}
+                                    reservation={reservation}
+                                    title={t("labels.bookingNumber", {
+                                      id: reservation.bookingId,
+                                    })}
+                                    secondary={formatCurrency(
+                                      reservation.payment.amount,
+                                      reservation.payment.currency
+                                    )}
+                                    body={
+                                      <p className="text-[#606579]">
+                                        {reservation.student.displayName} x{" "}
+                                        {reservation.mentor?.displayName ??
+                                          t("states.unknownMentor")}
+                                      </p>
+                                    }
+                                    badges={renderFlagBadges(reservation.flags)}
+                                    selected={
+                                      selectedActionReservation?.id === reservation.id
+                                    }
+                                    processing={
+                                      processingKey ===
+                                      `payout:${reservation.payment.id}`
+                                    }
+                                    actionLabel={t("actions.approvePayout")}
+                                    onSelect={() =>
+                                      setSelectedActionReservationId(reservation.id)
+                                    }
+                                    onAction={() =>
+                                      void handleApprovePayout(reservation)
+                                    }
+                                  />
+                                ))}
+                              </div>
+                            ) : (
+                              <EmptyState
+                                title={t("empty.noPayoutQueueTitle")}
+                                description={t("empty.noPayoutQueueDescription")}
+                              />
+                            )}
+                          </ActionRequiredQueue>
+                        ) : null}
+                      </>
+                    ) : null}
+
+                    {activeTab === "payments" ? (
+                      <PaymentList
+                        reservations={filteredPayments}
+                        selectedId={selectedPayment?.id ?? null}
+                        processingKey={processingKey}
+                        onSelect={setSelectedPaymentId}
+                        onApprovePayout={(reservation) =>
+                          void handleApprovePayout(reservation)
+                        }
+                      />
+                    ) : null}
+
+                    {activeTab === "logs" ? (
+                      <LogList
+                        reservations={filteredLogs}
+                        selectedId={selectedLogReservation?.id ?? null}
+                        onSelect={setSelectedLogReservationId}
+                      />
+                    ) : null}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="mb-4">
+                    <h2 className="text-lg font-semibold text-[#1f1f2d]">
+                      {t("listHeadings.detail")}
+                    </h2>
+                  </div>
+
+                  {activeTab === "action_required" ? (
+                    selectedActionReservation &&
+                    isPaymentReservationCase(selectedActionReservation) &&
+                    !hasPendingCancellationRequest(selectedActionReservation) ? (
+                      <PaymentDetail
+                        reservation={selectedActionReservation}
+                        onApprovePayout={(reservation) =>
+                          void handleApprovePayout(reservation)
+                        }
+                        onRefundPayment={(reservation) =>
+                          void handleRefundPayment(reservation)
+                        }
+                        processingKey={processingKey}
+                      />
+                    ) : (
+                      <ReservationDetail
+                        reservation={selectedActionReservation}
+                        onApproveRequest={(reservation, request) =>
+                          void handleApproveCancellation(reservation, request)
+                        }
+                        processingRequestId={
+                          processingKey?.startsWith("approve_request:")
+                            ? processingKey.replace("approve_request:", "")
+                            : null
+                        }
+                      />
+                    )
+                  ) : null}
+
+                  {activeTab === "payments" ? (
+                    <PaymentDetail
+                      reservation={selectedPayment}
+                      onApprovePayout={(reservation) =>
+                        void handleApprovePayout(reservation)
+                      }
+                      onRefundPayment={(reservation) =>
+                        void handleRefundPayment(reservation)
+                      }
+                      onApproveRequest={(reservation, request) =>
+                        void handleApproveCancellation(reservation, request)
+                      }
+                      processingKey={processingKey}
+                    />
+                  ) : null}
+
+                  {activeTab === "logs" ? (
+                    <ReservationDetail reservation={selectedLogReservation} />
+                  ) : null}
+                </div>
               </div>
-
-              <div className="max-h-[720px] overflow-y-auto pr-1">
-                {activeTab === "reservations" && (
-                  <ReservationList
-                    reservations={filteredReservations}
-                    selectedId={selectedReservation?.id ?? null}
-                    onSelect={setSelectedReservationId}
-                  />
-                )}
-
-                {activeTab === "users" && (
-                  <UserList
-                    users={filteredUsers}
-                    selectedId={selectedUser?.id ?? null}
-                    onSelect={setSelectedUserId}
-                  />
-                )}
-
-                {activeTab === "mentors" && (
-                  <MentorList
-                    mentors={filteredMentors}
-                    selectedId={selectedMentor?.id ?? null}
-                    onSelect={setSelectedMentorId}
-                  />
-                )}
-
-                {activeTab === "payments" && (
-                  <PaymentList
-                    reservations={filteredPayments}
-                    selectedId={selectedPayment?.id ?? null}
-                    onSelect={setSelectedPaymentId}
-                    onApprove={setConfirmTarget}
-                  />
-                )}
-              </div>
-            </div>
-
-            <div>
-              <div className="mb-4 flex items-center justify-between">
-                <h2 className="text-lg font-semibold text-[#1f1f2d]">
-                  Case detail
-                </h2>
-              </div>
-
-              {activeTab === "reservations" && (
-                <ReservationDetail
-                  reservation={selectedReservation}
-                  onCancel={openCancelAction}
-                  onRefund={openRefundAction}
-                  onApproveRequest={openApproveRequestAction}
-                />
-              )}
-              {activeTab === "users" && (
-                <UserDetail
-                  user={selectedUser}
-                  reservations={reservations}
-                  onOpenCase={handleOpenReservationCase}
-                />
-              )}
-              {activeTab === "mentors" && (
-                <MentorDetail
-                  mentor={selectedMentor}
-                  reservations={reservations}
-                  onOpenCase={handleOpenReservationCase}
-                />
-              )}
-              {activeTab === "payments" && (
-                <PaymentDetail
-                  reservation={selectedPayment}
-                  onApprove={setConfirmTarget}
-                  onRefund={openRefundAction}
-                  onApproveRequest={openApproveRequestAction}
-                />
-              )}
-            </div>
+            )}
           </div>
         </section>
       </main>
-
-      <Dialog
-        open={Boolean(actionTarget)}
-        onClose={closeActionDialog}
-        className="relative z-50"
-      >
-        <div className="fixed inset-0 bg-black/50" aria-hidden="true" />
-        <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl">
-            <Dialog.Title className="text-lg font-semibold text-[#1f1f2d]">
-              {actionTarget?.kind === "cancel"
-                ? "Cancel booking"
-                : actionTarget?.kind === "refund"
-                  ? "Refund payment"
-                  : actionTarget?.kind === "approve_request"
-                    ? "Approve cancellation request"
-                    : "Reservation action"}
-            </Dialog.Title>
-
-            {actionTarget ? (
-              <div className="mt-3 space-y-3 text-sm text-[#4b5563]">
-                <p>
-                  Booking #{actionTarget.reservation.bookingId} ·{" "}
-                  {actionTarget.reservation.student.displayName} x{" "}
-                  {actionTarget.reservation.mentor?.displayName ?? "Unknown mentor"}
-                </p>
-                <p>Lesson time {formatDateTime(actionTarget.reservation.startTime)}</p>
-                {"request" in actionTarget ? (
-                  <p>
-                    Request type {humanizeToken(actionTarget.request.type)} · Submitted{" "}
-                    {formatDateTime(actionTarget.request.createdAt)}
-                  </p>
-                ) : null}
-              </div>
-            ) : null}
-
-            {((actionTarget?.kind === "approve_request" &&
-              actionTarget.reservation.payment?.status === "succeeded") ||
-              (actionTarget?.kind === "cancel" &&
-                actionTarget.reservation.payment?.status === "succeeded")) ? (
-              <label className="mt-5 inline-flex items-center gap-2 rounded-xl border border-[#d5d7df] px-3 py-2 text-sm text-[#1f1f2d]">
-                <input
-                  type="checkbox"
-                  checked={refundOnCancel}
-                  onChange={(event) => setRefundOnCancel(event.target.checked)}
-                  className="h-4 w-4 rounded border-[#cbd5e1]"
-                />
-                Process a refund together with this cancellation
-              </label>
-            ) : null}
-
-            <label className="mt-5 block">
-              <span className="mb-1.5 block text-sm font-medium text-[#1f1f2d]">
-                Note
-              </span>
-              <textarea
-                value={actionNote}
-                onChange={(event) => setActionNote(event.target.value)}
-                rows={4}
-                placeholder="Optional note shared in cancellation emails and admin history"
-                className="w-full rounded-2xl border border-[#d5d7df] px-3 py-2.5 text-sm text-[#1f1f2d] outline-none transition focus:border-[#1f1f2d]"
-              />
-            </label>
-
-            <div className="mt-6 flex gap-3">
-              <button
-                type="button"
-                onClick={closeActionDialog}
-                disabled={processingAction}
-                className="flex-1 rounded-xl border border-[#d5d7df] px-4 py-2 text-sm font-medium text-[#1f1f2d] hover:bg-[#f8f8fb] disabled:opacity-60"
-              >
-                Close
-              </button>
-              <button
-                type="button"
-                disabled={!actionTarget || processingAction}
-                onClick={() => void handleReservationAction()}
-                className="flex-1 rounded-xl bg-[#1f1f2d] px-4 py-2 text-sm font-medium text-white hover:bg-[#11111b] disabled:opacity-60"
-              >
-                {processingAction ? "Saving..." : "Confirm"}
-              </button>
-            </div>
-          </Dialog.Panel>
-        </div>
-      </Dialog>
-
-      <Dialog
-        open={Boolean(confirmTarget)}
-        onClose={() => !releasing && setConfirmTarget(null)}
-        className="relative z-50"
-      >
-        <div className="fixed inset-0 bg-black/50" aria-hidden="true" />
-        <div className="fixed inset-0 flex items-center justify-center p-4">
-          <Dialog.Panel className="w-full max-w-md rounded-2xl bg-white p-6 shadow-xl">
-            <Dialog.Title className="text-lg font-semibold text-[#1f1f2d]">
-              Approve payout?
-            </Dialog.Title>
-
-            {confirmTarget && (
-              <div className="mt-3 space-y-2 text-sm text-[#4b5563]">
-                <p>
-                  This will send{" "}
-                  {formatCurrency(
-                    confirmTarget.payment.amount,
-                    confirmTarget.payment.currency
-                  )}{" "}
-                  to {confirmTarget.mentor?.displayName ?? "the mentor"}.
-                </p>
-                <p>
-                  Booking #{confirmTarget.bookingId} · Lesson time{" "}
-                  {formatDateTime(confirmTarget.startTime)}
-                </p>
-              </div>
-            )}
-
-            <div className="mt-6 flex gap-3">
-              <button
-                type="button"
-                onClick={() => setConfirmTarget(null)}
-                disabled={releasing}
-                className="flex-1 rounded-xl border border-[#d5d7df] px-4 py-2 text-sm font-medium text-[#1f1f2d] hover:bg-[#f8f8fb] disabled:opacity-60"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                disabled={!confirmTarget || releasing}
-                onClick={() => confirmTarget && void handleRelease(confirmTarget)}
-                className="flex-1 rounded-xl bg-[#2563eb] px-4 py-2 text-sm font-medium text-white hover:bg-[#1d4ed8] disabled:opacity-60"
-              >
-                {releasing ? "Approving..." : "Approve payout"}
-              </button>
-            </div>
-          </Dialog.Panel>
-        </div>
-      </Dialog>
     </div>
   );
 }
