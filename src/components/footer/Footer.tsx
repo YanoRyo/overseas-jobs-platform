@@ -9,7 +9,13 @@ export function Footer() {
 
   return (
     <footer className="border-t border-border bg-white" data-locale={locale}>
-      <div className="mx-auto flex max-w-6xl flex-col items-center justify-center gap-3 px-6 py-6 text-center text-xs text-muted sm:flex-row sm:gap-6">
+      <div className="mx-auto flex max-w-6xl flex-col items-center justify-center gap-3 px-6 py-6 text-center text-xs text-muted sm:flex-row sm:flex-wrap sm:gap-6">
+        <Link
+          href="/support"
+          className="transition-colors hover:text-primary hover:underline"
+        >
+          {t("support")}
+        </Link>
         <Link
           href="/terms"
           className="transition-colors hover:text-primary hover:underline"

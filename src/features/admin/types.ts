@@ -2,8 +2,14 @@ import type {
   BookingChangeRequestStatus,
   BookingChangeRequestType,
 } from "@/features/bookings/types";
+import type { SupportRequestCategory } from "@/features/support/constants";
 
-export type AdminTab = "overview" | "action_required" | "payments" | "logs";
+export type AdminTab =
+  | "overview"
+  | "action_required"
+  | "payments"
+  | "support"
+  | "logs";
 
 export type AdminFlagTone = "info" | "warning" | "danger";
 
@@ -169,4 +175,46 @@ export type AdminOperationsResponse = {
   reservations: AdminReservationCase[];
   users: AdminUserCase[];
   mentors: AdminMentorCase[];
+};
+
+export type AdminSupportReply = {
+  id: string;
+  supportRequestId: string;
+  senderUserId: string | null;
+  senderDisplayName: string;
+  subject: string;
+  body: string;
+  deliveryStatus: "pending" | "sent" | "failed";
+  deliveryError: string | null;
+  sentAt: string | null;
+  createdAt: string;
+};
+
+export type AdminSupportRequest = {
+  id: string;
+  requesterUserId: string | null;
+  name: string;
+  email: string;
+  category: SupportRequestCategory;
+  context: string | null;
+  message: string;
+  locale: string | null;
+  status: "open" | "replied";
+  createdAt: string;
+  updatedAt: string;
+  lastRepliedAt: string | null;
+  lastRepliedByUserId: string | null;
+  lastRepliedByDisplayName: string | null;
+  replies: AdminSupportReply[];
+};
+
+export type AdminSupportRequestsResponse = {
+  updatedAt: string;
+  summary: {
+    total: number;
+    open: number;
+    replied: number;
+    failedReplies: number;
+  };
+  requests: AdminSupportRequest[];
 };

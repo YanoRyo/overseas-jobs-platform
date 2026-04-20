@@ -9,6 +9,8 @@ import type {
   AdminCaseFlag,
   AdminFlagTone,
   AdminOperationsResponse,
+  AdminSupportRequest,
+  AdminSupportRequestsResponse,
   AdminReservationCase,
   AdminTab,
 } from "../types";
@@ -34,6 +36,8 @@ type PaymentViewFilter =
   | "payout_pending"
   | "refund_pending";
 
+type SupportViewFilter = "open" | "replied" | "all";
+
 type ActionRequiredFocus =
   | "all"
   | "cancellation_requests"
@@ -46,6 +50,7 @@ const TAB_OPTIONS: AdminTab[] = [
   "overview",
   "action_required",
   "payments",
+  "support",
   "logs",
 ];
 
@@ -63,6 +68,8 @@ const PAYMENT_FILTERS: PaymentViewFilter[] = [
   "payout_pending",
   "refund_pending",
 ];
+
+const SUPPORT_FILTERS: SupportViewFilter[] = ["open", "replied", "all"];
 
 function cn(...parts: Array<string | false | null | undefined>) {
   return parts.filter(Boolean).join(" ");
@@ -170,6 +177,21 @@ function paymentStatusTone(status: string | null | undefined): Tone {
       return "neutral";
     default:
       return "neutral";
+  }
+}
+
+function supportStatusTone(status: "open" | "replied"): Tone {
+  return status === "open" ? "warning" : "neutral";
+}
+
+function deliveryStatusTone(status: "pending" | "sent" | "failed"): Tone {
+  switch (status) {
+    case "failed":
+      return "danger";
+    case "pending":
+      return "warning";
+    default:
+      return "success";
   }
 }
 
@@ -292,6 +314,29 @@ function buildPaymentSearchHaystack(reservation: PaymentReservationCase) {
       request.requesterDisplayName,
     ]),
     ...reservation.flags.map((flag) => flag.label),
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
+
+function buildSupportRequestSearchHaystack(request: AdminSupportRequest) {
+  return [
+    request.id,
+    request.name,
+    request.email,
+    request.category,
+    request.context,
+    request.message,
+    request.locale,
+    request.status,
+    request.lastRepliedByDisplayName,
+    ...request.replies.flatMap((reply) => [
+      reply.subject,
+      reply.body,
+      reply.deliveryStatus,
+      reply.senderDisplayName,
+      reply.deliveryError,
+    ]),
   ]
     .filter(Boolean)
     .join(" ");
@@ -1377,25 +1422,325 @@ function LogList({
   );
 }
 
+function SupportList({
+  requests,
+  selectedId,
+  onSelect,
+}: {
+  requests: AdminSupportRequest[];
+  selectedId: string | null;
+  onSelect: (id: string) => void;
+}) {
+  const t = useTranslations("admin.operations");
+  const ts = useTranslations("support");
+
+  if (requests.length === 0) {
+    return (
+      <EmptyState
+        title={t("support.empty.noRequestsTitle")}
+        description={t("support.empty.noRequestsDescription")}
+      />
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      {requests.map((request) => {
+        const failedReplies = request.replies.filter(
+          (reply) => reply.deliveryStatus === "failed"
+        ).length;
+
+        return (
+          <QueueCard
+            key={request.id}
+            selected={selectedId === request.id}
+            onSelect={() => onSelect(request.id)}
+          >
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div>
+                <p className="text-sm font-semibold text-[#1f1f2d]">
+                  {request.name}
+                </p>
+                <p className="mt-1 text-sm text-[#606579]">{request.email}</p>
+                <p className="mt-1 text-xs text-[#606579]">
+                  {ts(`categories.${request.category}.label`)} ·{" "}
+                  {formatDateTime(request.createdAt)}
+                </p>
+              </div>
+              <div className="flex flex-col items-end gap-2">
+                <Badge
+                  label={t(`support.filters.${request.status}`)}
+                  tone={supportStatusTone(request.status)}
+                />
+                {failedReplies > 0 ? (
+                  <Badge
+                    label={t("support.failedRepliesBadge", {
+                      count: failedReplies,
+                    })}
+                    tone="danger"
+                  />
+                ) : null}
+              </div>
+            </div>
+            {request.context ? (
+              <p className="mt-3 text-xs text-[#606579]">{request.context}</p>
+            ) : null}
+            <p className="mt-3 line-clamp-3 text-sm leading-6 text-[#1f1f2d]">
+              {request.message}
+            </p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Badge
+                label={t("support.replyCountBadge", {
+                  count: request.replies.length,
+                })}
+                tone="info"
+              />
+            </div>
+          </QueueCard>
+        );
+      })}
+    </div>
+  );
+}
+
+function SupportRequestDetail({
+  request,
+  processingKey,
+  onReply,
+}: {
+  request: AdminSupportRequest | null;
+  processingKey?: string | null;
+  onReply: (
+    request: AdminSupportRequest,
+    values: { subject: string; message: string }
+  ) => void;
+}) {
+  const t = useTranslations("admin.operations");
+  const ts = useTranslations("support");
+  const [subject, setSubject] = useState("");
+  const [message, setMessage] = useState("");
+  const [localError, setLocalError] = useState<string | null>(null);
+  const defaultReplySubject = request
+    ? t("support.reply.defaultSubject", {
+        topic: ts(`categories.${request.category}.label`),
+      })
+    : "";
+
+  useEffect(() => {
+    if (!request) {
+      setSubject("");
+      setMessage("");
+      setLocalError(null);
+      return;
+    }
+
+    setSubject(defaultReplySubject);
+    setMessage("");
+    setLocalError(null);
+  }, [defaultReplySubject, request?.id, request?.updatedAt, request?.replies.length]);
+
+  if (!request) {
+    return (
+      <EmptyState
+        title={t("support.empty.selectTitle")}
+        description={t("support.empty.selectDescription")}
+      />
+    );
+  }
+
+  const replyProcessing = processingKey === `support_reply:${request.id}`;
+
+  return (
+    <div className="space-y-4">
+      <DetailBlock title={t("support.detail.request")}>
+        <DetailRow
+          label={t("detail.status")}
+          value={t(`support.filters.${request.status}`)}
+        />
+        <DetailRow
+          label={t("support.detail.topic")}
+          value={ts(`categories.${request.category}.label`)}
+        />
+        <DetailRow label={t("detail.name")} value={request.name} />
+        <DetailRow label={t("detail.email")} value={request.email} />
+        <DetailRow
+          label={t("support.detail.requestId")}
+          value={
+            <span className="break-all text-right font-mono text-xs">
+              {request.id}
+            </span>
+          }
+        />
+        <DetailRow
+          label={t("detail.created")}
+          value={formatDateTime(request.createdAt)}
+        />
+        <DetailRow
+          label={t("support.detail.lastReply")}
+          value={
+            request.lastRepliedAt
+              ? `${formatDateTime(request.lastRepliedAt)}${
+                  request.lastRepliedByDisplayName
+                    ? ` · ${request.lastRepliedByDisplayName}`
+                    : ""
+                }`
+              : "-"
+          }
+        />
+        <DetailRow
+          label={t("support.detail.locale")}
+          value={request.locale ?? "-"}
+        />
+        {request.context ? (
+          <DetailRow
+            label={t("support.detail.context")}
+            value={request.context}
+          />
+        ) : null}
+      </DetailBlock>
+
+      <DetailBlock title={t("support.detail.originalMessage")}>
+        <p className="whitespace-pre-wrap text-sm leading-7 text-[#1f1f2d]">
+          {request.message}
+        </p>
+      </DetailBlock>
+
+      <DetailBlock title={t("support.detail.replyHistory")}>
+        {request.replies.length === 0 ? (
+          <p className="text-sm text-[#606579]">{t("support.empty.noReplies")}</p>
+        ) : (
+          <div className="space-y-3">
+            {request.replies.map((reply) => (
+              <div
+                key={reply.id}
+                className="rounded-2xl border border-[#e5e7eb] bg-white p-4"
+              >
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <p className="text-sm font-semibold text-[#1f1f2d]">
+                      {reply.subject}
+                    </p>
+                    <p className="mt-1 text-xs text-[#606579]">
+                      {reply.senderDisplayName} · {formatDateTime(reply.createdAt)}
+                    </p>
+                  </div>
+                  <Badge
+                    label={humanizeToken(reply.deliveryStatus)}
+                    tone={deliveryStatusTone(reply.deliveryStatus)}
+                  />
+                </div>
+                <p className="mt-3 whitespace-pre-wrap text-sm leading-7 text-[#1f1f2d]">
+                  {reply.body}
+                </p>
+                {reply.deliveryError ? (
+                  <p className="mt-3 text-xs text-[#c32a68]">
+                    {t("support.detail.deliveryError", {
+                      message: reply.deliveryError,
+                    })}
+                  </p>
+                ) : null}
+                {reply.sentAt ? (
+                  <p className="mt-2 text-xs text-[#606579]">
+                    {t("support.detail.sentAt", {
+                      dateTime: formatDateTime(reply.sentAt),
+                    })}
+                  </p>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        )}
+      </DetailBlock>
+
+      <DetailBlock title={t("support.reply.title")}>
+        <div className="space-y-4">
+          <label className="block">
+            <span className="text-sm font-medium text-[#1f1f2d]">
+              {t("support.reply.subject")}
+            </span>
+            <input
+              value={subject}
+              onChange={(event) => setSubject(event.target.value)}
+              className="mt-2 w-full rounded-xl border border-[#d5d7df] bg-white px-3 py-2 text-sm text-[#1f1f2d] outline-none transition focus:border-[#1f1f2d]"
+            />
+          </label>
+
+          <label className="block">
+            <span className="text-sm font-medium text-[#1f1f2d]">
+              {t("support.reply.message")}
+            </span>
+            <textarea
+              value={message}
+              onChange={(event) => setMessage(event.target.value)}
+              rows={8}
+              className="mt-2 w-full rounded-xl border border-[#d5d7df] bg-white px-3 py-2 text-sm leading-7 text-[#1f1f2d] outline-none transition focus:border-[#1f1f2d]"
+            />
+          </label>
+
+          {localError ? (
+            <p className="text-sm text-[#c32a68]">{localError}</p>
+          ) : null}
+
+          <div className="flex flex-wrap items-center gap-3">
+            <button
+              type="button"
+              disabled={replyProcessing}
+              onClick={() => {
+                if (!subject.trim()) {
+                  setLocalError(t("support.reply.errors.subjectRequired"));
+                  return;
+                }
+
+                if (!message.trim()) {
+                  setLocalError(t("support.reply.errors.messageRequired"));
+                  return;
+                }
+
+                setLocalError(null);
+                onReply(request, {
+                  subject: subject.trim(),
+                  message: message.trim(),
+                });
+              }}
+              className="rounded-lg bg-[#2563eb] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {replyProcessing
+                ? t("support.reply.sending")
+                : t("support.reply.submit")}
+            </button>
+            <p className="text-xs text-[#606579]">
+              {t("support.reply.notice")}
+            </p>
+          </div>
+        </div>
+      </DetailBlock>
+    </div>
+  );
+}
+
 function OverviewPanel({
   summary,
   cancellationRequestItems,
   payoutApprovalItems,
   meetingSetupItems,
+  openSupportCount,
   refundPendingCount,
   processedLogsCount,
   onOpenActionRequired,
   onOpenPayments,
+  onOpenSupport,
   onOpenLogs,
 }: {
   summary: AdminOperationsResponse["summary"];
   cancellationRequestItems: CancellationActionItem[];
   payoutApprovalItems: PaymentReservationCase[];
   meetingSetupItems: MeetingSetupActionItem[];
+  openSupportCount: number;
   refundPendingCount: number;
   processedLogsCount: number;
   onOpenActionRequired: (focus: ActionRequiredFocus) => void;
   onOpenPayments: (filter: PaymentViewFilter) => void;
+  onOpenSupport: (filter: SupportViewFilter) => void;
   onOpenLogs: () => void;
 }) {
   const t = useTranslations("admin.operations");
@@ -1478,6 +1823,22 @@ function OverviewPanel({
               </div>
               <Badge label={String(processedLogsCount)} tone="neutral" />
             </button>
+
+            <button
+              type="button"
+              onClick={() => onOpenSupport("open")}
+              className="flex w-full items-center justify-between rounded-xl border border-[#e5e7eb] bg-[#fcfcfd] px-4 py-3 text-left hover:border-[#cfd3e1]"
+            >
+              <div>
+                <p className="text-sm font-semibold text-[#1f1f2d]">
+                  {t("overview.supportRequestsTitle")}
+                </p>
+                <p className="mt-1 text-xs text-[#606579]">
+                  {t("overview.supportRequestsDescription")}
+                </p>
+              </div>
+              <Badge label={String(openSupportCount)} tone="warning" />
+            </button>
           </div>
         </section>
       </div>
@@ -1514,6 +1875,8 @@ export function AdminOperationsConsole({
   const router = useRouter();
   const t = useTranslations("admin.operations");
   const [data, setData] = useState<AdminOperationsResponse | null>(null);
+  const [supportData, setSupportData] =
+    useState<AdminSupportRequestsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<AdminTab>(defaultTab);
@@ -1522,11 +1885,15 @@ export function AdminOperationsConsole({
     useState<ActionRequiredFocus>("all");
   const [paymentFilter, setPaymentFilter] =
     useState<PaymentViewFilter>("action_required");
+  const [supportFilter, setSupportFilter] = useState<SupportViewFilter>("open");
   const [processingKey, setProcessingKey] = useState<string | null>(null);
   const [selectedActionReservationId, setSelectedActionReservationId] = useState<
     string | null
   >(null);
   const [selectedPaymentId, setSelectedPaymentId] = useState<string | null>(null);
+  const [selectedSupportRequestId, setSelectedSupportRequestId] = useState<
+    string | null
+  >(null);
   const [selectedLogReservationId, setSelectedLogReservationId] = useState<
     string | null
   >(null);
@@ -1534,21 +1901,35 @@ export function AdminOperationsConsole({
   async function fetchDashboard() {
     try {
       setError(null);
-      const response = await fetch("/api/admin/operations", {
-        cache: "no-store",
-      });
+      const [response, supportResponse] = await Promise.all([
+        fetch("/api/admin/operations", {
+          cache: "no-store",
+        }),
+        fetch("/api/admin/support/requests", {
+          cache: "no-store",
+        }),
+      ]);
 
-      if (response.status === 401 || response.status === 403) {
+      if (
+        response.status === 401 ||
+        response.status === 403 ||
+        supportResponse.status === 401 ||
+        supportResponse.status === 403
+      ) {
         router.push("/");
         return;
       }
 
-      if (!response.ok) {
+      if (!response.ok || !supportResponse.ok) {
         throw new Error(t("errors.fetch"));
       }
 
-      const payload = (await response.json()) as AdminOperationsResponse;
+      const [payload, supportPayload] = (await Promise.all([
+        response.json(),
+        supportResponse.json(),
+      ])) as [AdminOperationsResponse, AdminSupportRequestsResponse];
       setData(payload);
+      setSupportData(supportPayload);
     } catch {
       setError(t("errors.load"));
     } finally {
@@ -1562,6 +1943,7 @@ export function AdminOperationsConsole({
   }, []);
 
   const reservations = data?.reservations ?? [];
+  const supportRequests = supportData?.requests ?? [];
   const paymentCases = reservations.filter(isPaymentReservationCase);
 
   const cancellationRequestItems = useMemo(() => {
@@ -1653,6 +2035,21 @@ export function AdminOperationsConsole({
     );
   }, [query, reservations]);
 
+  const filteredSupportRequests = useMemo(() => {
+    const base =
+      supportFilter === "all"
+        ? supportRequests
+        : supportRequests.filter((request) => request.status === supportFilter);
+
+    if (!query) {
+      return base;
+    }
+
+    return base.filter((request) =>
+      searchMatches(buildSupportRequestSearchHaystack(request), query)
+    );
+  }, [query, supportFilter, supportRequests]);
+
   const visibleCancellationItems = useMemo(() => {
     if (!query) {
       return cancellationRequestItems;
@@ -1728,6 +2125,10 @@ export function AdminOperationsConsole({
     selectedActionReservationId
   );
   const selectedPayment = pickSelectedItem(filteredPayments, selectedPaymentId);
+  const selectedSupportRequest = pickSelectedItem(
+    filteredSupportRequests,
+    selectedSupportRequestId
+  );
   const selectedLogReservation = pickSelectedItem(
     filteredLogs,
     selectedLogReservationId
@@ -1890,6 +2291,39 @@ export function AdminOperationsConsole({
     }
   }
 
+  async function handleReplySupportRequest(
+    request: AdminSupportRequest,
+    values: { subject: string; message: string }
+  ) {
+    const key = `support_reply:${request.id}`;
+    setProcessingKey(key);
+
+    try {
+      const response = await fetch("/api/admin/support/requests/action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "reply",
+          requestId: request.id,
+          subject: values.subject,
+          message: values.message,
+        }),
+      });
+
+      if (!response.ok) {
+        const payload = (await response.json()) as { error?: string };
+        window.alert(payload.error || t("support.reply.failed"));
+        return;
+      }
+
+      await fetchDashboard();
+    } catch {
+      window.alert(t("support.reply.failed"));
+    } finally {
+      setProcessingKey(null);
+    }
+  }
+
   function openActionRequired(focus: ActionRequiredFocus) {
     setActiveTab("action_required");
     setActionRequiredFocus(focus);
@@ -1899,6 +2333,12 @@ export function AdminOperationsConsole({
   function openPayments(filter: PaymentViewFilter) {
     setActiveTab("payments");
     setPaymentFilter(filter);
+    setQuery("");
+  }
+
+  function openSupport(filter: SupportViewFilter) {
+    setActiveTab("support");
+    setSupportFilter(filter);
     setQuery("");
   }
 
@@ -1923,6 +2363,8 @@ export function AdminOperationsConsole({
             : visibleActionRequiredReservations.length
       : activeTab === "payments"
         ? filteredPayments.length
+        : activeTab === "support"
+          ? filteredSupportRequests.length
         : activeTab === "logs"
           ? filteredLogs.length
           : 0;
@@ -2070,6 +2512,7 @@ export function AdminOperationsConsole({
                 cancellationRequestItems={cancellationRequestItems}
                 payoutApprovalItems={payoutApprovalItems}
                 meetingSetupItems={meetingSetupItems}
+                openSupportCount={supportData?.summary.open ?? 0}
                 refundPendingCount={refundPendingItems.length}
                 processedLogsCount={
                   reservations.filter((reservation) => isLogReservation(reservation))
@@ -2077,6 +2520,7 @@ export function AdminOperationsConsole({
                 }
                 onOpenActionRequired={openActionRequired}
                 onOpenPayments={openPayments}
+                onOpenSupport={openSupport}
                 onOpenLogs={() => setActiveTab("logs")}
               />
             ) : (
@@ -2131,6 +2575,26 @@ export function AdminOperationsConsole({
                             )}
                           >
                             {t(`filters.payments.${option}`)}
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
+
+                    {activeTab === "support" ? (
+                      <div className="flex flex-wrap gap-2">
+                        {SUPPORT_FILTERS.map((option) => (
+                          <button
+                            key={option}
+                            type="button"
+                            onClick={() => setSupportFilter(option)}
+                            className={cn(
+                              "rounded-full px-3 py-1.5 text-sm font-medium transition",
+                              supportFilter === option
+                                ? "bg-[#1f1f2d] text-white"
+                                : "bg-[#f3f4f6] text-[#606579] hover:bg-[#e5e7eb]"
+                            )}
+                          >
+                            {t(`support.filters.${option}`)}
                           </button>
                         ))}
                       </div>
@@ -2330,6 +2794,14 @@ export function AdminOperationsConsole({
                         onSelect={setSelectedLogReservationId}
                       />
                     ) : null}
+
+                    {activeTab === "support" ? (
+                      <SupportList
+                        requests={filteredSupportRequests}
+                        selectedId={selectedSupportRequest?.id ?? null}
+                        onSelect={setSelectedSupportRequestId}
+                      />
+                    ) : null}
                   </div>
                 </div>
 
@@ -2409,6 +2881,16 @@ export function AdminOperationsConsole({
                         void handleReissueMeetingLinks(reservation)
                       }
                       processingKey={processingKey}
+                    />
+                  ) : null}
+
+                  {activeTab === "support" ? (
+                    <SupportRequestDetail
+                      request={selectedSupportRequest}
+                      processingKey={processingKey}
+                      onReply={(request, values) =>
+                        void handleReplySupportRequest(request, values)
+                      }
                     />
                   ) : null}
                 </div>

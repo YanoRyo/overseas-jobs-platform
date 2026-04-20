@@ -17,6 +17,7 @@
     "siteDescription": "Find mentors for your overseas career"
   },
   "footer": {
+    "support": "Support",
     "terms": "Terms of Service",
     "privacy": "Privacy Policy",
     "legal": "Legal Notice"
@@ -501,6 +502,115 @@
     "pageDescription": "Bridgeee helps students connect with mentors for informational support and structured mentoring sessions.",
     "serviceScopeTitle": "Service scope",
     "notJobService": "Bridgeee is not a job placement or recruitment service. It provides informational mentoring only"
+  },
+  "support": {
+    "metaTitle": "Support & Issue Reports | Bridgeee",
+    "metaDescription": "Contact Bridgeee about payment issues, schedule changes, no-response cases, and other trouble reports.",
+    "eyebrow": "Bridgeee Support",
+    "pageTitle": "One place to ask for help",
+    "pageDescription": "If payment does not go through, you need to change a lesson time, or you cannot reach the other person, this page gives you one support path instead of sending users to scattered DMs or outside channels.",
+    "lastUpdated": "Last updated: {date}",
+    "responseNotice": "We aim to reply within 1-2 business days.",
+    "quickActions": {
+      "eyebrow": "Fast entry points",
+      "title": "Start from the issue you are already dealing with.",
+      "description": "The most common early-stage support cases are grouped here so users can send the right context without hunting for a contact address.",
+      "points": {
+        "paymentTitle": "Payment did not work",
+        "paymentDescription": "Card errors, checkout failures, or bookings that did not confirm after payment.",
+        "scheduleTitle": "Need to change the time",
+        "scheduleDescription": "Requests to reschedule a confirmed lesson or revisit proposed times.",
+        "contactTitle": "Cannot reach the other person",
+        "contactDescription": "Cases where a reply is missing or the other person is unreachable close to the lesson."
+      }
+    },
+    "selfHelp": {
+      "eyebrow": "Pages to check first",
+      "title": "Useful places before you send the form",
+      "description": "You can confirm booking details and message history from My lessons and Messages before asking support to step in.",
+      "myLessons": "Open My lessons",
+      "messages": "Open Messages",
+      "open": "Open",
+      "responseWindowTitle": "Typical response window",
+      "responseWindowDescription": "After we review the details, we usually respond within 1-2 business days. For payment or same-day issues, include the exact error and timing when possible."
+    },
+    "cards": {
+      "includeLabel": "Helpful details to include:",
+      "cta": "Contact support with this topic"
+    },
+    "categories": {
+      "payment": {
+        "label": "Payment issue",
+        "description": "Use this when checkout stops, a card error appears, or the booking does not confirm after payment.",
+        "hint": "Include any error message, the browser or device you used, and when you tried the payment."
+      },
+      "schedule_change": {
+        "label": "Schedule change",
+        "description": "Use this when you need help changing a booked lesson time or revisiting proposed time slots.",
+        "hint": "Include the current lesson time, the times you want instead, and whether you already contacted the other person."
+      },
+      "no_response": {
+        "label": "No response",
+        "description": "Use this when the other person is not replying or you cannot confirm details before the lesson.",
+        "hint": "Include who you tried to contact, when you last messaged them, and where in the product you contacted them."
+      },
+      "trouble_report": {
+        "label": "Trouble report",
+        "description": "Use this for inappropriate conduct, product bugs, or anything else that needs Bridgeee to review.",
+        "hint": "Include the screen where it happened, what went wrong, and any steps to reproduce it."
+      },
+      "other": {
+        "label": "Other",
+        "description": "Use this for questions that do not fit the options above.",
+        "hint": "Include the background we need to understand what happened and how we should help."
+      }
+    },
+    "form": {
+      "eyebrow": "Support form",
+      "title": "Contact Bridgeee",
+      "description": "Share whatever you know so far. A booking ID or the other person's name helps us check the situation faster.",
+      "categoryHintLabel": "Tip:",
+      "submit": "Send request",
+      "submitting": "Sending...",
+      "successTitle": "Your request has been received.",
+      "successDescription": "We will review the details and follow up if we need anything else.",
+      "privacyNotePrefix": "We use the details in this form only to respond to your request. See our",
+      "privacyLink": "Privacy Policy",
+      "fields": {
+        "name": {
+          "label": "Name",
+          "placeholder": "Jane Doe"
+        },
+        "email": {
+          "label": "Reply-to email",
+          "placeholder": "you@example.com"
+        },
+        "category": {
+          "label": "Topic",
+          "placeholder": "Choose a topic"
+        },
+        "context": {
+          "label": "Booking ID / mentor name / extra context",
+          "placeholder": "Example: Booking #123 / Aiko Tanaka"
+        },
+        "message": {
+          "label": "Details",
+          "placeholder": "Tell us what happened, what outcome you need, and what you tried right before the issue."
+        },
+        "company": {
+          "label": "Company"
+        }
+      },
+      "errors": {
+        "invalid_body": "Please review the form and try again.",
+        "invalid_name": "Please enter your name.",
+        "invalid_email": "Please enter a valid email address.",
+        "invalid_category": "Please choose a topic.",
+        "invalid_message": "Please add the details of your request.",
+        "unavailable": "The support form is temporarily unavailable. Please try again shortly.",
+        "submit_failed": "We could not send your request. Please try again."
+      }
+    }
   },
   "mentorRegistration": {
     "accountRequired": "Create your account",
@@ -1167,6 +1277,7 @@
         "overview": "Overview",
         "action_required": "Action Required",
         "payments": "Payments",
+        "support": "Support",
         "logs": "Logs"
       },
       "filters": {
@@ -1214,6 +1325,8 @@
         "refundPendingDescription": "Payments already refunding and waiting for final confirmation.",
         "processedLogsTitle": "Processed logs",
         "processedLogsDescription": "Review completed cancellations, refunds, and payout activity.",
+        "supportRequestsTitle": "Open support requests",
+        "supportRequestsDescription": "Review inquiries submitted from the public support form and reply from admin.",
         "usersNeedAttentionLabel": "Users Needing Attention",
         "usersNeedAttentionDescription": "Tracked for operational awareness in the current dataset.",
         "mentorsNeedAttentionLabel": "Mentors Needing Attention",
@@ -1324,6 +1437,48 @@
         "refundFailed": "Failed to refund the payment.",
         "saveMeetingLinkFailed": "Failed to save the meeting link.",
         "reissueMeetingLinkFailed": "Failed to reissue the meeting link automatically."
+      },
+      "support": {
+        "filters": {
+          "open": "Open",
+          "replied": "Replied",
+          "all": "All"
+        },
+        "replyCountBadge": "{count, plural, one {# reply} other {# replies}}",
+        "failedRepliesBadge": "{count, plural, one {# failed reply} other {# failed replies}}",
+        "empty": {
+          "noRequestsTitle": "No support requests",
+          "noRequestsDescription": "Support requests from the public support page will appear here.",
+          "selectTitle": "Select a support request",
+          "selectDescription": "Choose a support request to review the original inquiry and send a reply from admin.",
+          "noReplies": "No replies have been sent yet."
+        },
+        "detail": {
+          "request": "Support request",
+          "topic": "Topic",
+          "requestId": "Request ID",
+          "lastReply": "Last reply",
+          "locale": "Locale",
+          "context": "Reference",
+          "originalMessage": "Original message",
+          "replyHistory": "Reply history",
+          "deliveryError": "Delivery failed: {message}",
+          "sentAt": "Sent {dateTime}"
+        },
+        "reply": {
+          "title": "Reply from admin",
+          "subject": "Subject",
+          "message": "Reply",
+          "submit": "Send reply",
+          "sending": "Sending...",
+          "failed": "Failed to send the support reply.",
+          "notice": "Replies are emailed to the requester and saved in this request history.",
+          "defaultSubject": "Bridgeee support follow-up: {topic}",
+          "errors": {
+            "subjectRequired": "Please enter an email subject.",
+            "messageRequired": "Please enter a reply message."
+          }
+        }
       },
       "meetingForm": {
         "providerLabel": "Provider label",

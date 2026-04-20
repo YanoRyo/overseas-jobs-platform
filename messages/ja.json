@@ -17,6 +17,7 @@
     "siteDescription": "海外キャリアのメンターを見つけよう"
   },
   "footer": {
+    "support": "お問い合わせ・報告",
     "terms": "利用規約",
     "privacy": "プライバシーポリシー",
     "legal": "特定商取引法に基づく表記"
@@ -501,6 +502,115 @@
     "pageDescription": "Bridgeeeは、受講生がメンターとつながり、情報提供やメンタリングを受けられる場を提供します。",
     "serviceScopeTitle": "サービスの範囲",
     "notJobService": "Bridgeeeは職業紹介サービスではありません。本サービスは情報提供およびメンタリングを目的としています"
+  },
+  "support": {
+    "metaTitle": "お問い合わせ・トラブル報告 | Bridgeee",
+    "metaDescription": "支払い、日程変更、連絡不通、その他のトラブルについてBridgeeeへお問い合わせいただけます。",
+    "eyebrow": "Bridgeee サポート",
+    "pageTitle": "困ったときの問い合わせ窓口",
+    "pageDescription": "支払いが進まない、予約日時を変更したい、相手と連絡がつかないなど、初期運用で起きやすい相談を1つの窓口にまとめました。状況を入力いただければ、Bridgeee側で確認します。",
+    "lastUpdated": "最終更新日: {date}",
+    "responseNotice": "通常 1〜2 営業日以内を目安に返信します。",
+    "quickActions": {
+      "eyebrow": "まず選べる導線",
+      "title": "よくあるトラブルからそのまま連絡できます。",
+      "description": "初期運用で発生しやすい問い合わせを整理し、必要な情報を添えてそのまま送れる形にしています。急ぎの確認でも、まずはこのページから集約してください。",
+      "points": {
+        "paymentTitle": "支払いできない",
+        "paymentDescription": "カードエラーやチェックアウト停止、支払い後に予約が反映されないケース。",
+        "scheduleTitle": "日程を変更したい",
+        "scheduleDescription": "確定済みレッスンの時間変更や、連絡済みの候補日時を調整したいケース。",
+        "contactTitle": "相手と連絡がつかない",
+        "contactDescription": "メッセージ返信がない、当日直前に確認が取れない、といったケース。"
+      }
+    },
+    "selfHelp": {
+      "eyebrow": "確認できる場所",
+      "title": "送信前に見直したいページ",
+      "description": "予約情報や相手とのやり取りは、サポートへ連絡する前にマイレッスンとメッセージから確認できます。",
+      "myLessons": "マイレッスンを開く",
+      "messages": "メッセージを開く",
+      "open": "開く",
+      "responseWindowTitle": "返信の目安",
+      "responseWindowDescription": "内容確認後、通常 1〜2 営業日以内にご案内します。決済や当日トラブルは、表示されたエラーや時刻も含めて送ってください。"
+    },
+    "cards": {
+      "includeLabel": "フォームに入れてほしい情報:",
+      "cta": "この内容で問い合わせる"
+    },
+    "categories": {
+      "payment": {
+        "label": "支払いできない",
+        "description": "チェックアウト中に止まる、カードエラーが出る、支払い後に予約が確定しない場合はこちら。",
+        "hint": "エラーメッセージ、利用端末やブラウザ、試した時刻があると確認が早くなります。"
+      },
+      "schedule_change": {
+        "label": "日程を変更したい",
+        "description": "予約済みレッスンの時間変更や、候補日時の再調整をBridgeee側に相談したい場合はこちら。",
+        "hint": "現在の予約日時、変更したい候補、相手へ連絡済みかどうかを記入してください。"
+      },
+      "no_response": {
+        "label": "相手と連絡がつかない",
+        "description": "メッセージ返信がない、当日の接続前に相手と確認が取れないなどのケースはこちら。",
+        "hint": "最後に連絡した日時、相手の名前、どの画面から連絡したかを記入してください。"
+      },
+      "trouble_report": {
+        "label": "トラブルを報告したい",
+        "description": "不適切な対応、技術的不具合、その他の気になる事象を報告したい場合はこちら。",
+        "hint": "発生した画面、問題の内容、再現手順やスクリーンショットの有無を記入してください。"
+      },
+      "other": {
+        "label": "その他",
+        "description": "上記に当てはまらない相談や質問はこちら。",
+        "hint": "困っている内容と、返信のために必要な背景情報をできるだけ具体的に記入してください。"
+      }
+    },
+    "form": {
+      "eyebrow": "問い合わせフォーム",
+      "title": "Bridgeee に連絡する",
+      "description": "わかる範囲で構いません。予約IDや相手の名前があると、状況確認がスムーズになります。",
+      "categoryHintLabel": "補足:",
+      "submit": "送信する",
+      "submitting": "送信中...",
+      "successTitle": "お問い合わせを受け付けました。",
+      "successDescription": "入力いただいた内容を確認し、必要に応じてご連絡します。",
+      "privacyNotePrefix": "このフォームの情報は、問い合わせ対応のために利用されます。詳細は",
+      "privacyLink": "プライバシーポリシー",
+      "fields": {
+        "name": {
+          "label": "お名前",
+          "placeholder": "山田 太郎"
+        },
+        "email": {
+          "label": "返信用メールアドレス",
+          "placeholder": "you@example.com"
+        },
+        "category": {
+          "label": "お問い合わせ内容",
+          "placeholder": "内容を選択してください"
+        },
+        "context": {
+          "label": "予約ID / メンター名 / 補足情報",
+          "placeholder": "例: Booking #123 / Aiko Tanaka"
+        },
+        "message": {
+          "label": "詳細",
+          "placeholder": "発生していること、希望する対応、直前に試したことをご記入ください。"
+        },
+        "company": {
+          "label": "会社名"
+        }
+      },
+      "errors": {
+        "invalid_body": "入力内容を確認して、もう一度お試しください。",
+        "invalid_name": "お名前を入力してください。",
+        "invalid_email": "有効なメールアドレスを入力してください。",
+        "invalid_category": "お問い合わせ内容を選択してください。",
+        "invalid_message": "詳細を入力してください。",
+        "unavailable": "現在フォーム送信を受け付けられません。時間をおいて再度お試しください。",
+        "submit_failed": "送信に失敗しました。時間をおいて再度お試しください。"
+      }
+    }
   },
   "mentorRegistration": {
     "accountRequired": "アカウントを作成",
@@ -1167,6 +1277,7 @@
         "overview": "Overview",
         "action_required": "要対応",
         "payments": "Payments",
+        "support": "サポート",
         "logs": "Logs"
       },
       "filters": {
@@ -1214,6 +1325,8 @@
         "refundPendingDescription": "返金処理中で、最終反映待ちの決済です。",
         "processedLogsTitle": "処理済みログ",
         "processedLogsDescription": "完了したキャンセル、返金、payout の履歴を確認します。",
+        "supportRequestsTitle": "未返信の問い合わせ",
+        "supportRequestsDescription": "公開フォームから届いた問い合わせを確認し、admin から返信します。",
         "usersNeedAttentionLabel": "要確認ユーザー",
         "usersNeedAttentionDescription": "現在のデータセット上で運営確認が必要なユーザーです。",
         "mentorsNeedAttentionLabel": "要確認メンター",
@@ -1324,6 +1437,48 @@
         "refundFailed": "返金に失敗しました。",
         "saveMeetingLinkFailed": "ミーティングURLの保存に失敗しました。",
         "reissueMeetingLinkFailed": "ミーティングURLの自動再発行に失敗しました。"
+      },
+      "support": {
+        "filters": {
+          "open": "未返信",
+          "replied": "返信済み",
+          "all": "すべて"
+        },
+        "replyCountBadge": "{count, plural, one {# 件の返信} other {# 件の返信}}",
+        "failedRepliesBadge": "{count, plural, one {送信失敗 # 件} other {送信失敗 # 件}}",
+        "empty": {
+          "noRequestsTitle": "問い合わせはありません",
+          "noRequestsDescription": "公開サポートフォームからの問い合わせがここに表示されます。",
+          "selectTitle": "問い合わせを選択してください",
+          "selectDescription": "問い合わせを選ぶと、元の内容と返信履歴を確認し、admin から返信できます。",
+          "noReplies": "まだ返信は送信されていません。"
+        },
+        "detail": {
+          "request": "問い合わせ",
+          "topic": "内容",
+          "requestId": "問い合わせID",
+          "lastReply": "最終返信",
+          "locale": "ロケール",
+          "context": "参照情報",
+          "originalMessage": "問い合わせ内容",
+          "replyHistory": "返信履歴",
+          "deliveryError": "送信失敗: {message}",
+          "sentAt": "{dateTime} に送信"
+        },
+        "reply": {
+          "title": "admin から返信",
+          "subject": "件名",
+          "message": "返信内容",
+          "submit": "返信を送る",
+          "sending": "送信中...",
+          "failed": "問い合わせ返信の送信に失敗しました。",
+          "notice": "返信はメール送信され、この問い合わせ履歴にも保存されます。",
+          "defaultSubject": "Bridgeee サポート返信: {topic}",
+          "errors": {
+            "subjectRequired": "件名を入力してください。",
+            "messageRequired": "返信内容を入力してください。"
+          }
+        }
       },
       "meetingForm": {
         "providerLabel": "提供元ラベル",
