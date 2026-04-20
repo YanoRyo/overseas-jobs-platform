@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useSupabaseClient, useUser } from "@supabase/auth-helpers-react";
+import {
+  useSessionContext,
+  useSupabaseClient,
+} from "@supabase/auth-helpers-react";
 
 import type { MessageTab } from "../types/messageTab";
 import type { ConversationItem } from "../types/conversationItem";
@@ -17,7 +20,8 @@ type EmptyReason = "not_logged_in" | "no_conversations" | null;
 
 export const useMessageThreads = (tab: MessageTab) => {
   const supabase = useSupabaseClient();
-  const user = useUser();
+  const { isLoading: authLoading, session } = useSessionContext();
+  const user = session?.user ?? null;
 
   const [items, setItems] = useState<ConversationItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -26,6 +30,10 @@ export const useMessageThreads = (tab: MessageTab) => {
 
   useEffect(() => {
     const fetchThreads = async () => {
+      if (authLoading) {
+        return;
+      }
+
       if (!user) {
         setItems([]);
         setEmptyReason("not_logged_in");
@@ -162,8 +170,13 @@ export const useMessageThreads = (tab: MessageTab) => {
       setLoading(false);
     };
 
-    fetchThreads();
-  }, [user, tab, supabase]);
+    if (authLoading) {
+      setLoading(true);
+      return;
+    }
+
+    void fetchThreads();
+  }, [authLoading, user, tab, supabase]);
 
   return { items, loading, emptyReason };
 };
