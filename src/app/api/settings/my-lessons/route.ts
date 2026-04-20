@@ -2,7 +2,9 @@ import { NextResponse } from "next/server";
 import type { BookingChangeRequestSummary } from "@/features/bookings/types";
 import {
   getBookingChangeRequestsByBookingIds,
+  isMissingBookingMeetingColumnsError,
   isMissingPaymentRefundColumnsError,
+  warnForMissingBookingMeetingColumns,
   warnForMissingPaymentRefundColumns,
 } from "@/lib/bookings/server";
 import {
@@ -60,6 +62,75 @@ function normalizeName(firstName?: string | null, lastName?: string | null) {
   return fullName || "Unknown";
 }
 
+async function fetchBookingsForLessons(params: {
+  adminDb: ReturnType<typeof createSupabaseServiceClient>;
+  viewerRole: ViewerRole;
+  userId: string;
+  mentorId: string | null;
+}) {
+  let bookingsQuery = params.adminDb
+    .from("bookings")
+    .select(
+      "id, user_id, mentor_id, start_time, end_time, status, meeting_provider, meeting_join_url, meeting_host_url"
+    )
+    .in("status", [
+      "confirmed",
+      "pending",
+      "cancellation_requested",
+      "completed",
+      "expired",
+      "cancelled",
+      "cancelled_by_mentor",
+    ]);
+
+  if (params.viewerRole === "mentor") {
+    bookingsQuery = bookingsQuery.eq("mentor_id", params.mentorId);
+  } else {
+    bookingsQuery = bookingsQuery.eq("user_id", params.userId);
+  }
+
+  const bookingsResult = await bookingsQuery;
+  if (!isMissingBookingMeetingColumnsError(bookingsResult.error)) {
+    return bookingsResult;
+  }
+
+  warnForMissingBookingMeetingColumns(bookingsResult.error);
+
+  let fallbackQuery = params.adminDb
+    .from("bookings")
+    .select("id, user_id, mentor_id, start_time, end_time, status")
+    .in("status", [
+      "confirmed",
+      "pending",
+      "cancellation_requested",
+      "completed",
+      "expired",
+      "cancelled",
+      "cancelled_by_mentor",
+    ]);
+
+  if (params.viewerRole === "mentor") {
+    fallbackQuery = fallbackQuery.eq("mentor_id", params.mentorId);
+  } else {
+    fallbackQuery = fallbackQuery.eq("user_id", params.userId);
+  }
+
+  const fallbackResult = await fallbackQuery;
+  if (fallbackResult.error) {
+    return fallbackResult;
+  }
+
+  return {
+    data: (fallbackResult.data ?? []).map((booking) => ({
+      ...booking,
+      meeting_provider: null,
+      meeting_join_url: null,
+      meeting_host_url: null,
+    })),
+    error: null,
+  };
+}
+
 export async function GET(request: Request) {
   const supabase = await createSupabaseServerClient();
   const adminDb = createSupabaseServiceClient();
@@ -97,28 +168,12 @@ export async function GET(request: Request) {
     return NextResponse.json({ lessons: [] });
   }
 
-  let bookingsQuery = adminDb
-    .from("bookings")
-    .select(
-      "id, user_id, mentor_id, start_time, end_time, status, meeting_provider, meeting_join_url, meeting_host_url"
-    )
-    .in("status", [
-      "confirmed",
-      "pending",
-      "cancellation_requested",
-      "completed",
-      "expired",
-      "cancelled",
-      "cancelled_by_mentor",
-    ]);
-
-  if (viewerRole === "mentor") {
-    bookingsQuery = bookingsQuery.eq("mentor_id", mentorId);
-  } else {
-    bookingsQuery = bookingsQuery.eq("user_id", user.id);
-  }
-
-  const { data: bookings, error: bookingsError } = await bookingsQuery;
+  const { data: bookings, error: bookingsError } = await fetchBookingsForLessons({
+    adminDb,
+    viewerRole,
+    userId: user.id,
+    mentorId,
+  });
 
   if (bookingsError) {
     console.error("Failed to fetch bookings for My Lessons:", bookingsError);
@@ -168,6 +223,18 @@ export async function GET(request: Request) {
     };
   }
 
+  async function fetchChangeRequestsForLessons() {
+    try {
+      return await getBookingChangeRequestsByBookingIds(bookingIds, adminDb);
+    } catch (error) {
+      console.warn(
+        "Change request metadata is unavailable for My Lessons; falling back to empty request state.",
+        error
+      );
+      return new Map<string, BookingChangeRequestSummary[]>();
+    }
+  }
+
   const [mentorsResult, usersResult, paymentsResult, changeRequestsMap] =
     await Promise.all([
       adminDb
@@ -179,7 +246,7 @@ export async function GET(request: Request) {
         .select("id, first_name, last_name, avatar_url")
         .in("id", userIds),
       fetchPaymentsForLessons(),
-      getBookingChangeRequestsByBookingIds(bookingIds, adminDb),
+      fetchChangeRequestsForLessons(),
     ]);
 
   if (mentorsResult.error) {

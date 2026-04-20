@@ -71,8 +71,15 @@ const PAYMENT_REFUND_TRACKING_COLUMNS = [
   "refunded_at",
 ] as const;
 
+const BOOKING_MEETING_COLUMNS = [
+  "meeting_provider",
+  "meeting_join_url",
+  "meeting_host_url",
+] as const;
+
 let hasWarnedForMissingBookingChangeRequestsTable = false;
 let hasWarnedForMissingPaymentRefundColumns = false;
+let hasWarnedForMissingBookingMeetingColumns = false;
 
 export class BookingActionError extends Error {
   statusCode: number;
@@ -133,6 +140,34 @@ export function warnForMissingPaymentRefundColumns(
   hasWarnedForMissingPaymentRefundColumns = true;
   console.warn(
     "Payment refund tracking columns are unavailable; refund metadata will be omitted until the latest migration is applied.",
+    error
+  );
+}
+
+export function isMissingBookingMeetingColumnsError(
+  error?: PostgrestLikeError | null
+) {
+  if (error?.code !== "42703") {
+    return false;
+  }
+
+  const message = error.message ?? "";
+  return BOOKING_MEETING_COLUMNS.some(
+    (columnName) =>
+      message.includes(columnName) || message.includes(`bookings.${columnName}`)
+  );
+}
+
+export function warnForMissingBookingMeetingColumns(
+  error?: PostgrestLikeError | null
+) {
+  if (hasWarnedForMissingBookingMeetingColumns) {
+    return;
+  }
+
+  hasWarnedForMissingBookingMeetingColumns = true;
+  console.warn(
+    "Booking meeting link columns are unavailable; meeting metadata will be omitted until the latest migration is applied.",
     error
   );
 }

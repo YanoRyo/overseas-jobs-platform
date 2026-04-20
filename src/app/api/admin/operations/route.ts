@@ -1,7 +1,9 @@
 import { NextResponse } from "next/server";
 import {
   isMissingBookingChangeRequestsTableError,
+  isMissingBookingMeetingColumnsError,
   isMissingPaymentRefundColumnsError,
+  warnForMissingBookingMeetingColumns,
   warnForMissingBookingChangeRequestsTable,
   warnForMissingPaymentRefundColumns,
 } from "@/lib/bookings/server";
@@ -378,6 +380,40 @@ export async function GET() {
     };
   }
 
+  async function fetchBookingsForAdminOperations() {
+    const bookingsResult = await adminDb
+      .from("bookings")
+      .select(
+        "id, mentor_id, user_id, start_time, end_time, status, created_at, expires_at, meeting_provider, meeting_join_url, meeting_host_url"
+      )
+      .order("start_time", { ascending: false });
+
+    if (!isMissingBookingMeetingColumnsError(bookingsResult.error)) {
+      return bookingsResult;
+    }
+
+    warnForMissingBookingMeetingColumns(bookingsResult.error);
+
+    const fallbackResult = await adminDb
+      .from("bookings")
+      .select("id, mentor_id, user_id, start_time, end_time, status, created_at, expires_at")
+      .order("start_time", { ascending: false });
+
+    if (fallbackResult.error) {
+      return fallbackResult;
+    }
+
+    return {
+      data: (fallbackResult.data ?? []).map((booking) => ({
+        ...booking,
+        meeting_provider: null,
+        meeting_join_url: null,
+        meeting_host_url: null,
+      })),
+      error: null,
+    };
+  }
+
   const [
     bookingsResult,
     usersResult,
@@ -386,12 +422,7 @@ export async function GET() {
     payoutsResult,
     changeRequestsResult,
   ] = await Promise.all([
-      adminDb
-        .from("bookings")
-        .select(
-          "id, mentor_id, user_id, start_time, end_time, status, created_at, expires_at, meeting_provider, meeting_join_url, meeting_host_url"
-        )
-        .order("start_time", { ascending: false }),
+      fetchBookingsForAdminOperations(),
       adminDb
         .from("users")
         .select(
