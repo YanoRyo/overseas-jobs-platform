@@ -27,6 +27,7 @@ export type LessonItem = {
 export type GroupedLessons = {
   upcoming: LessonItem[];
   pending: LessonItem[];
+  expired: LessonItem[];
   completed: LessonItem[];
   cancelled: LessonItem[];
 };

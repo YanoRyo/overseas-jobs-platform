@@ -118,6 +118,7 @@ export function LessonCard({
     lesson.status !== "cancelled" &&
     lesson.status !== "cancelled_by_mentor" &&
     lesson.status !== "cancellation_requested" &&
+    lesson.status !== "expired" &&
     lesson.paymentStatus !== "refunded" &&
     lesson.paymentStatus !== "refund_pending";
   const canResumePayment =
@@ -194,6 +195,8 @@ export function LessonCard({
                 ? t("paymentFailedResume")
                 : t("paymentIncompleteResume")}
             </p>
+          ) : lesson.status === "expired" ? (
+            <p className="text-xs text-secondary">{t("lessonExpiredNote")}</p>
           ) : lesson.status === "cancelled" ? (
             <p className="text-xs text-secondary">{t("lessonCancelledNote")}</p>
           ) : lesson.status === "cancelled_by_mentor" ? (

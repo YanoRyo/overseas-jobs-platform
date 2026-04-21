@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { LessonItem, GroupedLessons } from "../types/myLessons";
 import type { UserRole } from "@/features/auth/types";
+import { groupLessons } from "../utils/groupLessons";
 
 type ApiLessonItem = {
   id: string;
@@ -25,40 +26,6 @@ type ApiLessonItem = {
   changeRequest: LessonItem["changeRequest"];
 };
 
-function groupLessons(items: LessonItem[]): GroupedLessons {
-  const upcoming: LessonItem[] = [];
-  const pending: LessonItem[] = [];
-  const completed: LessonItem[] = [];
-  const cancelled: LessonItem[] = [];
-
-  for (const item of items) {
-    switch (item.status) {
-      case "confirmed":
-        upcoming.push(item);
-        break;
-      case "pending":
-      case "cancellation_requested":
-      case "expired":
-        pending.push(item);
-        break;
-      case "completed":
-        completed.push(item);
-        break;
-      case "cancelled":
-      case "cancelled_by_mentor":
-        cancelled.push(item);
-        break;
-    }
-  }
-
-  upcoming.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
-  pending.sort((a, b) => a.startTime.getTime() - b.startTime.getTime());
-  completed.sort((a, b) => b.startTime.getTime() - a.startTime.getTime());
-  cancelled.sort((a, b) => b.startTime.getTime() - a.startTime.getTime());
-
-  return { upcoming, pending, completed, cancelled };
-}
-
 function parseUtcTimestamp(value: string) {
   return new Date(value.endsWith("Z") ? value : `${value}Z`);
 }
@@ -67,6 +34,7 @@ export function useMyLessons(role: UserRole) {
   const [lessons, setLessons] = useState<GroupedLessons>({
     upcoming: [],
     pending: [],
+    expired: [],
     completed: [],
     cancelled: [],
   });
@@ -123,7 +91,13 @@ export function useMyLessons(role: UserRole) {
       } catch (fetchError) {
         console.error("Failed to load lessons:", fetchError);
         if (!cancelled) {
-          setLessons({ upcoming: [], pending: [], completed: [], cancelled: [] });
+          setLessons({
+            upcoming: [],
+            pending: [],
+            expired: [],
+            completed: [],
+            cancelled: [],
+          });
           setError("Failed to load lesson information.");
         }
       } finally {

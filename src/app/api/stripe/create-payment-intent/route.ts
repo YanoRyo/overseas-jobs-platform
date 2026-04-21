@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { stripe } from "@/lib/stripe/server";
+import { expirePendingBookings } from "@/lib/bookings/server";
 import {
   createSupabaseServerClient,
   createSupabaseServiceClient,
@@ -31,6 +32,15 @@ export async function POST(request: Request) {
   }
 
   const adminDb = createSupabaseServiceClient();
+  try {
+    await expirePendingBookings(adminDb);
+  } catch (error) {
+    console.error("create-payment-intent lifecycle refresh error:", error);
+    return NextResponse.json(
+      { error: "Failed to refresh booking lifecycle" },
+      { status: 500 }
+    );
+  }
 
   // booking取得・所有権チェック
   const { data: booking, error: bookingError } = await adminDb
@@ -58,7 +68,7 @@ export async function POST(request: Request) {
       .eq("booking_id", bookingId)
       .single();
 
-    if (paidPayment && (paidPayment.status === "succeeded" || paidPayment.status === "pending")) {
+    if (paidPayment?.status === "succeeded") {
       const pi = await stripe.paymentIntents.retrieve(
         paidPayment.stripe_payment_intent_id
       );

@@ -434,6 +434,7 @@
       "paymentIncompleteResume": "Payment is not complete yet. Resume checkout to confirm this lesson.",
       "resumePayment": "Resume payment",
       "cancellationRequestPendingDetail": "This cancellation request is awaiting review from Bridgeee operations.",
+      "lessonExpiredNote": "This unpaid booking hold expired before checkout was completed.",
       "lessonCancelledNote": "This lesson has been cancelled. The meeting link is no longer active.",
       "lessonCancelledByMentorNote": "This lesson was cancelled by the mentor. Bridgeee will confirm the refund separately if one applies.",
       "cancellationRequestPending": "A cancellation request is pending review.",
@@ -1342,6 +1343,8 @@
         "usersNeedAttentionDescription": "Tracked for operational awareness in the current dataset.",
         "mentorsNeedAttentionLabel": "Mentors Needing Attention",
         "mentorsNeedAttentionDescription": "Payout setup and delivery issues still surface here.",
+        "expiredReservationsLabel": "Expired Reservations",
+        "expiredReservationsDescription": "Unpaid booking holds that moved out of pending.",
         "paymentFailuresLabel": "Payment Failures",
         "paymentFailuresDescription": "Failures stay visible in Payments and Logs for follow-up."
       },

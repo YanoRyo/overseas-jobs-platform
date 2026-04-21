@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import {
+  expirePendingBookings,
   isMissingBookingChangeRequestsTableError,
   isMissingBookingMeetingColumnsError,
   isMissingPaymentRefundColumnsError,
@@ -234,13 +235,17 @@ function buildReservationFlags(
   }
 
   if (
-    booking.status === "pending" &&
-    booking.expires_at &&
-    getTimestamp(booking.expires_at) < now
+    booking.status === "expired" ||
+    (booking.status === "pending" &&
+      booking.expires_at &&
+      getTimestamp(booking.expires_at) < now)
   ) {
     flags.push({
       type: "expired_pending_booking",
-      label: "Expired pending booking",
+      label:
+        booking.status === "expired"
+          ? "Expired booking"
+          : "Expired pending booking",
       tone: "warning",
     });
   }
@@ -324,14 +329,18 @@ function buildReservationFlags(
 function buildUserStateLabel(params: {
   failedPayments: number;
   refundedPayments: number;
+  expiredReservations: number;
+  cancelledReservations: number;
   confirmedReservations: number;
   pendingReservations: number;
   completedReservations: number;
 }) {
   if (params.failedPayments > 0) return "Payment issue";
   if (params.refundedPayments > 0) return "Refund follow-up";
+  if (params.expiredReservations > 0) return "Expired booking";
   if (params.confirmedReservations > 0) return "Upcoming lesson";
   if (params.pendingReservations > 0) return "Pending checkout";
+  if (params.cancelledReservations > 0) return "Cancelled booking";
   if (params.completedReservations > 0) return "Lesson history";
   return "No reservations yet";
 }
@@ -340,13 +349,17 @@ function buildMentorStateLabel(params: {
   stripeOnboardingCompleted: boolean;
   failedPayouts: number;
   awaitingPayoutApproval: number;
+  expiredReservations: number;
+  cancelledReservations: number;
   confirmedReservations: number;
   completedReservations: number;
 }) {
   if (!params.stripeOnboardingCompleted) return "Payout blocked";
   if (params.failedPayouts > 0) return "Payout issue";
   if (params.awaitingPayoutApproval > 0) return "Awaiting payout approval";
+  if (params.expiredReservations > 0) return "Expired bookings";
   if (params.confirmedReservations > 0) return "Upcoming lessons";
+  if (params.cancelledReservations > 0) return "Cancelled lessons";
   if (params.completedReservations > 0) return "Active mentor";
   return "No lessons yet";
 }
@@ -373,6 +386,16 @@ export async function GET() {
   }
 
   const adminDb = createSupabaseServiceClient();
+  try {
+    await expirePendingBookings(adminDb);
+  } catch (error) {
+    console.error("Admin operations lifecycle refresh error:", error);
+    return NextResponse.json(
+      { error: "Failed to refresh booking lifecycle" },
+      { status: 500 }
+    );
+  }
+
   async function fetchPaymentsForAdminOperations() {
     const paymentsResult = await adminDb
       .from("payments")
@@ -738,11 +761,18 @@ export async function GET() {
       const pendingReservations = relatedReservations.filter(
         (item) => item.status === "pending"
       ).length;
+      const expiredReservations = relatedReservations.filter(
+        (item) => item.status === "expired"
+      ).length;
       const confirmedReservations = relatedReservations.filter(
         (item) => item.status === "confirmed"
       ).length;
       const completedReservations = relatedReservations.filter(
         (item) => item.status === "completed"
+      ).length;
+      const cancelledReservations = relatedReservations.filter(
+        (item) =>
+          item.status === "cancelled" || item.status === "cancelled_by_mentor"
       ).length;
       const failedPayments = relatedReservations.filter(
         (item) => item.payment?.status === "failed"
@@ -775,6 +805,8 @@ export async function GET() {
         stateLabel: buildUserStateLabel({
           failedPayments,
           refundedPayments,
+          expiredReservations,
+          cancelledReservations,
           confirmedReservations,
           pendingReservations,
           completedReservations,
@@ -783,8 +815,10 @@ export async function GET() {
         counts: {
           totalReservations: relatedReservations.length,
           pendingReservations,
+          expiredReservations,
           confirmedReservations,
           completedReservations,
+          cancelledReservations,
           failedPayments,
           refundedPayments,
           attentionCases,
@@ -808,11 +842,18 @@ export async function GET() {
       const pendingReservations = relatedReservations.filter(
         (item) => item.status === "pending"
       ).length;
+      const expiredReservations = relatedReservations.filter(
+        (item) => item.status === "expired"
+      ).length;
       const confirmedReservations = relatedReservations.filter(
         (item) => item.status === "confirmed"
       ).length;
       const completedReservations = relatedReservations.filter(
         (item) => item.status === "completed"
+      ).length;
+      const cancelledReservations = relatedReservations.filter(
+        (item) =>
+          item.status === "cancelled" || item.status === "cancelled_by_mentor"
       ).length;
       const awaitingPayoutApproval = relatedReservations.filter(
         (item) => item.paymentApprovalEligible
@@ -852,6 +893,8 @@ export async function GET() {
           ),
           failedPayouts,
           awaitingPayoutApproval,
+          expiredReservations,
+          cancelledReservations,
           confirmedReservations,
           completedReservations,
         }),
@@ -862,8 +905,10 @@ export async function GET() {
         counts: {
           totalReservations: relatedReservations.length,
           pendingReservations,
+          expiredReservations,
           confirmedReservations,
           completedReservations,
+          cancelledReservations,
           awaitingPayoutApproval,
           paidPayouts,
           failedPayouts,
@@ -891,6 +936,8 @@ export async function GET() {
         (item) => item.paymentApprovalEligible
       ).length,
       meetingSetupIssues: reservations.filter((item) => item.meetingSetupIssue).length,
+      expiredReservations: reservations.filter((item) => item.status === "expired")
+        .length,
       usersNeedingAttention: usersData.filter((item) => item.needsAttention).length,
       mentorsNeedingAttention: mentorsData.filter((item) => item.needsAttention)
         .length,

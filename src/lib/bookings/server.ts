@@ -46,6 +46,11 @@ type PaymentRow = {
   refund_amount: number | null;
 };
 
+type BookingLifecyclePaymentRow = {
+  booking_id: number;
+  status: PaymentStatus;
+};
+
 type ChangeRequestRow = {
   id: string;
   booking_id: number;
@@ -198,6 +203,135 @@ function isCancelledBookingStatus(status: BookingStatus | null) {
 
 function parseStoredTimestamp(value: string) {
   return new Date(/[zZ]$|[+-]\d{2}:\d{2}$/.test(value) ? value : `${value}Z`);
+}
+
+export async function expirePendingBookings(
+  adminDb = createSupabaseServiceClient(),
+  now = new Date()
+) {
+  const nowIso = now.toISOString();
+  const expiredCandidatesResult = await adminDb
+    .from("bookings")
+    .select("id")
+    .eq("status", "pending")
+    .not("expires_at", "is", null)
+    .lte("expires_at", nowIso);
+
+  if (expiredCandidatesResult.error) {
+    throw new BookingActionError(
+      "Failed to load expired pending bookings.",
+      500
+    );
+  }
+
+  const bookingIds = ((expiredCandidatesResult.data ?? []) as Array<{
+    id: number | string;
+  }>).map((booking) => booking.id);
+
+  if (bookingIds.length === 0) {
+    return {
+      expiredBookings: 0,
+      confirmedBookings: 0,
+      cancelledBookings: 0,
+    };
+  }
+
+  const paymentStatusesToProtect: PaymentStatus[] = [
+    "succeeded",
+    "refund_pending",
+    "refunded",
+  ];
+  const paymentsResult = await adminDb
+    .from("payments")
+    .select("booking_id, status")
+    .in("booking_id", bookingIds)
+    .in("status", paymentStatusesToProtect);
+
+  if (paymentsResult.error) {
+    throw new BookingActionError(
+      "Failed to load payment state for expired pending bookings.",
+      500
+    );
+  }
+
+  const payments = (paymentsResult.data ?? []) as BookingLifecyclePaymentRow[];
+  const paidBookingIds = new Set(
+    payments
+      .filter((payment) => payment.status === "succeeded")
+      .map((payment) => String(payment.booking_id))
+  );
+  const refundedBookingIds = new Set(
+    payments
+      .filter(
+        (payment) =>
+          payment.status === "refund_pending" || payment.status === "refunded"
+      )
+      .map((payment) => String(payment.booking_id))
+  );
+
+  const confirmedBookingIds = bookingIds.filter((bookingId) =>
+    paidBookingIds.has(String(bookingId))
+  );
+  const cancelledBookingIds = bookingIds.filter(
+    (bookingId) =>
+      refundedBookingIds.has(String(bookingId)) &&
+      !paidBookingIds.has(String(bookingId))
+  );
+  const expirableBookingIds = bookingIds.filter((bookingId) => {
+    const key = String(bookingId);
+    return !paidBookingIds.has(key) && !refundedBookingIds.has(key);
+  });
+
+  if (confirmedBookingIds.length > 0) {
+    const { error } = await adminDb
+      .from("bookings")
+      .update({ status: "confirmed", expires_at: null })
+      .in("id", confirmedBookingIds)
+      .eq("status", "pending");
+
+    if (error) {
+      throw new BookingActionError(
+        "Failed to confirm paid pending bookings.",
+        500
+      );
+    }
+  }
+
+  if (cancelledBookingIds.length > 0) {
+    const { error } = await adminDb
+      .from("bookings")
+      .update({ status: "cancelled", expires_at: null })
+      .in("id", cancelledBookingIds)
+      .eq("status", "pending");
+
+    if (error) {
+      throw new BookingActionError(
+        "Failed to cancel refunded pending bookings.",
+        500
+      );
+    }
+  }
+
+  if (expirableBookingIds.length > 0) {
+    const { error } = await adminDb
+      .from("bookings")
+      .update({ status: "expired", expires_at: null })
+      .in("id", expirableBookingIds)
+      .eq("status", "pending");
+
+    if (error) {
+      throw new BookingActionError(
+        "Failed to expire stale pending bookings.",
+        500
+      );
+    }
+  }
+
+  return {
+    expiredBookings: expirableBookingIds.length,
+    confirmedBookings: confirmedBookingIds.length,
+    cancelledBookings: cancelledBookingIds.length,
+  };
 }
 
 function mapChangeRequestRow(

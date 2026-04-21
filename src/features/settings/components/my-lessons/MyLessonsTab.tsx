@@ -131,6 +131,7 @@ export function MyLessonsTab({ role }: { role: UserRole }) {
   const isEmpty =
     lessons.upcoming.length === 0 &&
     lessons.pending.length === 0 &&
+    lessons.expired.length === 0 &&
     lessons.completed.length === 0 &&
     lessons.cancelled.length === 0;
 
@@ -162,6 +163,13 @@ export function MyLessonsTab({ role }: { role: UserRole }) {
           <LessonSection
             title={t("pending")}
             items={lessons.pending}
+            role={role}
+            onRequestCancellation={handleOpenCancellationDialog}
+            onResumePayment={handleResumePayment}
+          />
+          <LessonSection
+            title={t("expired")}
+            items={lessons.expired}
             role={role}
             onRequestCancellation={handleOpenCancellationDialog}
             onResumePayment={handleResumePayment}

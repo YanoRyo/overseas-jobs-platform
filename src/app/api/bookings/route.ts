@@ -3,6 +3,7 @@ import {
   createSupabaseServerClient,
   createSupabaseServiceClient,
 } from "@/lib/supabase/server";
+import { expirePendingBookings } from "@/lib/bookings/server";
 
 type UserRole = "student" | "mentor";
 
@@ -100,6 +101,16 @@ export async function POST(request: Request) {
   }
 
   const adminDb = createSupabaseServiceClient();
+  try {
+    await expirePendingBookings(adminDb);
+  } catch (error) {
+    console.error("bookings: lifecycle refresh error", error);
+    return NextResponse.json(
+      { error: "Failed to refresh booking lifecycle" },
+      { status: 500 }
+    );
+  }
+
   const { data: existingUser, error: existingUserError } = await adminDb
     .from("users")
     .select("role")

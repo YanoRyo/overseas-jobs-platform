@@ -272,6 +272,7 @@ function isActionRequiredReservation(reservation: AdminReservationCase) {
 function isLogReservation(reservation: AdminReservationCase) {
   return (
     (reservation.status === "completed" && !reservation.paymentApprovalEligible) ||
+    reservation.status === "expired" ||
     reservation.status === "cancelled" ||
     reservation.status === "cancelled_by_mentor" ||
     reservation.payment?.status === "refunded" ||
@@ -1932,6 +1933,12 @@ function OverviewPanel({
           description={t("overview.paymentFailuresDescription")}
           tone="danger"
         />
+        <SummaryCard
+          label={t("overview.expiredReservationsLabel")}
+          value={summary.expiredReservations}
+          description={t("overview.expiredReservationsDescription")}
+          tone="warning"
+        />
       </div>
     </div>
   );
@@ -2656,6 +2663,7 @@ export function AdminOperationsConsole({
                   reservationsNeedingAttention: 0,
                   awaitingPayoutApproval: 0,
                   meetingSetupIssues: 0,
+                  expiredReservations: 0,
                   usersNeedingAttention: 0,
                   mentorsNeedingAttention: 0,
                   paymentFailures: 0,

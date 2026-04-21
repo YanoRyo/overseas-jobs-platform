@@ -125,8 +125,10 @@ export type AdminUserCase = {
   counts: {
     totalReservations: number;
     pendingReservations: number;
+    expiredReservations: number;
     confirmedReservations: number;
     completedReservations: number;
+    cancelledReservations: number;
     failedPayments: number;
     refundedPayments: number;
     attentionCases: number;
@@ -153,8 +155,10 @@ export type AdminMentorCase = {
   counts: {
     totalReservations: number;
     pendingReservations: number;
+    expiredReservations: number;
     confirmedReservations: number;
     completedReservations: number;
+    cancelledReservations: number;
     awaitingPayoutApproval: number;
     paidPayouts: number;
     failedPayouts: number;
@@ -170,6 +174,7 @@ export type AdminOperationsResponse = {
     reservationsNeedingAttention: number;
     awaitingPayoutApproval: number;
     meetingSetupIssues: number;
+    expiredReservations: number;
     usersNeedingAttention: number;
     mentorsNeedingAttention: number;
     paymentFailures: number;

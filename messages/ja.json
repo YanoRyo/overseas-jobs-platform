@@ -434,6 +434,7 @@
       "paymentIncompleteResume": "お支払いがまだ完了していません。チェックアウトを再開してレッスンを確定してください。",
       "resumePayment": "支払いを再開",
       "cancellationRequestPendingDetail": "このキャンセル申請はBridgeee運営が確認中です。",
+      "lessonExpiredNote": "この未決済の予約枠は、チェックアウト完了前に期限切れになりました。",
       "lessonCancelledNote": "このレッスンはキャンセル済みです。ミーティングリンクは利用できません。",
       "lessonCancelledByMentorNote": "このレッスンはメンター都合でキャンセルされました。返金対象の場合はBridgeeeが別途案内します。",
       "cancellationRequestPending": "キャンセル申請を審査中です。",
@@ -1342,6 +1343,8 @@
         "usersNeedAttentionDescription": "現在のデータセット上で運営確認が必要なユーザーです。",
         "mentorsNeedAttentionLabel": "要確認メンター",
         "mentorsNeedAttentionDescription": "payout 設定や配信まわりの問題をここで把握できます。",
+        "expiredReservationsLabel": "期限切れ予約",
+        "expiredReservationsDescription": "未決済のまま pending から移動した予約枠です。",
         "paymentFailuresLabel": "決済失敗",
         "paymentFailuresDescription": "失敗した決済は Payments と Logs の両方で追跡できます。"
       },

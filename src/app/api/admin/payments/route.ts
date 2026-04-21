@@ -4,6 +4,7 @@ import {
   createSupabaseServiceClient,
 } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/auth/admin";
+import { expirePendingBookings } from "@/lib/bookings/server";
 
 export async function GET() {
   const supabase = await createSupabaseServerClient();
@@ -19,6 +20,15 @@ export async function GET() {
   }
 
   const adminDb = createSupabaseServiceClient();
+  try {
+    await expirePendingBookings(adminDb);
+  } catch (error) {
+    console.error("Admin payments lifecycle refresh error:", error);
+    return NextResponse.json(
+      { error: "Failed to refresh booking lifecycle" },
+      { status: 500 }
+    );
+  }
 
   // 決済一覧を取得（bookings + payments + mentors）
   const { data: payments, error } = await adminDb

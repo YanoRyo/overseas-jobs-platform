@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { BookingChangeRequestSummary } from "@/features/bookings/types";
 import {
+  expirePendingBookings,
   getBookingChangeRequestsByBookingIds,
   isMissingBookingMeetingColumnsError,
   isMissingPaymentRefundColumnsError,
@@ -168,6 +169,16 @@ export async function GET(request: Request) {
 
   if (viewerRole === "mentor" && !mentorId) {
     return NextResponse.json({ lessons: [] });
+  }
+
+  try {
+    await expirePendingBookings(adminDb);
+  } catch (error) {
+    console.error("Failed to refresh booking lifecycle:", error);
+    return NextResponse.json(
+      { error: "Failed to refresh booking lifecycle" },
+      { status: 500 }
+    );
   }
 
   const { data: bookings, error: bookingsError } = await fetchBookingsForLessons({

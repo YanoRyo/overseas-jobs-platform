@@ -3,6 +3,7 @@ import {
   createSupabaseServerClient,
   createSupabaseServiceClient,
 } from "@/lib/supabase/server";
+import { expirePendingBookings } from "@/lib/bookings/server";
 
 export async function GET(request: Request) {
   const supabase = await createSupabaseServerClient();
@@ -37,6 +38,15 @@ export async function GET(request: Request) {
   weekEndDate.setDate(weekEndDate.getDate() + 7);
 
   const adminDb = createSupabaseServiceClient();
+  try {
+    await expirePendingBookings(adminDb);
+  } catch (error) {
+    console.error("booked-slots: lifecycle refresh error", error);
+    return NextResponse.json(
+      { error: "Failed to refresh booking lifecycle" },
+      { status: 500 }
+    );
+  }
 
   const { data, error } = await adminDb
     .from("bookings")
