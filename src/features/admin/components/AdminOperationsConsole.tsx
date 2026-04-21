@@ -1590,7 +1590,7 @@ function SupportRequestDetail({
     setSubject(defaultReplySubject);
     setMessage("");
     setLocalError(null);
-  }, [defaultReplySubject, request?.id, request?.updatedAt, request?.replies.length]);
+  }, [defaultReplySubject, request]);
 
   if (!request) {
     return (
@@ -2019,9 +2019,18 @@ export function AdminOperationsConsole({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const reservations = data?.reservations ?? [];
-  const supportRequests = supportData?.requests ?? [];
-  const paymentCases = reservations.filter(isPaymentReservationCase);
+  const reservations = useMemo(
+    () => data?.reservations ?? [],
+    [data?.reservations]
+  );
+  const supportRequests = useMemo(
+    () => supportData?.requests ?? [],
+    [supportData?.requests]
+  );
+  const paymentCases = useMemo(
+    () => reservations.filter(isPaymentReservationCase),
+    [reservations]
+  );
 
   const confirmedReservationItems = useMemo(() => {
     return paymentCases

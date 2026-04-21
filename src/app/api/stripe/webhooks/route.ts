@@ -186,7 +186,7 @@ export async function POST(request: Request) {
           break;
         }
 
-        let bookingId: string | number = metadataBookingId;
+        const bookingId: string | number = metadataBookingId;
 
         if (!payment && bookingId) {
           const paymentByBookingResult = await adminDb
