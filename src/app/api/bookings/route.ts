@@ -17,6 +17,22 @@ type AtomicBookingResult = {
   conflict: boolean;
 };
 
+type PendingBookingCandidate = {
+  id: number | string;
+  start_time: string | null;
+  end_time: string | null;
+};
+
+const parseUtcTimestamp = (value: string) => {
+  const hasTimeZoneSuffix = /(?:z|[+-]\d{2}:?\d{2})$/i.test(value);
+  return new Date(hasTimeZoneSuffix ? value : `${value}Z`);
+};
+
+const isSameInstant = (value: string | null, expected: Date) => {
+  if (!value) return false;
+  return parseUtcTimestamp(value).getTime() === expected.getTime();
+};
+
 export async function POST(request: Request) {
   const supabase = await createSupabaseServerClient();
   const {
@@ -142,6 +158,60 @@ export async function POST(request: Request) {
 
   if (!mentor) {
     return NextResponse.json({ error: "Mentor not found" }, { status: 404 });
+  }
+
+  const endTime = new Date(startTime);
+  endTime.setMinutes(endTime.getMinutes() + duration);
+  const nowIso = new Date().toISOString();
+  const refreshedExpiresAt = new Date(
+    Date.now() + BOOKING_EXPIRY_MINUTES * 60 * 1000
+  ).toISOString();
+
+  const { data: pendingCandidates, error: pendingCandidateError } =
+    await adminDb
+      .from("bookings")
+      .select("id, start_time, end_time")
+      .eq("user_id", user.id)
+      .eq("mentor_id", mentor.id)
+      .eq("status", "pending")
+      .gt("expires_at", nowIso)
+      .lt("start_time", endTime.toISOString())
+      .gt("end_time", startTime.toISOString())
+      .order("created_at", { ascending: false });
+
+  if (pendingCandidateError) {
+    console.error("bookings: pending reuse lookup error", pendingCandidateError);
+    return NextResponse.json(
+      { error: "Failed to check existing booking" },
+      { status: 500 }
+    );
+  }
+
+  const reusableBooking = (
+    (pendingCandidates ?? []) as PendingBookingCandidate[]
+  ).find(
+    (booking) =>
+      isSameInstant(booking.start_time, startTime) &&
+      isSameInstant(booking.end_time, endTime)
+  );
+
+  if (reusableBooking) {
+    const { error: refreshError } = await adminDb
+      .from("bookings")
+      .update({ expires_at: refreshedExpiresAt })
+      .eq("id", reusableBooking.id)
+      .eq("user_id", user.id)
+      .eq("status", "pending");
+
+    if (refreshError) {
+      console.error("bookings: pending reuse refresh error", refreshError);
+      return NextResponse.json(
+        { error: "Failed to refresh existing booking" },
+        { status: 500 }
+      );
+    }
+
+    return NextResponse.json({ bookingId: reusableBooking.id });
   }
 
   const { data: result, error: rpcError } = await adminDb.rpc(

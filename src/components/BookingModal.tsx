@@ -1,6 +1,6 @@
 "use client";
 import Image from "next/image";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Dialog } from "@headlessui/react";
 import { X, Sunrise, Sun, Sunset, Moon } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -11,6 +11,11 @@ import { useUser } from "@supabase/auth-helpers-react";
 import { useAuthModal } from "@/features/auth/context/AuthModalProvider";
 import { useBookedSlots } from "@/features/checkout/hooks/useBookedSlots";
 import { useCreateBooking } from "@/features/checkout/hooks/useCreateBooking";
+import {
+  buildAvailableSlotsForViewerDate,
+  formatGmtOffset,
+  getZonedDateParts,
+} from "@/features/mentors/utils/scheduleTimezone";
 
 type Props = {
   mentor: MentorDetailModel;
@@ -25,6 +30,10 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
   const user = useUser();
   const { openAuthModal } = useAuthModal();
   const { createBookingAndCheckout } = useCreateBooking();
+  const viewerTimeZone = useMemo(
+    () => Intl.DateTimeFormat().resolvedOptions().timeZone,
+    []
+  );
   const [duration, setDuration] = useState(25);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [selectedTime, setSelectedTime] = useState<string | null>(null);
@@ -107,45 +116,36 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
     }
   };
 
-  // 時間文字列を分に変換
-  const parseTimeToMinutes = (time: string): number => {
-    const [hours, minutes] = time.split(":").map(Number);
-    return hours * 60 + minutes;
+  const getViewerDateParts = (date: Date) => {
+    const parts = getZonedDateParts(date, viewerTimeZone);
+    return {
+      year: parts.year,
+      month: parts.month,
+      day: parts.day,
+    };
   };
 
-  // 分を時間文字列に変換
-  const formatTime = (minutes: number): string => {
-    const hour = Math.floor(minutes / 60);
-    const minute = minutes % 60;
-    return `${hour.toString().padStart(2, "0")}:${minute.toString().padStart(2, "0")}`;
+  const getViewerDateKey = (date: Date) => {
+    const parts = getViewerDateParts(date);
+    return `${parts.year}-${parts.month}-${parts.day}`;
   };
 
-  // 指定した日付の曜日に対して、メンターの availability から予約可能な時間スロットを取得
+  const getViewerDayOfWeek = (date: Date) => {
+    const parts = getViewerDateParts(date);
+    return new Date(
+      Date.UTC(parts.year, parts.month - 1, parts.day)
+    ).getUTCDay();
+  };
+
+  // メンターのtimezoneで登録されたavailabilityを、閲覧者のtimezoneの日付・時刻に変換して取得
   const getAvailableSlotsForDate = (date: Date, lessonDuration: number): string[] => {
-    const dayOfWeek = date.getDay();
-
-    const enabledSlots = mentor.availability.filter(
-      (slot) => slot.dayOfWeek === dayOfWeek && slot.isEnabled
-    );
-
-    if (enabledSlots.length === 0) return [];
-
-    const now = new Date();
-    const isToday = date.toDateString() === now.toDateString();
-    const currentMinutes = isToday ? now.getHours() * 60 + now.getMinutes() : 0;
-
-    const times: string[] = [];
-    for (const slot of enabledSlots) {
-      const startMinutes = parseTimeToMinutes(slot.startTime);
-      const endMinutes = parseTimeToMinutes(slot.endTime);
-
-      for (let minutes = startMinutes; minutes + lessonDuration <= endMinutes; minutes += 30) {
-        if (isToday && minutes <= currentMinutes) continue;
-        times.push(formatTime(minutes));
-      }
-    }
-
-    return [...new Set(times)].sort();
+    return buildAvailableSlotsForViewerDate({
+      availability: mentor.availability,
+      mentorTimeZone: mentor.timezone || "UTC",
+      viewerTimeZone,
+      viewerDateParts: getViewerDateParts(date),
+      lessonDuration,
+    });
   };
 
   // 時間帯ごとにスロットをフィルタリング
@@ -159,25 +159,23 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
 
   // タイムゾーンのGMTオフセットを取得
   const getGmtOffset = (): string => {
-    const offsetMinutes = -new Date().getTimezoneOffset();
-    const hours = Math.floor(Math.abs(offsetMinutes) / 60);
-    const minutes = Math.abs(offsetMinutes) % 60;
-    const sign = offsetMinutes >= 0 ? "+" : "-";
-    return `GMT ${sign}${hours}:${minutes.toString().padStart(2, "0")}`;
+    return formatGmtOffset(new Date(), viewerTimeZone);
   };
 
   const formatWeekRange = (date: Date): string => {
     const startOfWeek = new Date(date);
-    startOfWeek.setDate(date.getDate() - date.getDay());
+    startOfWeek.setDate(date.getDate() - getViewerDayOfWeek(date));
 
     const endOfWeek = new Date(startOfWeek);
     endOfWeek.setDate(startOfWeek.getDate() + 6);
 
     const startLabel = new Intl.DateTimeFormat(locale, {
+      timeZone: viewerTimeZone,
       month: "short",
       day: "numeric",
     }).format(startOfWeek);
     const endLabel = new Intl.DateTimeFormat(locale, {
+      timeZone: viewerTimeZone,
       month: "short",
       day: "numeric",
       year: "numeric",
@@ -259,11 +257,11 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
               disabled={(() => {
                 const today = new Date();
                 const thisWeekStart = new Date(today);
-                thisWeekStart.setDate(today.getDate() - today.getDay());
+                thisWeekStart.setDate(today.getDate() - getViewerDayOfWeek(today));
 
                 const selectedWeekStart = new Date(selectedDate);
                 selectedWeekStart.setDate(
-                  selectedDate.getDate() - selectedDate.getDay()
+                  selectedDate.getDate() - getViewerDayOfWeek(selectedDate)
                 );
 
                 return selectedWeekStart <= thisWeekStart ? true : false;
@@ -320,19 +318,20 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
             {Array.from({ length: 7 }).map((_, i) => {
               const startOfWeek = new Date(selectedDate);
               startOfWeek.setDate(
-                selectedDate.getDate() - selectedDate.getDay()
+                selectedDate.getDate() - getViewerDayOfWeek(selectedDate)
               );
 
               const day = new Date(startOfWeek);
               day.setDate(startOfWeek.getDate() + i);
 
               const weekday = day.toLocaleDateString(locale, {
+                timeZone: viewerTimeZone,
                 weekday: "short",
               });
-              const dateNum = day.getDate();
+              const dateNum = getViewerDateParts(day).day;
 
               const isSelected =
-                selectedDate.toDateString() === day.toDateString();
+                getViewerDateKey(selectedDate) === getViewerDateKey(day);
 
               return (
                 <button
@@ -365,7 +364,7 @@ export default function BookingModal({ isOpen, onClose, mentor }: Props) {
         {/* タイムゾーン表示 */}
         <p className="text-sm text-secondary">
           {t("yourTimezone", {
-            timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+            timezone: viewerTimeZone,
             offset: getGmtOffset(),
           })}
         </p>

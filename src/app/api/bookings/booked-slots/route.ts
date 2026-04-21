@@ -40,7 +40,7 @@ export async function GET(request: Request) {
 
   const { data, error } = await adminDb
     .from("bookings")
-    .select("start_time, end_time")
+    .select("start_time, end_time, status, user_id")
     .eq("mentor_id", mentorId)
     .in("status", ["pending", "confirmed"])
     .gte("start_time", weekStartDate.toISOString())
@@ -55,10 +55,11 @@ export async function GET(request: Request) {
     );
   }
 
-  // start_time/end_time のみ返却（meeting URL, user_id 等は含めない）
+  // meeting URL 等は含めず、UI が自分の未決済pendingのみ再選択できるように最小フラグだけ返す
   const slots = (data ?? []).map((row) => ({
     startTime: row.start_time,
     endTime: row.end_time,
+    ownPending: row.status === "pending" && row.user_id === user.id,
   }));
 
   return NextResponse.json({ slots });

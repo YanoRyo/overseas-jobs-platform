@@ -7,6 +7,7 @@ import { MentorDetail } from "@/features/mentors/components/MentorDetail";
 import { useUser } from "@supabase/auth-helpers-react";
 import { useAuthModal } from "@/features/auth/context/AuthModalProvider";
 import { useCreateBooking } from "@/features/checkout/hooks/useCreateBooking";
+import { zonedDateTimeToUtc } from "@/features/mentors/utils/scheduleTimezone";
 
 const PENDING_BOOKING_KEY = "pendingBookingMentorId";
 const PENDING_TIME_SLOT_KEY = "pendingTimeSlot";
@@ -29,10 +30,12 @@ export default function MentorDetailPage({
 
   // Scheduleの時間リンク → booking作成 → checkout遷移
   const processTimeSlotBooking = useCallback(
-    async (dateKey: string, time: string) => {
+    async (dateKey: string, time: string, timeZone: string) => {
       if (!user || !mentor) return;
 
-      const startTime = new Date(`${dateKey}T${time}:00`);
+      const startTime = zonedDateTimeToUtc(dateKey, time, timeZone);
+      if (!startTime) return;
+      if (startTime.getTime() <= Date.now()) return;
 
       await createBookingAndCheckout({
         userId: user.id,
@@ -63,10 +66,15 @@ export default function MentorDetailPage({
     if (!user || !mentor) return;
     const stored = localStorage.getItem(PENDING_TIME_SLOT_KEY);
     if (!stored) return;
-    const { dateKey, time, mentorId: pendingMentorId } = JSON.parse(stored);
+    const {
+      dateKey,
+      time,
+      timeZone,
+      mentorId: pendingMentorId,
+    } = JSON.parse(stored);
     if (pendingMentorId !== id) return;
     localStorage.removeItem(PENDING_TIME_SLOT_KEY);
-    processTimeSlotBooking(dateKey, time);
+    processTimeSlotBooking(dateKey, time, timeZone || mentor.timezone);
   }, [user, id, mentor, processTimeSlotBooking]);
 
   // 「Book Lesson」クリック時の処理
@@ -84,13 +92,17 @@ export default function MentorDetailPage({
   };
 
   // Scheduleの時間リンククリック時の処理
-  const handleTimeSlotClick = (dateKey: string, time: string) => {
+  const handleTimeSlotClick = (
+    dateKey: string,
+    time: string,
+    timeZone: string
+  ) => {
     if (user) {
-      processTimeSlotBooking(dateKey, time);
+      processTimeSlotBooking(dateKey, time, timeZone);
     } else {
       localStorage.setItem(
         PENDING_TIME_SLOT_KEY,
-        JSON.stringify({ dateKey, time, mentorId: id })
+        JSON.stringify({ dateKey, time, timeZone, mentorId: id })
       );
       openAuthModal({
         defaultMode: "login",
