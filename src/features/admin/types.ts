@@ -19,6 +19,7 @@ export type AdminCaseFlag = {
     | "payment_failed"
     | "payment_refunded"
     | "refund_pending"
+    | "lesson_completion_due"
     | "expired_pending_booking"
     | "change_request_pending"
     | "mentor_cancelled"
@@ -63,6 +64,7 @@ export type AdminReservationCase = {
     failureCount: number;
   } | null;
   hasMeetingLink: boolean;
+  lessonCompletionEligible: boolean;
   paymentApprovalEligible: boolean;
   needsAttention: boolean;
   student: {

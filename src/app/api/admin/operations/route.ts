@@ -36,6 +36,7 @@ type BookingRow = {
     | "cancellation_requested"
     | "confirmed"
     | "completed"
+    | "expired"
     | "cancelled"
     | "cancelled_by_mentor"
     | null;
@@ -163,6 +164,40 @@ function getLatestReservationTime(reservations: AdminReservationCase[]) {
   )[0]?.startTime ?? null;
 }
 
+function hasPendingChangeRequest(changeRequests: AdminBookingChangeRequest[]) {
+  return changeRequests.some((request) => request.status === "pending");
+}
+
+function isLessonCompletionEligible(
+  booking: BookingRow,
+  payment: PaymentRow | null,
+  payout: PayoutRow | null,
+  changeRequests: AdminBookingChangeRequest[]
+) {
+  const lessonEndAt = getTimestamp(booking.end_time);
+
+  return (
+    payment?.status === "succeeded" &&
+    booking.status === "confirmed" &&
+    lessonEndAt > 0 &&
+    lessonEndAt <= Date.now() &&
+    !hasPendingChangeRequest(changeRequests) &&
+    (!payout || payout.status === "failed")
+  );
+}
+
+function isPayoutApprovalEligible(
+  booking: BookingRow,
+  payment: PaymentRow | null,
+  payout: PayoutRow | null
+) {
+  return (
+    payment?.status === "succeeded" &&
+    booking.status === "completed" &&
+    (!payout || payout.status === "failed")
+  );
+}
+
 function buildReservationFlags(
   booking: BookingRow,
   mentor: MentorRow | null,
@@ -226,11 +261,15 @@ function buildReservationFlags(
     });
   }
 
-  if (
-    payment?.status === "succeeded" &&
-    booking.status === "confirmed" &&
-    (!payout || payout.status === "failed")
-  ) {
+  if (isLessonCompletionEligible(booking, payment, payout, changeRequests)) {
+    flags.push({
+      type: "lesson_completion_due",
+      label: "Lesson completion due",
+      tone: "warning",
+    });
+  }
+
+  if (isPayoutApprovalEligible(booking, payment, payout)) {
     flags.push({
       type: "awaiting_payout_approval",
       label:
@@ -594,10 +633,17 @@ export async function GET() {
         hasMeetingLink: Boolean(
           booking.meeting_join_url || booking.meeting_host_url
         ),
-        paymentApprovalEligible:
-          payment?.status === "succeeded" &&
-          booking.status === "confirmed" &&
-          (!payout || payout.status === "failed"),
+        lessonCompletionEligible: isLessonCompletionEligible(
+          booking,
+          payment,
+          payout,
+          bookingChangeRequests
+        ),
+        paymentApprovalEligible: isPayoutApprovalEligible(
+          booking,
+          payment,
+          payout
+        ),
         needsAttention: flags.length > 0,
         student: {
           id: student?.id ?? booking.user_id ?? null,

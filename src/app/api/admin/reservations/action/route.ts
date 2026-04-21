@@ -4,6 +4,7 @@ import {
   approveBookingChangeRequest,
   BookingActionError,
   cancelBookingByAdmin,
+  completeBookingByAdmin,
   refundPayment,
 } from "@/lib/bookings/server";
 import {
@@ -42,6 +43,10 @@ type RequestBody =
     }
   | {
       action?: "reissue_meeting_links";
+      bookingId?: string | number;
+    }
+  | {
+      action?: "complete";
       bookingId?: string | number;
     };
 
@@ -213,6 +218,24 @@ export async function POST(request: Request) {
         }
 
         return NextResponse.json({ success: true, result });
+      }
+
+      case "complete": {
+        if (!body.bookingId) {
+          return NextResponse.json(
+            { error: "bookingId is required." },
+            { status: 400 }
+          );
+        }
+
+        await completeBookingByAdmin(
+          {
+            bookingId: body.bookingId,
+          },
+          adminDb
+        );
+
+        return NextResponse.json({ success: true });
       }
 
       default:

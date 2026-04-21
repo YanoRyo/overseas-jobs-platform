@@ -6,6 +6,10 @@ import {
 } from "@/lib/supabase/server";
 import { isAdmin } from "@/lib/auth/admin";
 
+function parseStoredTimestamp(value: string) {
+  return new Date(/[zZ]$|[+-]\d{2}:\d{2}$/.test(value) ? value : `${value}Z`);
+}
+
 export async function POST(request: Request) {
   // 認証チェック
   const supabase = await createSupabaseServerClient();
@@ -55,6 +59,65 @@ export async function POST(request: Request) {
     return NextResponse.json(
       { error: "Payment is not in succeeded status" },
       { status: 400 }
+    );
+  }
+
+  const { data: booking, error: bookingError } = await adminDb
+    .from("bookings")
+    .select("id, status, end_time")
+    .eq("id", payment.booking_id)
+    .single();
+
+  if (bookingError || !booking) {
+    return NextResponse.json(
+      { error: "Booking not found" },
+      { status: 404 }
+    );
+  }
+
+  if (booking.status !== "completed") {
+    return NextResponse.json(
+      {
+        error:
+          "The lesson must be marked completed before payout can be released.",
+      },
+      { status: 409 }
+    );
+  }
+
+  const lessonEndTime = parseStoredTimestamp(booking.end_time);
+  if (
+    Number.isNaN(lessonEndTime.getTime()) ||
+    lessonEndTime.getTime() > Date.now()
+  ) {
+    return NextResponse.json(
+      { error: "The lesson must end before payout can be released." },
+      { status: 409 }
+    );
+  }
+
+  const pendingRequestResult = await adminDb
+    .from("booking_change_requests")
+    .select("id")
+    .eq("booking_id", payment.booking_id)
+    .eq("status", "pending")
+    .limit(1)
+    .maybeSingle();
+
+  if (pendingRequestResult.error) {
+    return NextResponse.json(
+      { error: "Failed to verify booking change request state." },
+      { status: 500 }
+    );
+  }
+
+  if (pendingRequestResult.data) {
+    return NextResponse.json(
+      {
+        error:
+          "Resolve pending booking change requests before payout can be released.",
+      },
+      { status: 409 }
     );
   }
 
@@ -114,15 +177,6 @@ export async function POST(request: Request) {
         { error: "Failed to save the payout record. Please contact an administrator." },
         { status: 500 }
       );
-    }
-
-    // bookings.status → 'completed'
-    const { error: bookingUpdateError } = await adminDb
-      .from("bookings")
-      .update({ status: "completed" })
-      .eq("id", payment.booking_id);
-    if (bookingUpdateError) {
-      console.error("Failed to update booking status to completed:", bookingUpdateError);
     }
 
     return NextResponse.json({ success: true, payoutId: payout.id });

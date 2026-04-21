@@ -33,6 +33,7 @@ type PaymentViewFilter =
   | "action_required"
   | "all"
   | "cancellation_pending"
+  | "completion_due"
   | "payout_pending"
   | "refund_pending";
 
@@ -41,6 +42,7 @@ type SupportViewFilter = "open" | "replied" | "all";
 type ActionRequiredFocus =
   | "all"
   | "cancellation_requests"
+  | "lesson_completion"
   | "payout_approvals"
   | "meeting_setup_issues";
 
@@ -57,6 +59,7 @@ const TAB_OPTIONS: AdminTab[] = [
 const ACTION_REQUIRED_FILTERS: ActionRequiredFocus[] = [
   "all",
   "cancellation_requests",
+  "lesson_completion",
   "payout_approvals",
   "meeting_setup_issues",
 ];
@@ -65,6 +68,7 @@ const PAYMENT_FILTERS: PaymentViewFilter[] = [
   "action_required",
   "all",
   "cancellation_pending",
+  "completion_due",
   "payout_pending",
   "refund_pending",
 ];
@@ -236,6 +240,10 @@ function hasPayoutPending(reservation: PaymentReservationCase) {
   return reservation.paymentApprovalEligible;
 }
 
+function hasLessonCompletionDue(reservation: PaymentReservationCase) {
+  return reservation.lessonCompletionEligible;
+}
+
 function hasRefundPending(reservation: PaymentReservationCase) {
   return reservation.payment.status === "refund_pending";
 }
@@ -249,13 +257,15 @@ function isActionRequiredReservation(reservation: AdminReservationCase) {
     hasPendingCancellationRequest(reservation) ||
     hasMeetingSetupIssue(reservation) ||
     (isPaymentReservationCase(reservation) &&
-      (hasPayoutPending(reservation) || hasRefundPending(reservation)))
+      (hasLessonCompletionDue(reservation) ||
+        hasPayoutPending(reservation) ||
+        hasRefundPending(reservation)))
   );
 }
 
 function isLogReservation(reservation: AdminReservationCase) {
   return (
-    reservation.status === "completed" ||
+    (reservation.status === "completed" && !reservation.paymentApprovalEligible) ||
     reservation.status === "cancelled" ||
     reservation.status === "cancelled_by_mentor" ||
     reservation.payment?.status === "refunded" ||
@@ -956,6 +966,7 @@ function ReservationDetail({
 
 function PaymentDetail({
   reservation,
+  onCompleteBooking,
   onApprovePayout,
   onRefundPayment,
   onApproveRequest,
@@ -964,6 +975,7 @@ function PaymentDetail({
   processingKey,
 }: {
   reservation: PaymentReservationCase | null;
+  onCompleteBooking?: (reservation: PaymentReservationCase) => void;
   onApprovePayout?: (reservation: PaymentReservationCase) => void;
   onRefundPayment?: (reservation: PaymentReservationCase) => void;
   onApproveRequest?: (
@@ -993,6 +1005,7 @@ function PaymentDetail({
   }
 
   const payoutProcessing = processingKey === `payout:${reservation.payment.id}`;
+  const completeProcessing = processingKey === `complete:${reservation.bookingId}`;
   const refundProcessing = processingKey === `refund:${reservation.payment.id}`;
 
   return (
@@ -1030,6 +1043,18 @@ function PaymentDetail({
         </div>
 
         <div className="mt-4 flex flex-wrap gap-2">
+          {reservation.lessonCompletionEligible && onCompleteBooking ? (
+            <button
+              type="button"
+              disabled={completeProcessing}
+              onClick={() => onCompleteBooking(reservation)}
+              className="rounded-xl bg-[#2563eb] px-4 py-2 text-sm font-medium text-white hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {completeProcessing
+                ? t("actions.completingLesson")
+                : t("actions.completeLesson")}
+            </button>
+          ) : null}
           {reservation.paymentApprovalEligible && onApprovePayout ? (
             <button
               type="button"
@@ -1259,12 +1284,14 @@ function PaymentList({
   selectedId,
   processingKey,
   onSelect,
+  onCompleteBooking,
   onApprovePayout,
 }: {
   reservations: PaymentReservationCase[];
   selectedId: string | null;
   processingKey: string | null;
   onSelect: (id: string) => void;
+  onCompleteBooking: (reservation: PaymentReservationCase) => void;
   onApprovePayout: (reservation: PaymentReservationCase) => void;
 }) {
   const t = useTranslations("admin.operations");
@@ -1282,6 +1309,7 @@ function PaymentList({
     <div className="space-y-3">
       {reservations.map((reservation) => {
         const payoutProcessing = processingKey === `payout:${reservation.payment.id}`;
+        const completeProcessing = processingKey === `complete:${reservation.bookingId}`;
 
         return (
           <QueueCard
@@ -1326,21 +1354,39 @@ function PaymentList({
             <div className="mt-3 flex flex-wrap gap-2">
               {renderFlagBadges(reservation.flags)}
             </div>
-            {reservation.paymentApprovalEligible ? (
-              <div className="mt-4">
-                <button
-                  type="button"
-                  disabled={payoutProcessing}
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    onApprovePayout(reservation);
-                  }}
-                  className="rounded-lg bg-[#2563eb] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
-                >
-                  {payoutProcessing
-                    ? t("actions.approvingPayout")
-                    : t("actions.approvePayout")}
-                </button>
+            {reservation.lessonCompletionEligible ||
+            reservation.paymentApprovalEligible ? (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {reservation.lessonCompletionEligible ? (
+                  <button
+                    type="button"
+                    disabled={completeProcessing}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onCompleteBooking(reservation);
+                    }}
+                    className="rounded-lg bg-[#2563eb] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {completeProcessing
+                      ? t("actions.completingLesson")
+                      : t("actions.completeLesson")}
+                  </button>
+                ) : null}
+                {reservation.paymentApprovalEligible ? (
+                  <button
+                    type="button"
+                    disabled={payoutProcessing}
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onApprovePayout(reservation);
+                    }}
+                    className="rounded-lg bg-[#2563eb] px-3 py-1.5 text-xs font-medium text-white hover:bg-[#1d4ed8] disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    {payoutProcessing
+                      ? t("actions.approvingPayout")
+                      : t("actions.approvePayout")}
+                  </button>
+                ) : null}
               </div>
             ) : null}
           </QueueCard>
@@ -1721,6 +1767,7 @@ function SupportRequestDetail({
 function OverviewPanel({
   summary,
   cancellationRequestItems,
+  lessonCompletionItems,
   payoutApprovalItems,
   meetingSetupItems,
   openSupportCount,
@@ -1733,6 +1780,7 @@ function OverviewPanel({
 }: {
   summary: AdminOperationsResponse["summary"];
   cancellationRequestItems: CancellationActionItem[];
+  lessonCompletionItems: PaymentReservationCase[];
   payoutApprovalItems: PaymentReservationCase[];
   meetingSetupItems: MeetingSetupActionItem[];
   openSupportCount: number;
@@ -1755,13 +1803,20 @@ function OverviewPanel({
           <p className="mt-2 text-sm text-[#606579]">
             {t("overview.snapshotDescription")}
           </p>
-          <div className="mt-5 grid gap-4 md:grid-cols-3">
+          <div className="mt-5 grid gap-4 md:grid-cols-4">
             <SummaryCard
               label={t("overview.cancellationRequestsLabel")}
               value={cancellationRequestItems.length}
               description={t("overview.cancellationRequestsDescription")}
               tone="danger"
               onClick={() => onOpenActionRequired("cancellation_requests")}
+            />
+            <SummaryCard
+              label={t("overview.lessonCompletionLabel")}
+              value={lessonCompletionItems.length}
+              description={t("overview.lessonCompletionDescription")}
+              tone="warning"
+              onClick={() => onOpenActionRequired("lesson_completion")}
             />
             <SummaryCard
               label={t("overview.payoutApprovalsLabel")}
@@ -1970,6 +2025,15 @@ export function AdminOperationsConsole({
       );
   }, [paymentCases]);
 
+  const lessonCompletionItems = useMemo(() => {
+    return paymentCases
+      .filter((reservation) => reservation.lessonCompletionEligible)
+      .sort(
+        (left, right) =>
+          getTimestamp(right.endTime) - getTimestamp(left.endTime)
+      );
+  }, [paymentCases]);
+
   const meetingSetupItems = useMemo(() => {
     return reservations
       .filter(
@@ -2001,6 +2065,10 @@ export function AdminOperationsConsole({
           ? paymentCases.filter((reservation) =>
               hasPendingCancellationRequest(reservation)
             )
+          : paymentFilter === "completion_due"
+            ? paymentCases.filter((reservation) =>
+                hasLessonCompletionDue(reservation)
+              )
           : paymentFilter === "payout_pending"
             ? paymentCases.filter((reservation) => hasPayoutPending(reservation))
             : paymentFilter === "refund_pending"
@@ -2079,6 +2147,16 @@ export function AdminOperationsConsole({
     );
   }, [payoutApprovalItems, query]);
 
+  const visibleLessonCompletionItems = useMemo(() => {
+    if (!query) {
+      return lessonCompletionItems;
+    }
+
+    return lessonCompletionItems.filter((reservation) =>
+      searchMatches(buildPaymentSearchHaystack(reservation), query)
+    );
+  }, [lessonCompletionItems, query]);
+
   const visibleMeetingSetupItems = useMemo(() => {
     if (!query) {
       return meetingSetupItems;
@@ -2102,12 +2180,15 @@ export function AdminOperationsConsole({
     const pool =
       actionRequiredFocus === "cancellation_requests"
         ? visibleCancellationItems.map((item) => item.reservation)
+        : actionRequiredFocus === "lesson_completion"
+          ? visibleLessonCompletionItems
         : actionRequiredFocus === "payout_approvals"
           ? visiblePayoutItems
           : actionRequiredFocus === "meeting_setup_issues"
             ? visibleMeetingSetupItems.map((item) => item.reservation)
           : [
               ...visibleCancellationItems.map((item) => item.reservation),
+              ...visibleLessonCompletionItems,
               ...visiblePayoutItems,
               ...visibleMeetingSetupItems.map((item) => item.reservation),
             ];
@@ -2116,6 +2197,7 @@ export function AdminOperationsConsole({
   }, [
     actionRequiredFocus,
     visibleCancellationItems,
+    visibleLessonCompletionItems,
     visibleMeetingSetupItems,
     visiblePayoutItems,
   ]);
@@ -2133,6 +2215,34 @@ export function AdminOperationsConsole({
     filteredLogs,
     selectedLogReservationId
   );
+
+  async function handleCompleteBooking(reservation: PaymentReservationCase) {
+    const key = `complete:${reservation.bookingId}`;
+    setProcessingKey(key);
+
+    try {
+      const response = await fetch("/api/admin/reservations/action", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "complete",
+          bookingId: reservation.bookingId,
+        }),
+      });
+
+      if (!response.ok) {
+        const payload = (await response.json()) as { error?: string };
+        window.alert(payload.error || t("alerts.completeLessonFailed"));
+        return;
+      }
+
+      await fetchDashboard();
+    } catch {
+      window.alert(t("alerts.completeLessonFailed"));
+    } finally {
+      setProcessingKey(null);
+    }
+  }
 
   async function handleApprovePayout(reservation: PaymentReservationCase) {
     const key = `payout:${reservation.payment.id}`;
@@ -2435,13 +2545,20 @@ export function AdminOperationsConsole({
             </p>
           </div>
 
-          <div className="mt-5 grid gap-4 md:grid-cols-3">
+          <div className="mt-5 grid gap-4 md:grid-cols-4">
             <SummaryCard
               label={t("overview.cancellationRequestsLabel")}
               value={cancellationRequestItems.length}
               description={t("hero.cancellationDescription")}
               tone="danger"
               onClick={() => openActionRequired("cancellation_requests")}
+            />
+            <SummaryCard
+              label={t("overview.lessonCompletionLabel")}
+              value={lessonCompletionItems.length}
+              description={t("hero.lessonCompletionDescription")}
+              tone="warning"
+              onClick={() => openActionRequired("lesson_completion")}
             />
             <SummaryCard
               label={t("overview.payoutApprovalsLabel")}
@@ -2510,6 +2627,7 @@ export function AdminOperationsConsole({
                   paymentFailures: 0,
                 }}
                 cancellationRequestItems={cancellationRequestItems}
+                lessonCompletionItems={lessonCompletionItems}
                 payoutApprovalItems={payoutApprovalItems}
                 meetingSetupItems={meetingSetupItems}
                 openSupportCount={supportData?.summary.open ?? 0}
@@ -2662,6 +2780,65 @@ export function AdminOperationsConsole({
                         ) : null}
 
                         {actionRequiredFocus !== "cancellation_requests" &&
+                        actionRequiredFocus !== "payout_approvals" &&
+                        actionRequiredFocus !== "meeting_setup_issues" ? (
+                          <ActionRequiredQueue
+                            title={t("queues.lessonCompletionTitle")}
+                            count={visibleLessonCompletionItems.length}
+                            description={t("queues.lessonCompletionDescription")}
+                          >
+                            {visibleLessonCompletionItems.length > 0 ? (
+                              <div className="space-y-3">
+                                {visibleLessonCompletionItems.map((reservation) => (
+                                  <ActionRequiredCard
+                                    key={reservation.id}
+                                    reservation={reservation}
+                                    title={t("labels.bookingNumber", {
+                                      id: reservation.bookingId,
+                                    })}
+                                    secondary={formatCurrency(
+                                      reservation.payment.amount,
+                                      reservation.payment.currency
+                                    )}
+                                    body={
+                                      <p className="text-[#606579]">
+                                        {reservation.student.displayName} x{" "}
+                                        {reservation.mentor?.displayName ??
+                                          t("states.unknownMentor")}{" "}
+                                        · {formatDateTime(reservation.endTime)}
+                                      </p>
+                                    }
+                                    badges={renderFlagBadges(reservation.flags)}
+                                    selected={
+                                      selectedActionReservation?.id === reservation.id
+                                    }
+                                    processing={
+                                      processingKey ===
+                                      `complete:${reservation.bookingId}`
+                                    }
+                                    actionLabel={t("actions.completeLesson")}
+                                    onSelect={() =>
+                                      setSelectedActionReservationId(reservation.id)
+                                    }
+                                    onAction={() =>
+                                      void handleCompleteBooking(reservation)
+                                    }
+                                  />
+                                ))}
+                              </div>
+                            ) : (
+                              <EmptyState
+                                title={t("empty.noLessonCompletionQueueTitle")}
+                                description={t(
+                                  "empty.noLessonCompletionQueueDescription"
+                                )}
+                              />
+                            )}
+                          </ActionRequiredQueue>
+                        ) : null}
+
+                        {actionRequiredFocus !== "cancellation_requests" &&
+                        actionRequiredFocus !== "lesson_completion" &&
                         actionRequiredFocus !== "meeting_setup_issues" ? (
                           <ActionRequiredQueue
                             title={t("queues.payoutTitle")}
@@ -2716,6 +2893,7 @@ export function AdminOperationsConsole({
                         ) : null}
 
                         {actionRequiredFocus !== "cancellation_requests" &&
+                        actionRequiredFocus !== "lesson_completion" &&
                         actionRequiredFocus !== "payout_approvals" ? (
                           <ActionRequiredQueue
                             title={t("queues.meetingSetupTitle")}
@@ -2781,6 +2959,9 @@ export function AdminOperationsConsole({
                         selectedId={selectedPayment?.id ?? null}
                         processingKey={processingKey}
                         onSelect={setSelectedPaymentId}
+                        onCompleteBooking={(reservation) =>
+                          void handleCompleteBooking(reservation)
+                        }
                         onApprovePayout={(reservation) =>
                           void handleApprovePayout(reservation)
                         }
@@ -2818,6 +2999,9 @@ export function AdminOperationsConsole({
                     !hasPendingCancellationRequest(selectedActionReservation) ? (
                       <PaymentDetail
                         reservation={selectedActionReservation}
+                        onCompleteBooking={(reservation) =>
+                          void handleCompleteBooking(reservation)
+                        }
                         onApprovePayout={(reservation) =>
                           void handleApprovePayout(reservation)
                         }
@@ -2852,6 +3036,9 @@ export function AdminOperationsConsole({
                   {activeTab === "payments" ? (
                     <PaymentDetail
                       reservation={selectedPayment}
+                      onCompleteBooking={(reservation) =>
+                        void handleCompleteBooking(reservation)
+                      }
                       onApprovePayout={(reservation) =>
                         void handleApprovePayout(reservation)
                       }

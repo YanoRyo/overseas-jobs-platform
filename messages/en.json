@@ -1284,6 +1284,7 @@
         "actionRequired": {
           "all": "All",
           "cancellation_requests": "Cancellation Requests",
+          "lesson_completion": "Lesson Completion",
           "payout_approvals": "Payout Approvals",
           "meeting_setup_issues": "Meeting Setup Issues"
         },
@@ -1291,6 +1292,7 @@
           "action_required": "Action Required",
           "all": "All",
           "cancellation_pending": "Cancellation Pending",
+          "completion_due": "Completion Due",
           "payout_pending": "Payout Pending",
           "refund_pending": "Refund Pending"
         }
@@ -1304,10 +1306,11 @@
       "hero": {
         "eyebrow": "Action Required",
         "title": "Handle the live queue first",
-        "description": "Prioritize cancellation approvals, payout approvals, and meeting setup failures without opening separate detail screens.",
+        "description": "Prioritize cancellation approvals, lesson completion, payout approvals, and meeting setup failures without opening separate detail screens.",
         "summary": "Refund pending {refundCount} · Logs {logCount}",
         "cancellationDescription": "Student cancellations waiting for admin approval.",
-        "payoutDescription": "Succeeded payments ready to release to mentors.",
+        "lessonCompletionDescription": "Ended paid lessons waiting for admin completion.",
+        "payoutDescription": "Completed lessons ready to release to mentors.",
         "meetingSetupDescription": "Bookings where the meeting URL could not be prepared automatically."
       },
       "overview": {
@@ -1315,8 +1318,10 @@
         "snapshotDescription": "Focus on the queue first. Processed records stay in Logs for later review.",
         "cancellationRequestsLabel": "Cancellation Requests",
         "cancellationRequestsDescription": "Student cancellation requests waiting for approval.",
+        "lessonCompletionLabel": "Lesson Completion",
+        "lessonCompletionDescription": "Ended paid lessons waiting for completion review.",
         "payoutApprovalsLabel": "Payout Approvals",
-        "payoutApprovalsDescription": "Succeeded payments waiting for payout release.",
+        "payoutApprovalsDescription": "Completed lessons waiting for payout release.",
         "meetingSetupIssuesLabel": "Meeting Setup Issues",
         "meetingSetupIssuesDescription": "Bookings where automatic meeting setup needs follow-up.",
         "nextTitle": "What needs attention next",
@@ -1392,8 +1397,10 @@
         "noProcessedLogsDescription": "Processed reservation and payment logs will appear here.",
         "noCancellationQueueTitle": "No cancellation requests",
         "noCancellationQueueDescription": "New student cancellation requests will appear here.",
+        "noLessonCompletionQueueTitle": "No lessons to complete",
+        "noLessonCompletionQueueDescription": "Ended paid lessons awaiting completion review will appear here.",
         "noPayoutQueueTitle": "No payout approvals",
-        "noPayoutQueueDescription": "Succeeded payments waiting for payout release will appear here.",
+        "noPayoutQueueDescription": "Completed lessons waiting for payout release will appear here.",
         "noMeetingSetupQueueTitle": "No meeting setup issues",
         "noMeetingSetupQueueDescription": "Automatic meeting setup failures will appear here."
       },
@@ -1411,6 +1418,8 @@
       "queues": {
         "cancellationTitle": "Cancellation Requests",
         "cancellationDescription": "Approve student cancellations directly from the queue.",
+        "lessonCompletionTitle": "Lesson Completion",
+        "lessonCompletionDescription": "Mark ended paid lessons completed before payout approval.",
         "payoutTitle": "Payout Approvals",
         "payoutDescription": "Approve mentor payouts without leaving the queue.",
         "meetingSetupTitle": "Meeting Setup Issues",
@@ -1418,8 +1427,10 @@
       },
       "actions": {
         "approveCancellation": "Approve cancellation",
+        "completeLesson": "Mark lesson complete",
         "approvePayout": "Approve payout",
         "approvingCancellation": "Approving...",
+        "completingLesson": "Completing...",
         "approvingPayout": "Approving...",
         "refundPayment": "Refund payment",
         "refundingPayment": "Refunding...",
@@ -1431,6 +1442,7 @@
         "processing": "Processing..."
       },
       "alerts": {
+        "completeLessonFailed": "Failed to mark the lesson completed.",
         "approvePayoutFailed": "Failed to approve the payout.",
         "approveCancellationFailed": "Failed to approve the cancellation.",
         "refundConfirm": "Refund this payment now?",

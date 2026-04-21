@@ -196,6 +196,10 @@ function isCancelledBookingStatus(status: BookingStatus | null) {
   return status === "cancelled" || status === "cancelled_by_mentor";
 }
 
+function parseStoredTimestamp(value: string) {
+  return new Date(/[zZ]$|[+-]\d{2}:\d{2}$/.test(value) ? value : `${value}Z`);
+}
+
 function mapChangeRequestRow(
   row: ChangeRequestRow
 ): BookingChangeRequestSummary {
@@ -629,6 +633,94 @@ export async function cancelBooking(
     booking: {
       ...booking,
       status: nextStatus,
+      expires_at: null,
+    },
+    payment,
+  };
+}
+
+export async function completeBookingByAdmin(
+  params: {
+    bookingId: string | number;
+  },
+  adminDb = createSupabaseServiceClient()
+) {
+  const booking = await fetchBookingOrThrow(adminDb, params.bookingId);
+
+  if (booking.status === "completed") {
+    return {
+      booking,
+      payment: await fetchPaymentForBooking(adminDb, booking.id),
+    };
+  }
+
+  if (booking.status !== "confirmed") {
+    throw new BookingActionError(
+      "Only confirmed bookings can be marked completed."
+    );
+  }
+
+  const lessonEndTime = parseStoredTimestamp(booking.end_time);
+  if (Number.isNaN(lessonEndTime.getTime())) {
+    throw new BookingActionError("Booking end time is invalid.", 400);
+  }
+
+  if (lessonEndTime.getTime() > Date.now()) {
+    throw new BookingActionError(
+      "Only bookings whose lesson time has ended can be marked completed."
+    );
+  }
+
+  const payment = await fetchPaymentForBooking(adminDb, booking.id);
+  if (!payment || payment.status !== "succeeded") {
+    throw new BookingActionError(
+      "Only bookings with succeeded payments can be marked completed."
+    );
+  }
+
+  const pendingRequestResult = await adminDb
+    .from("booking_change_requests")
+    .select("id")
+    .eq("booking_id", booking.id)
+    .eq("status", "pending")
+    .limit(1)
+    .maybeSingle();
+
+  if (pendingRequestResult.error) {
+    if (isMissingBookingChangeRequestsTableError(pendingRequestResult.error)) {
+      throwUnavailableChangeRequestsFeature();
+    }
+
+    throw new BookingActionError(
+      "Failed to load booking change request state.",
+      500
+    );
+  }
+
+  if (pendingRequestResult.data) {
+    throw new BookingActionError(
+      "Resolve pending booking change requests before marking the lesson completed."
+    );
+  }
+
+  const { error: bookingUpdateError } = await adminDb
+    .from("bookings")
+    .update({
+      status: "completed",
+      expires_at: null,
+    })
+    .eq("id", booking.id);
+
+  if (bookingUpdateError) {
+    throw new BookingActionError("Failed to mark the booking completed.", 500);
+  }
+
+  await resolveMeetingSetupIssue(booking.id, adminDb);
+
+  return {
+    booking: {
+      ...booking,
+      status: "completed" as const,
       expires_at: null,
     },
     payment,

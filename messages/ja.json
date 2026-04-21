@@ -1284,6 +1284,7 @@
         "actionRequired": {
           "all": "すべて",
           "cancellation_requests": "キャンセル申請",
+          "lesson_completion": "レッスン完了確認",
           "payout_approvals": "Payout承認",
           "meeting_setup_issues": "Meeting Setup Issues"
         },
@@ -1291,6 +1292,7 @@
           "action_required": "要対応",
           "all": "すべて",
           "cancellation_pending": "キャンセル待ち",
+          "completion_due": "完了確認待ち",
           "payout_pending": "Payout待ち",
           "refund_pending": "返金待ち"
         }
@@ -1304,10 +1306,11 @@
       "hero": {
         "eyebrow": "要対応",
         "title": "まず今の処理キューを片付ける",
-        "description": "詳細画面を開き直さなくても、キャンセル承認、payout 承認、meeting URL 設定失敗を優先して処理できます。",
+        "description": "詳細画面を開き直さなくても、キャンセル承認、レッスン完了確認、payout 承認、meeting URL 設定失敗を優先して処理できます。",
         "summary": "返金待ち {refundCount} · ログ {logCount}",
         "cancellationDescription": "管理者の承認待ちになっている受講生キャンセルです。",
-        "payoutDescription": "メンターへの支払い解放待ちの決済です。",
+        "lessonCompletionDescription": "終了済みの支払い済みレッスンです。実施完了を確認してください。",
+        "payoutDescription": "完了確認済みで、メンターへの支払い解放待ちのレッスンです。",
         "meetingSetupDescription": "meeting URL を自動準備できなかった booking です。"
       },
       "overview": {
@@ -1315,8 +1318,10 @@
         "snapshotDescription": "まずはキューの処理を優先し、処理済みのものは後から Logs で確認できます。",
         "cancellationRequestsLabel": "キャンセル申請",
         "cancellationRequestsDescription": "承認待ちの受講生キャンセル申請です。",
+        "lessonCompletionLabel": "レッスン完了確認",
+        "lessonCompletionDescription": "終了済みの支払い済みレッスンを確認します。",
         "payoutApprovalsLabel": "Payout承認",
-        "payoutApprovalsDescription": "支払い解放待ちの決済です。",
+        "payoutApprovalsDescription": "完了確認済みで、payout 解放待ちのレッスンです。",
         "meetingSetupIssuesLabel": "Meeting Setup Issues",
         "meetingSetupIssuesDescription": "meeting URL の自動設定に失敗した booking です。",
         "nextTitle": "次に見るべき項目",
@@ -1392,8 +1397,10 @@
         "noProcessedLogsDescription": "処理済みの予約や決済ログがここに表示されます。",
         "noCancellationQueueTitle": "キャンセル申請はありません",
         "noCancellationQueueDescription": "新しい受講生キャンセル申請がここに表示されます。",
+        "noLessonCompletionQueueTitle": "完了確認待ちはありません",
+        "noLessonCompletionQueueDescription": "終了済みで完了確認が必要なレッスンがここに表示されます。",
         "noPayoutQueueTitle": "Payout承認はありません",
-        "noPayoutQueueDescription": "支払い解放待ちの決済がここに表示されます。",
+        "noPayoutQueueDescription": "完了確認済みで payout 解放待ちのレッスンがここに表示されます。",
         "noMeetingSetupQueueTitle": "Meeting setup issue はありません",
         "noMeetingSetupQueueDescription": "meeting URL の自動設定失敗がここに表示されます。"
       },
@@ -1411,6 +1418,8 @@
       "queues": {
         "cancellationTitle": "キャンセル申請",
         "cancellationDescription": "受講生キャンセルをキュー上からそのまま承認します。",
+        "lessonCompletionTitle": "レッスン完了確認",
+        "lessonCompletionDescription": "終了済みの支払い済みレッスンを completed にしてから payout 承認へ進めます。",
         "payoutTitle": "Payout承認",
         "payoutDescription": "メンターへの payout をキュー上から承認します。",
         "meetingSetupTitle": "Meeting Setup Issues",
@@ -1418,8 +1427,10 @@
       },
       "actions": {
         "approveCancellation": "キャンセル承認",
+        "completeLesson": "レッスン完了にする",
         "approvePayout": "Payout承認",
         "approvingCancellation": "承認中...",
+        "completingLesson": "完了処理中...",
         "approvingPayout": "承認中...",
         "refundPayment": "返金する",
         "refundingPayment": "返金中...",
@@ -1431,6 +1442,7 @@
         "processing": "処理中..."
       },
       "alerts": {
+        "completeLessonFailed": "レッスン完了処理に失敗しました。",
         "approvePayoutFailed": "Payout 承認に失敗しました。",
         "approveCancellationFailed": "キャンセル承認に失敗しました。",
         "refundConfirm": "この決済を今すぐ返金しますか？",
