@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import Stripe from "stripe";
 import { stripe } from "@/lib/stripe/server";
 import { expirePendingBookings } from "@/lib/bookings/server";
 import {
@@ -6,6 +7,19 @@ import {
   createSupabaseServiceClient,
 } from "@/lib/supabase/server";
 import { calculateLessonFee } from "@/features/payment/constants/pricing";
+
+const IDEMPOTENCY_RETRY_DELAYS_MS = [250, 500, 1000, 2000] as const;
+
+function wait(ms: number) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function isStripeIdempotencyKeyInUse(error: unknown) {
+  return (
+    error instanceof Stripe.errors.StripeError &&
+    error.code === "idempotency_key_in_use"
+  );
+}
 
 export async function POST(request: Request) {
   // 認証チェック
@@ -93,12 +107,23 @@ export async function POST(request: Request) {
   }
 
   // 既存のpaymentレコードがあるか確認（二重作成防止。failedは除外し再作成を許可）
-  const { data: existingPayment } = await adminDb
-    .from("payments")
-    .select("stripe_payment_intent_id, amount")
-    .eq("booking_id", bookingId)
-    .neq("status", "failed")
-    .single();
+  async function fetchExistingPayment() {
+    const { data, error } = await adminDb
+      .from("payments")
+      .select("stripe_payment_intent_id, amount")
+      .eq("booking_id", bookingId)
+      .neq("status", "failed")
+      .maybeSingle();
+
+    if (error) {
+      console.error("Failed to check existing payment:", error);
+      throw error;
+    }
+
+    return data;
+  }
+
+  const existingPayment = await fetchExistingPayment();
 
   if (existingPayment) {
     // 既存PaymentIntentの状態を確認
@@ -112,7 +137,10 @@ export async function POST(request: Request) {
         clientSecret: pi.client_secret,
       });
     }
-    return NextResponse.json({ clientSecret: pi.client_secret, amount: existingPayment.amount });
+    return NextResponse.json({
+      clientSecret: pi.client_secret,
+      amount: existingPayment.amount,
+    });
   }
 
   // メンターのStripe情報を取得
@@ -178,21 +206,57 @@ export async function POST(request: Request) {
   }
 
   try {
-    // PaymentIntent作成
-    const paymentIntent = await stripe.paymentIntents.create(
-      {
-        amount,
-        currency: "usd",
-        automatic_payment_methods: { enabled: true },
-        transfer_data: { destination: mentor.stripe_account_id },
-        metadata: {
-          booking_id: booking.id,
-          user_id: user.id,
-          mentor_id: mentor.id,
-        },
+    const paymentIntentPayload = {
+      amount,
+      currency: "usd",
+      automatic_payment_methods: { enabled: true },
+      transfer_data: { destination: mentor.stripe_account_id },
+      metadata: {
+        booking_id: String(booking.id),
+        user_id: user.id,
+        mentor_id: mentor.id,
       },
-      { idempotencyKey: `pi_${bookingId}` }
-    );
+    } satisfies Stripe.PaymentIntentCreateParams;
+    const idempotencyKey = `pi_${bookingId}`;
+
+    let paymentIntent: Stripe.PaymentIntent | null = null;
+    for (
+      let attempt = 0;
+      attempt <= IDEMPOTENCY_RETRY_DELAYS_MS.length;
+      attempt += 1
+    ) {
+      try {
+        paymentIntent = await stripe.paymentIntents.create(
+          paymentIntentPayload,
+          { idempotencyKey }
+        );
+        break;
+      } catch (error) {
+        if (
+          !isStripeIdempotencyKeyInUse(error) ||
+          attempt === IDEMPOTENCY_RETRY_DELAYS_MS.length
+        ) {
+          throw error;
+        }
+
+        await wait(IDEMPOTENCY_RETRY_DELAYS_MS[attempt]);
+
+        const concurrentPayment = await fetchExistingPayment();
+        if (concurrentPayment) {
+          const pi = await stripe.paymentIntents.retrieve(
+            concurrentPayment.stripe_payment_intent_id
+          );
+          return NextResponse.json({
+            clientSecret: pi.client_secret,
+            amount: concurrentPayment.amount,
+          });
+        }
+      }
+    }
+
+    if (!paymentIntent) {
+      throw new Error("PaymentIntent creation did not return a result.");
+    }
 
     // paymentsテーブルにレコード挿入（既存レコードがある場合はUPDATE）
     const { error: upsertError } = await adminDb
