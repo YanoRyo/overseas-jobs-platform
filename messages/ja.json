@@ -1290,6 +1290,7 @@
         },
         "payments": {
           "action_required": "要対応",
+          "confirmed": "確定済み",
           "all": "すべて",
           "cancellation_pending": "キャンセル待ち",
           "completion_due": "完了確認待ち",
@@ -1322,6 +1323,8 @@
         "lessonCompletionDescription": "終了済みの支払い済みレッスンを確認します。",
         "payoutApprovalsLabel": "Payout承認",
         "payoutApprovalsDescription": "完了確認済みで、payout 解放待ちのレッスンです。",
+        "confirmedLessonsLabel": "確定済みレッスン",
+        "confirmedLessonsDescription": "支払い済みで、まだ completed ではない予約を確認します。",
         "meetingSetupIssuesLabel": "Meeting Setup Issues",
         "meetingSetupIssuesDescription": "meeting URL の自動設定に失敗した booking です。",
         "nextTitle": "次に見るべき項目",

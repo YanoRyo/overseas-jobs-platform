@@ -1290,6 +1290,7 @@
         },
         "payments": {
           "action_required": "Action Required",
+          "confirmed": "Confirmed",
           "all": "All",
           "cancellation_pending": "Cancellation Pending",
           "completion_due": "Completion Due",
@@ -1322,6 +1323,8 @@
         "lessonCompletionDescription": "Ended paid lessons waiting for completion review.",
         "payoutApprovalsLabel": "Payout Approvals",
         "payoutApprovalsDescription": "Completed lessons waiting for payout release.",
+        "confirmedLessonsLabel": "Confirmed Lessons",
+        "confirmedLessonsDescription": "Paid lessons that are confirmed but not completed yet.",
         "meetingSetupIssuesLabel": "Meeting Setup Issues",
         "meetingSetupIssuesDescription": "Bookings where automatic meeting setup needs follow-up.",
         "nextTitle": "What needs attention next",

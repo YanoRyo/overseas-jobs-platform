@@ -33,6 +33,7 @@ type PaymentViewFilter =
   | "action_required"
   | "all"
   | "cancellation_pending"
+  | "confirmed"
   | "completion_due"
   | "payout_pending"
   | "refund_pending";
@@ -66,6 +67,7 @@ const ACTION_REQUIRED_FILTERS: ActionRequiredFocus[] = [
 
 const PAYMENT_FILTERS: PaymentViewFilter[] = [
   "action_required",
+  "confirmed",
   "all",
   "cancellation_pending",
   "completion_due",
@@ -234,6 +236,10 @@ function isPaymentReservationCase(
 
 function hasPendingCancellationRequest(reservation: AdminReservationCase) {
   return reservation.changeRequests.some((request) => request.status === "pending");
+}
+
+function isConfirmedReservation(reservation: AdminReservationCase) {
+  return reservation.status === "confirmed";
 }
 
 function hasPayoutPending(reservation: PaymentReservationCase) {
@@ -1770,6 +1776,7 @@ function OverviewPanel({
   lessonCompletionItems,
   payoutApprovalItems,
   meetingSetupItems,
+  confirmedReservationItems,
   openSupportCount,
   refundPendingCount,
   processedLogsCount,
@@ -1783,6 +1790,7 @@ function OverviewPanel({
   lessonCompletionItems: PaymentReservationCase[];
   payoutApprovalItems: PaymentReservationCase[];
   meetingSetupItems: MeetingSetupActionItem[];
+  confirmedReservationItems: PaymentReservationCase[];
   openSupportCount: number;
   refundPendingCount: number;
   processedLogsCount: number;
@@ -1803,7 +1811,7 @@ function OverviewPanel({
           <p className="mt-2 text-sm text-[#606579]">
             {t("overview.snapshotDescription")}
           </p>
-          <div className="mt-5 grid gap-4 md:grid-cols-4">
+          <div className="mt-5 grid gap-4 md:grid-cols-5">
             <SummaryCard
               label={t("overview.cancellationRequestsLabel")}
               value={cancellationRequestItems.length}
@@ -1831,6 +1839,13 @@ function OverviewPanel({
               description={t("overview.meetingSetupIssuesDescription")}
               tone="danger"
               onClick={() => onOpenActionRequired("meeting_setup_issues")}
+            />
+            <SummaryCard
+              label={t("overview.confirmedLessonsLabel")}
+              value={confirmedReservationItems.length}
+              description={t("overview.confirmedLessonsDescription")}
+              tone="info"
+              onClick={() => onOpenPayments("confirmed")}
             />
           </div>
         </section>
@@ -2001,6 +2016,15 @@ export function AdminOperationsConsole({
   const supportRequests = supportData?.requests ?? [];
   const paymentCases = reservations.filter(isPaymentReservationCase);
 
+  const confirmedReservationItems = useMemo(() => {
+    return paymentCases
+      .filter((reservation) => isConfirmedReservation(reservation))
+      .sort(
+        (left, right) =>
+          getTimestamp(left.startTime) - getTimestamp(right.startTime)
+      );
+  }, [paymentCases]);
+
   const cancellationRequestItems = useMemo(() => {
     return reservations
       .flatMap((reservation) =>
@@ -2065,6 +2089,8 @@ export function AdminOperationsConsole({
           ? paymentCases.filter((reservation) =>
               hasPendingCancellationRequest(reservation)
             )
+          : paymentFilter === "confirmed"
+            ? confirmedReservationItems
           : paymentFilter === "completion_due"
             ? paymentCases.filter((reservation) =>
                 hasLessonCompletionDue(reservation)
@@ -2084,7 +2110,13 @@ export function AdminOperationsConsole({
     return base.filter((reservation) =>
       searchMatches(buildPaymentSearchHaystack(reservation), query)
     );
-  }, [paymentCases, paymentFilter, query, refundPendingItems]);
+  }, [
+    confirmedReservationItems,
+    paymentCases,
+    paymentFilter,
+    query,
+    refundPendingItems,
+  ]);
 
   const filteredLogs = useMemo(() => {
     const base = reservations
@@ -2466,6 +2498,8 @@ export function AdminOperationsConsole({
     activeTab === "action_required"
       ? actionRequiredFocus === "cancellation_requests"
         ? visibleCancellationItems.length
+        : actionRequiredFocus === "lesson_completion"
+          ? visibleLessonCompletionItems.length
         : actionRequiredFocus === "payout_approvals"
           ? visiblePayoutItems.length
           : actionRequiredFocus === "meeting_setup_issues"
@@ -2630,6 +2664,7 @@ export function AdminOperationsConsole({
                 lessonCompletionItems={lessonCompletionItems}
                 payoutApprovalItems={payoutApprovalItems}
                 meetingSetupItems={meetingSetupItems}
+                confirmedReservationItems={confirmedReservationItems}
                 openSupportCount={supportData?.summary.open ?? 0}
                 refundPendingCount={refundPendingItems.length}
                 processedLogsCount={
