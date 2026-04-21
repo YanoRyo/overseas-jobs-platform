@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { useTranslations } from "next-intl";
-import { Link } from "@/i18n/navigation";
+import { useLocale, useTranslations } from "next-intl";
+import { Link, useRouter } from "@/i18n/navigation";
 import type { UserRole } from "@/features/auth/types";
+import type { ReservationData } from "@/features/checkout/types/reservation";
 import { useMyLessons } from "../../hooks/useMyLessons";
 import type { LessonItem } from "../../types/myLessons";
 import { LessonCard } from "./LessonCard";
@@ -13,12 +14,14 @@ function LessonSection({
   title,
   items,
   onRequestCancellation,
+  onResumePayment,
   role,
 }: {
   title: string;
   items: LessonItem[];
   role: UserRole;
   onRequestCancellation: (lesson: LessonItem) => void;
+  onResumePayment: (lesson: LessonItem) => void;
 }) {
   if (items.length === 0) return null;
 
@@ -32,6 +35,7 @@ function LessonSection({
             lesson={lesson}
             role={role}
             onRequestCancellation={onRequestCancellation}
+            onResumePayment={onResumePayment}
           />
         ))}
       </div>
@@ -42,6 +46,8 @@ function LessonSection({
 export function MyLessonsTab({ role }: { role: UserRole }) {
   const t = useTranslations("settings.myLessons");
   const tc = useTranslations("common");
+  const locale = useLocale();
+  const router = useRouter();
   const { lessons, loading, error, refresh } = useMyLessons(role);
   const [dialogLesson, setDialogLesson] = useState<LessonItem | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -53,6 +59,37 @@ export function MyLessonsTab({ role }: { role: UserRole }) {
   function handleCloseCancellationDialog() {
     if (submitting) return;
     setDialogLesson(null);
+  }
+
+  function handleResumePayment(lesson: LessonItem) {
+    const duration = Math.round(
+      (lesson.endTime.getTime() - lesson.startTime.getTime()) / (1000 * 60)
+    );
+    const time = new Intl.DateTimeFormat(locale, {
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    }).format(lesson.startTime);
+    const hourlyRate =
+      lesson.mentorHourlyRate ??
+      (lesson.amount !== null && duration > 0
+        ? lesson.amount / 100 / (duration / 60)
+        : 0);
+
+    const reservation: ReservationData = {
+      bookingId: lesson.id,
+      mentorId: lesson.mentorId,
+      mentorName: lesson.participantName,
+      mentorAvatarUrl: lesson.participantAvatarUrl ?? "",
+      mentorCountry: lesson.mentorCountry ?? "",
+      hourlyRate,
+      duration,
+      date: lesson.startTime.toISOString(),
+      time,
+    };
+
+    localStorage.setItem("pendingReservation", JSON.stringify(reservation));
+    router.push("/checkout");
   }
 
   async function handleSubmitCancellation(payload: {
@@ -120,24 +157,28 @@ export function MyLessonsTab({ role }: { role: UserRole }) {
             items={lessons.upcoming}
             role={role}
             onRequestCancellation={handleOpenCancellationDialog}
+            onResumePayment={handleResumePayment}
           />
           <LessonSection
             title={t("pending")}
             items={lessons.pending}
             role={role}
             onRequestCancellation={handleOpenCancellationDialog}
+            onResumePayment={handleResumePayment}
           />
           <LessonSection
             title={t("completed")}
             items={lessons.completed}
             role={role}
             onRequestCancellation={handleOpenCancellationDialog}
+            onResumePayment={handleResumePayment}
           />
           <LessonSection
             title={t("cancelled")}
             items={lessons.cancelled}
             role={role}
             onRequestCancellation={handleOpenCancellationDialog}
+            onResumePayment={handleResumePayment}
           />
         </div>
       )}

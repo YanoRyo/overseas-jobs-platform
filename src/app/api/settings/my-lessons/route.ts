@@ -39,6 +39,8 @@ type MentorRow = {
   first_name: string;
   last_name: string;
   avatar_url: string | null;
+  country_code: string | null;
+  hourly_rate: number | null;
 };
 
 type UserRow = {
@@ -239,7 +241,9 @@ export async function GET(request: Request) {
     await Promise.all([
       adminDb
         .from("mentors")
-        .select("id, user_id, first_name, last_name, avatar_url")
+        .select(
+          "id, user_id, first_name, last_name, avatar_url, country_code, hourly_rate"
+        )
         .in("id", mentorIds),
       adminDb
         .from("users")
@@ -312,6 +316,9 @@ export async function GET(request: Request) {
           ? (student?.avatar_url ?? null)
           : (mentor?.avatar_url ?? null),
       participantLabel: viewerRole === "mentor" ? "Student" : "Mentor",
+      mentorId: booking.mentor_id,
+      mentorCountry: mentor?.country_code ?? null,
+      mentorHourlyRate: mentor?.hourly_rate ?? null,
       amount: payment?.amount ?? null,
       currency: payment?.currency ?? "usd",
       paymentStatus: payment?.status ?? null,

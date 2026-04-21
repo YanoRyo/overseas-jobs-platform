@@ -10,6 +10,9 @@ export type LessonItem = {
   participantName: string;
   participantAvatarUrl: string | null;
   participantLabel: "Mentor" | "Student";
+  mentorId: string;
+  mentorCountry: string | null;
+  mentorHourlyRate: number | null;
   amount: number | null;
   currency: string;
   paymentStatus: PaymentStatus | null;

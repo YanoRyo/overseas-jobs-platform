@@ -12,6 +12,9 @@ type ApiLessonItem = {
   participantName: string;
   participantAvatarUrl: string | null;
   participantLabel: LessonItem["participantLabel"];
+  mentorId: string;
+  mentorCountry: string | null;
+  mentorHourlyRate: number | null;
   amount: number | null;
   currency: string;
   paymentStatus: LessonItem["paymentStatus"];
@@ -101,6 +104,9 @@ export function useMyLessons(role: UserRole) {
           participantName: lesson.participantName,
           participantAvatarUrl: lesson.participantAvatarUrl,
           participantLabel: lesson.participantLabel,
+          mentorId: lesson.mentorId,
+          mentorCountry: lesson.mentorCountry,
+          mentorHourlyRate: lesson.mentorHourlyRate,
           amount: lesson.amount,
           currency: lesson.currency,
           paymentStatus: lesson.paymentStatus,

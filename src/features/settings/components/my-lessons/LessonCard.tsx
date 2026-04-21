@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { useTranslations } from "next-intl";
-import { ExternalLink } from "lucide-react";
+import { CreditCard, ExternalLink } from "lucide-react";
 import type { UserRole } from "@/features/auth/types";
 import type { BookingStatus } from "@/features/payment/types/payment";
 import type { LessonItem } from "../../types/myLessons";
@@ -90,9 +90,15 @@ type Props = {
   lesson: LessonItem;
   role: UserRole;
   onRequestCancellation: (lesson: LessonItem) => void;
+  onResumePayment: (lesson: LessonItem) => void;
 };
 
-export function LessonCard({ lesson, role, onRequestCancellation }: Props) {
+export function LessonCard({
+  lesson,
+  role,
+  onRequestCancellation,
+  onResumePayment,
+}: Props) {
   const t = useTranslations("settings.myLessons");
   const status = STATUS_STYLES[lesson.status];
   const duration = formatDuration(lesson.startTime, lesson.endTime);
@@ -114,6 +120,12 @@ export function LessonCard({ lesson, role, onRequestCancellation }: Props) {
     lesson.status !== "cancellation_requested" &&
     lesson.paymentStatus !== "refunded" &&
     lesson.paymentStatus !== "refund_pending";
+  const canResumePayment =
+    role === "student" &&
+    lesson.status === "pending" &&
+    (lesson.paymentStatus === null ||
+      lesson.paymentStatus === "pending" ||
+      lesson.paymentStatus === "failed");
 
   return (
     <div className="rounded-xl border border-border bg-white p-4 shadow-sm">
@@ -176,6 +188,12 @@ export function LessonCard({ lesson, role, onRequestCancellation }: Props) {
             <p className="text-xs text-secondary">
               {t("cancellationRequestPendingDetail")}
             </p>
+          ) : canResumePayment ? (
+            <p className="text-xs text-secondary">
+              {lesson.paymentStatus === "failed"
+                ? t("paymentFailedResume")
+                : t("paymentIncompleteResume")}
+            </p>
           ) : lesson.status === "cancelled" ? (
             <p className="text-xs text-secondary">{t("lessonCancelledNote")}</p>
           ) : lesson.status === "cancelled_by_mentor" ? (
@@ -220,7 +238,16 @@ export function LessonCard({ lesson, role, onRequestCancellation }: Props) {
           ) : null}
         </div>
 
-        {shouldShowMeetingButton ? (
+        {canResumePayment ? (
+          <button
+            type="button"
+            onClick={() => onResumePayment(lesson)}
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-[#2563eb] bg-[#eff6ff] px-4 py-2 text-sm font-semibold text-[#1d4ed8] transition hover:bg-[#dbeafe]"
+          >
+            {t("resumePayment")}
+            <CreditCard className="h-4 w-4" />
+          </button>
+        ) : shouldShowMeetingButton ? (
           <a
             href={lesson.meetingUrl ?? undefined}
             target="_blank"
