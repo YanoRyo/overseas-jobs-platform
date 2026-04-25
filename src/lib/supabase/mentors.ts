@@ -176,7 +176,7 @@ export const uploadAvatar = async (userId: string, file: File) => {
 
   const { error } = await supabase.storage
     .from('avatars')
-    .upload(filePath, file, { upsert: true });
+    .upload(filePath, file, { upsert: true, contentType: file.type });
 
   if (error) {
     return { url: null, error };
@@ -223,7 +223,7 @@ export const registerMentor = async ({
 
     const { error: uploadError } = await supabaseClient.storage
       .from('avatars')
-      .upload(filePath, avatarFile, { upsert: true });
+      .upload(filePath, avatarFile, { upsert: true, contentType: avatarFile.type });
 
     if (uploadError) {
       return { mentor: null, error: uploadError };
