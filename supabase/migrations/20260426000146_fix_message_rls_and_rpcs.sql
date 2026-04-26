@@ -27,7 +27,12 @@
 --         → 自分が参加する会話で「相手の unread_by」を勝手に外せた
 --         + 後段で UPDATE ポリシーを DROP するため INVOKER だと失敗する
 -- 新実装: SECURITY DEFINER で RLS をバイパスしつつ、関数内部で
---         auth.uid() = p_user_id と参加者であることを必ずチェック
+--         (a) 認証済みであること、(b) p_user_id が呼び出し元自身であること、
+--         (c) 呼び出し元が当該 conversation の参加者であること
+--         の 3 点を例外で明示的にチェックする。
+--         WHERE 句で参加者条件を絞ると 0 行更新の "silent success" になり
+--         監査・デバッグ性が低下するため、参加者判定は WHERE ではなく
+--         FOUND によるポストチェックで forbidden を返す形に分離する。
 CREATE OR REPLACE FUNCTION "public"."mark_conversation_as_read"(
   "p_conversation_id" uuid,
   "p_user_id" uuid
@@ -52,16 +57,25 @@ BEGIN
   SET unread_by = array_remove(unread_by, v_uid)
   WHERE id = p_conversation_id
     AND (mentor_id = v_uid OR student_id = v_uid);
-END
+
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'mark_conversation_as_read: forbidden or conversation not found'
+      USING ERRCODE = '42501';
+  END IF;
+END;
 $$;
 
 ALTER FUNCTION "public"."mark_conversation_as_read"(uuid, uuid) OWNER TO "postgres";
 
--- PUBLIC のデフォルト EXECUTE を剥がし、authenticated/service_role のみ許可
+-- PUBLIC / anon / service_role からデフォルト EXECUTE を剥がし、authenticated のみ許可。
+-- この関数は auth.uid() による本人確認を前提とするため、ユーザーコンテキストを
+-- 持たない service_role 経由では常に失敗する。Server-side で unread_by を更新したい
+-- 場合は service_role で直接 UPDATE すれば RLS バイパスで可能なので、本関数を
+-- service_role に開ける必要は無い。
 REVOKE ALL ON FUNCTION "public"."mark_conversation_as_read"(uuid, uuid)
-  FROM PUBLIC, "anon";
+  FROM PUBLIC, "anon", "service_role";
 GRANT EXECUTE ON FUNCTION "public"."mark_conversation_as_read"(uuid, uuid)
-  TO "authenticated", "service_role";
+  TO "authenticated";
 
 -- --------------------------------------------------------------------------
 -- B. mark_conversation_as_unread / archive_conversation を service_role 専用に
@@ -146,7 +160,7 @@ BEGIN
         )
       );
   END IF;
-END
+END;
 $$;
 
 -- --------------------------------------------------------------------------
